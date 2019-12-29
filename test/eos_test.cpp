@@ -34,7 +34,7 @@ TEST(EosTest, VanDerWaalsEosTest) {
   auto eos = vdw_eos<double, 1>(pc, tc, omega);
   const double p = 3e6;
   const double t = 180.0;
-  const auto state = eos.fix_state(p, t);
+  const auto state = eos.state(p, t);
   const auto z = state.zfactor();
 
   ASSERT_EQ(z.size(), 3);
@@ -61,7 +61,7 @@ TEST(EosTest, SoaveRedlichKwongEosTest) {
   auto eos = srk_eos<double, 1>(pc, tc, omega);
   const double p = 3e6;
   const double t = 180.0;
-  const auto state = eos.fix_state(p, t);
+  const auto state = eos.state(p, t);
   const auto z = state.zfactor();
 
   ASSERT_EQ(z.size(), 3);
@@ -88,7 +88,7 @@ TEST(EosTest, PengRobinsonEosTest) {
   auto eos = pr_eos<double, 1>(pc, tc, omega);
   const double p = 3e6;
   const double t = 180.0;
-  const auto state = eos.fix_state(p, t);
+  const auto state = eos.state(p, t);
   const auto z = state.zfactor();
 
   ASSERT_EQ(z.size(), 3);
