@@ -9,3 +9,7 @@ target_link_libraries(eos_test
     GTest::GTest
     GTest::Main
   )
+add_test(
+  NAME eos_test
+  COMMAND eos_test
+  )

@@ -17,4 +17,5 @@ target_include_directories(eos
     include
   )
 
+enable_testing()
 add_subdirectory(test)

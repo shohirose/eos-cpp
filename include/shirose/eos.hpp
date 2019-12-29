@@ -25,6 +25,7 @@
 
 #include <cmath>
 #include <cstddef>
+#include <limits>
 #include <vector>
 
 #include "shirose/roots.hpp"
@@ -38,20 +39,25 @@ struct van_der_waals {
   static constexpr double omega_b = 0.125;
 
   template <typename T>
-  static T m(const T&) noexcept {
+  static T m(const T &) noexcept {
     return 0;
   }
 
   template <typename T>
-  static std::array<T, 3> cubic_eq(const T& a, const T& b) noexcept {
+  static std::array<T, 3> cubic_eq(const T &a, const T &b) noexcept {
     return {-b - 1, a, -a * b};
   }
 
   template <typename T>
-  static T fugacity_coeff(const T& a, const T& b, T z) noexcept {
+  static T fugacity_coeff(const T &a, const T &b, T z) noexcept {
     using std::exp;
     using std::log;
     return exp(-log(z - b) - a / z + z - 1);
+  }
+
+  template <typename T>
+  static T pressure(const T &t, const T &v, const T &a, const T &b) noexcept {
+    return gas_constant * t / (v - b) - a / (v * v);
   }
 };
 
@@ -65,15 +71,20 @@ struct soave_redlich_kwong {
   }
 
   template <typename T>
-  static std::array<T, 3> cubic_eq(const T& a, const T& b) noexcept {
+  static std::array<T, 3> cubic_eq(const T &a, const T &b) noexcept {
     return {-1, a - b - b * b, -a * b};
   }
 
   template <typename T>
-  static T fugacity_coeff(const T& a, const T& b, const T& z) noexcept {
+  static T fugacity_coeff(const T &a, const T &b, const T &z) noexcept {
     using std::exp;
     using std::log;
     return exp(z - 1 - log(z - b) - a * a / b * log(b / z + 1));
+  }
+
+  template <typename T>
+  static T pressure(const T &t, const T &v, const T &a, const T &b) noexcept {
+    return gas_constant * t / (v - b) - a / (v * (v + b));
   }
 };
 
@@ -82,17 +93,17 @@ struct peng_robinson {
   static constexpr double omega_b = 0.07780;
 
   template <typename T>
-  static T m(const T& omega) noexcept {
+  static T m(const T &omega) noexcept {
     return 0.3796 + omega * (1.485 - omega * (0.1644 - 0.01667 * omega));
   }
 
   template <typename T>
-  static std::array<T, 3> cubic_eq(const T& a, const T& b) noexcept {
+  static std::array<T, 3> cubic_eq(const T &a, const T &b) noexcept {
     return {b - 1, a - (3 * b + 2) * b, (-a + b + b * b) * b};
   }
 
   template <typename T>
-  static T fugacity_coeff(const T& a, const T& b, const T& z) noexcept {
+  static T fugacity_coeff(const T &a, const T &b, const T &z) noexcept {
     using std::exp;
     using std::log;
     constexpr double sqrt2 = 1.4142135623730950488;
@@ -101,7 +112,61 @@ struct peng_robinson {
     return exp(z - 1 - log(z - b) -
                a / (2 * sqrt2 * b) * log((z + delta1 * b) / (z - delta2 * b)));
   }
+
+  template <typename T>
+  static T pressure(const T &t, const T &v, const T &a, const T &b) noexcept {
+    return gas_constant * t / (v - b) - a / ((v - b) * (v + b) + 2 * b * v);
+  }
 };
+
+template <typename Policy, typename T, std::size_t N>
+class pt_state {};
+
+template <typename Policy, typename T>
+class pt_state<Policy, T, 1> {
+ public:
+  pt_state(const T &ar, const T &br) : ar_{ar}, br_{br} {}
+
+  std::vector<T> zfactor() const noexcept {
+    const auto p = Policy::cubic_eq(ar_, br_);
+    const auto x = roots(p);
+
+    std::vector<T> z;
+    z.reserve(3);
+    using std::fabs;
+    constexpr double eps = 1e-10;
+    for (auto &&xi : x)
+      if (fabs(xi.imag()) < eps) z.push_back(xi.real());
+    return z;
+  }
+
+  T fugacity_coeff(const T &z) const noexcept {
+    return Policy::fugacity_coeff(ar_, br_, z);
+  }
+
+ private:
+  T ar_;
+  T br_;
+};
+
+template <typename Policy, typename T, std::size_t N>
+class pvt_relation {};
+
+template <typename Policy, typename T>
+class pvt_relation<Policy, T, 1> {
+ public:
+  pvt_relation(const T &a, const T &b) : a_{a}, b_{b} {}
+
+  T pressure(const T &t, const T &v) const noexcept {
+    return Policy::pressure(t, v, a_, b_);
+  }
+
+ private:
+  T a_;
+  T b_;
+};
+
+constexpr auto dynamic_extent = std::numeric_limits<std::size_t>::max();
 
 template <typename Policy, typename T, std::size_t N>
 class equation_of_state {};
@@ -112,67 +177,40 @@ class equation_of_state<Policy, T, 1> {
   static constexpr auto omega_a = Policy::omega_a;
   static constexpr auto omega_b = Policy::omega_b;
 
-  equation_of_state(const T& pc, const T& tc, const T& omega)
-      : pc_{pc},
-        tc_{tc},
-        omega_{omega},
-        a_{(omega_a * gas_constant * gas_constant) * tc * tc / pc},
-        b_{(omega_b * gas_constant) * tc / pc},
-        m_{Policy::m(omega)},
-        pr_{},
-        tr_{},
-        alpha_{},
-        ar_{},
-        br_{} {}
+  equation_of_state() = default;
 
-  void set_params(const T& pc, const T& tc, const T& omega) noexcept {
+  equation_of_state(const T &pc, const T &tc, const T &omega)
+      : pc_{pc}, tc_{tc}, omega_{omega}, m_{Policy::m(omega)} {}
+
+  void set(const T &pc, const T &tc, const T &omega) noexcept {
     pc_ = pc;
     tc_ = tc;
     omega_ = omega;
-    a_ = (omega_a * gas_constant * gas_constant) * tc * tc / pc;
-    b_ = (omega_b * gas_constant) * tc / pc;
     m_ = Policy::m(omega);
   }
 
-  void set_pt(const T& p, const T& t) noexcept {
-    pr_ = p / pc_;
-    tr_ = t / tc_;
+  pvt_relation<Policy, T, 1> pvt() const noexcept {
+    const auto a = (omega_a * gas_constant * gas_constant) * tc_ * tc_ / pc_;
+    const auto b = (omega_b * gas_constant) * tc_ / pc_;
+    return {a, b};
+  }
+
+  pt_state<Policy, T, 1> fix_state(const T &p, const T &t) noexcept {
+    const auto pr = p / pc_;
+    const auto tr = t / tc_;
     using std::pow;
     using std::sqrt;
-    alpha_ = pow(1 + m_ * (1 - sqrt(tr_)), 2);
-    ar_ = omega_a * alpha_ * pr_ / pow(tr_, 2);
-    br_ = omega_b * pr_ / tr_;
-  }
-
-  std::vector<T> zfactor() noexcept {
-    const auto p = Policy::cubic_eq(ar_, br_);
-    const auto x = roots(p);
-
-    std::vector<T> z;
-    z.reserve(3);
-    using std::fabs;
-    constexpr double eps = 1e-10;
-    for (auto&& xi : x)
-      if (fabs(xi.imag()) < eps) z.push_back(xi.real());
-    return z;
-  }
-
-  T fugacity_coeff(const T& z) noexcept {
-    return Policy::fugacity_coeff(ar_, br_, z);
+    const auto alpha = pow(1 + m_ * (1 - sqrt(tr)), 2);
+    const auto ar = omega_a * alpha * pr / pow(tr, 2);
+    const auto br = omega_b * pr / tr;
+    return {ar, br};
   }
 
  private:
   T pc_;
   T tc_;
   T omega_;
-  T a_;
-  T b_;
   T m_;
-  T pr_;
-  T tr_;
-  T alpha_;
-  T ar_;
-  T br_;
 };
 
 template <typename T, std::size_t N>
