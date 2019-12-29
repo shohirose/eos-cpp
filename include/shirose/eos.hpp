@@ -119,13 +119,15 @@ struct peng_robinson {
   }
 };
 
+constexpr auto dynamic_extent = std::numeric_limits<std::size_t>::max();
+
 template <typename Policy, typename T, std::size_t N>
-class pt_state {};
+class eos_state {};
 
 template <typename Policy, typename T>
-class pt_state<Policy, T, 1> {
+class eos_state<Policy, T, 1> {
  public:
-  pt_state(const T &ar, const T &br) : ar_{ar}, br_{br} {}
+  eos_state(const T &ar, const T &br) : ar_{ar}, br_{br} {}
 
   std::vector<T> zfactor() const noexcept {
     const auto p = Policy::cubic_eq(ar_, br_);
@@ -166,8 +168,6 @@ class pvt_relation<Policy, T, 1> {
   T b_;
 };
 
-constexpr auto dynamic_extent = std::numeric_limits<std::size_t>::max();
-
 template <typename Policy, typename T, std::size_t N>
 class equation_of_state {};
 
@@ -195,7 +195,7 @@ class equation_of_state<Policy, T, 1> {
     return {a, b};
   }
 
-  pt_state<Policy, T, 1> fix_state(const T &p, const T &t) noexcept {
+  eos_state<Policy, T, 1> state(const T &p, const T &t) noexcept {
     const auto pr = p / pc_;
     const auto tr = t / tc_;
     using std::pow;
