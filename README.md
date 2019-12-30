@@ -12,8 +12,8 @@ This module provides templated classes for three types of cubic EoSs: van der Wa
 
 ```cpp
 // Critical parameters
-const double pc = 4e6;      // Critical pressure
-const double tc = 190.6;    // Critical temperature
+const double pc = 4e6;      // Critical pressure [Pa]
+const double tc = 190.6;    // Critical temperature [K]
 const double omega = 0.008; // Accentric factor
 
 // Creates EoS object
@@ -24,8 +24,11 @@ const auto eos = pr_eos<double, 1>(pc, tc, omega);
   const double p = 3e6;
   const double t = 180.0;
 
-  // Creates PT fixed state
-  const auto state = eos.fix_state(p, t);
+  // Creates a state at a given pressure and temperature.
+  const auto state = eos.state(p, t);
+
+  // Computes z-factor and fugacity coefficient.
+  // Please note that there can be multile values for z-factor.
   const auto z = state.zfactor();
   const auto phi = state.fugacity_coeff(z[0]);
 }
@@ -34,7 +37,9 @@ const auto eos = pr_eos<double, 1>(pc, tc, omega);
 {
   // Creates PVT line
   const auto pvt = eos.pvt();
-  const auto v = 0.001;               // Volume
-  const auto p = pvt.pressure(t, v);  // Pressure
+  // Volume [m3]
+  const auto v = 0.001;
+  // Computes pressure at a given temperature and volume
+  const auto p = pvt.pressure(t, v);
 }
 ```
