@@ -59,7 +59,7 @@ struct van_der_waals {
   /// @brief Computes coefficients of cubic equation
   /// @param[in] a Reduced attraction parameter
   /// @param[in] b Reduced repulsion parameter
-  /// @returns An array of Z-factor
+  /// @returns Coefficients of the cubic equation of z-factor
   static std::array<T, 3> cubic_eq(const T &a, const T &b) noexcept {
     return {-b - 1, a, -a * b};
   }
@@ -177,7 +177,7 @@ class peng_robinson {
   /// @brief Computes coeficients of the cubic equation of z-factor.
   /// @param[in] a Reduced attraction parameter
   /// @param[in] b Reduced repulsion parameter
-  /// @returns An array of coefficients of the cubic equation.
+  /// @returns Coefficients of the cubic equation of z-factor.
   static std::array<T, 3> cubic_eq(const T &a, const T &b) noexcept {
     return {b - 1, a - (3 * b + 2) * b, (-a + b + b * b) * b};
   }
