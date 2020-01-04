@@ -28,7 +28,7 @@ const auto eos = make_pr_eos(pc, tc, omega);
   // Please note that there can be multile values for z-factor.
   const auto state = eos.state(p, t);
   const auto z = state.zfactor();
-  const auto phi = eos.fugacity_coeff(z[0]);
+  const auto phi = state.fugacity_coeff(z[0]);
 }
 
 // Computes pressure at given temperature and volume
