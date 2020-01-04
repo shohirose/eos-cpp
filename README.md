@@ -17,7 +17,7 @@ const double tc = 190.6;    // Critical temperature [K]
 const double omega = 0.008; // Acentric factor
 
 // Creates EoS object
-const auto eos = make_cubic_eos(peng_robinson<double>(pc, tc, omega));
+const auto eos = make_pr_eos(pc, tc, omega);
 
 // Computes z-factor and fugacity coefficient
 {
