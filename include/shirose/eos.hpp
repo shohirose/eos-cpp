@@ -226,8 +226,8 @@ class peng_robinson {
   T m_;
 };
 
-/// @brief Cubic equation of state
-/// @tparam Policy Policy of cubic EoS
+/// @brief Two-parameter cubic equation of state (EoS)
+/// @tparam Policy EoS policy
 ///
 /// Policy must have the following static functions:
 ///    - pressure(t, v, a, b)
@@ -245,18 +245,34 @@ class cubic_eos {
  public:
   // Static functions
 
+  /// @brief Computes attraction parameter
+  /// @param[in] pc Critical pressure
+  /// @param[in] tc Critical temperature
+  /// @returns Attraction parameter at critical condition
   static T attraction_param(const T &pc, const T &tc) noexcept {
     return (Policy::omega_a * gas_constant * gas_constant) * tc * tc / pc;
   }
 
+  /// @brief Computes repulsion parameter
+  /// @param[in] pc Critical pressure
+  /// @param[in] tc Critical temperature
+  /// @returns Repulsion parameter at critical condition
   static T repulsion_param(const T &pc, const T &tc) noexcept {
     return (Policy::omega_b * gas_constant) * tc / pc;
   }
 
+  /// @brief Computes reduced attraction parameter
+  /// @param[in] pr Reduced pressure
+  /// @param[in] tr Reduced temperature
+  /// @returns Reduced attraction parameter
   static T reduced_attraction_param(const T &pr, const T &tr) noexcept {
     return Policy::omega_a * pr / (tr * tr);
   }
 
+  /// @brief Computes reduced repulsion parameter
+  /// @param[in] pr Reduced pressure
+  /// @param[in] tr Reduced temperature
+  /// @returns Reduced repulsion parameter
   static T reduced_repulsion_param(const T &pr, const T &tr) noexcept {
     return Policy::omega_b * pr / tr;
   }
