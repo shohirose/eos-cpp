@@ -35,58 +35,10 @@ namespace shirose {
 
 constexpr double gas_constant = 8.31446261815324;
 
-/// @brief Base type of cubic equation of state policy.
-/// @tparam T Value type
-template <typename T>
-class cubic_eos_policy_base {
- public:
-  /// Value type
-  using value_type = T;
-
-  // Constructors
-
-  /// @brief Constructs EoS from critical parameters
-  /// @param[in] pc Critical pressure
-  /// @param[in] tc Critical temperature
-  /// @param[in] pc Critical attraction parameter
-  /// @param[in] tc Critical repulsion parameter
-  cubic_eos_policy_base(const T &pc, const T &tc, const T &ac,
-                        const T &bc) noexcept
-      : pc_{pc}, tc_{tc}, ac_{ac}, bc_{bc} {}
-
-  /// @brief Computes reduced pressure
-  /// @param[in] p Pressure
-  T reduced_pressure(const T &p) const noexcept { return p / pc_; }
-
-  /// @brief Computes reduced pressure
-  /// @param[in] t Temperature
-  T reduced_temperature(const T &t) const noexcept { return t / tc_; }
-
-  /// @brief Computes attraction parameter
-  T attraction_param(const T &) const noexcept { return ac_; }
-
-  /// @brief Computes repulsion parameter
-  T repulsion_param(const T &) const noexcept { return bc_; }
-
- protected:
-  /// Critical pressure
-  T pc_;
-  /// Critical temperature
-  T tc_;
-  /// Critical attraction parameter
-  T ac_;
-  /// Critical repulsion parameter
-  T bc_;
-};
-
 /// @brief Van der Waals EoS policy for cubic_eos.
 /// @tparam T Value type
 template <typename T>
-class van_der_waals : public cubic_eos_policy_base<T> {
- public:
-  using base_type = cubic_eos_policy_base<T>;
-  using value_type = T;
-
+struct van_der_waals {
   /// Constant for attraction parameter
   static constexpr double omega_a = 0.421875;
   /// Constant for respulsion parameter
@@ -123,41 +75,16 @@ class van_der_waals : public cubic_eos_policy_base<T> {
     return exp(-log(z - b) - a / z + z - 1);
   }
 
-  // Constructors
-
-  /// @brief Constructs EoS from critical parameters
-  /// @param[in] pc Critical pressure
-  /// @param[in] tc Critical temperature
-  van_der_waals(const T &pc, const T &tc) noexcept
-      : base_type(pc, tc,
-                  (omega_a * gas_constant * gas_constant) * tc * tc / pc,
-                  (omega_b * gas_constant) * tc / pc) {}
-
-  /// @brief Computes reduced attraction parameter
-  /// @param[in] pr Reduced pressure
+  /// @brief Computes temperature correction factor for attraction parameter
   /// @param[in] tr Reduced temperature
-  T reduced_attraction_param(const T &pr, const T &tr) const noexcept {
-    return omega_a * pr / (tr * tr);
-  }
-
-  /// @brief Computes reduced repulsion parameter
-  /// @param[in] pr Reduced pressure
-  /// @param[in] tr Reduced temperature
-  T reduced_repulsion_param(const T &pr, const T &tr) const noexcept {
-    return omega_b * pr / tr;
-  }
-
- private:
+  constexpr T alpha(const T &) const noexcept { return 1; }
 };
 
 /// @brief Soave-Redlich-Kwong EoS policy for cubic_eos.
 /// @tparam T Value type
 template <typename T>
-class soave_redlich_kwong : public cubic_eos_policy_base<T> {
+class soave_redlich_kwong {
  public:
-  using base_type = cubic_eos_policy_base<T>;
-  using value_type = T;
-
   /// Constant for attraction parameter
   static constexpr double omega_a = 0.42748;
   /// Constant for repulsion parameter
@@ -202,36 +129,10 @@ class soave_redlich_kwong : public cubic_eos_policy_base<T> {
 
   // Constructors
 
-  /// @brief Constructs EoS from critical parameters
-  /// @param[in] pc Critical pressure
-  /// @param[in] tc Critical temperature
+  /// @brief Constructs EoS
   /// @param[in] omega Acentric factor
-  soave_redlich_kwong(const T &pc, const T &tc, const T &omega) noexcept
-      : base_type(pc, tc,
-                  (omega_a * gas_constant * gas_constant) * tc * tc / pc,
-                  (omega_b * gas_constant) * tc / pc),
-        m_{this->m(omega)} {}
+  soave_redlich_kwong(const T &omega) noexcept : m_{this->m(omega)} {}
 
-  /// @brief Computes attraction parameter
-  T attraction_param(const T &tr) const noexcept {
-    return this->alpha(tr) * this->ac_;
-  }
-
-  /// @brief Computes reduced attraction parameter
-  /// @param[in] pr Reduced pressure
-  /// @param[in] tr Reduced temperature
-  T reduced_attraction_param(const T &pr, const T &tr) const noexcept {
-    return this->alpha(tr) * omega_a * pr / (tr * tr);
-  }
-
-  /// @brief Computes reduced repulsion parameter
-  /// @param[in] pr Reduced pressure
-  /// @param[in] tr Reduced temperature
-  T reduced_repulsion_param(const T &pr, const T &tr) const noexcept {
-    return omega_b * pr / tr;
-  }
-
- private:
   /// @brief Computes correction factor for temperature dependence of attraction
   /// parameter
   /// @param[in] tr Reduced temperature
@@ -242,22 +143,16 @@ class soave_redlich_kwong : public cubic_eos_policy_base<T> {
     return a * a;
   }
 
+ private:
   /// Correction factor for temperature dependency of attraction parameter
   T m_;
 };
 
 /// @brief Peng-Robinson EoS policy for cubic_eos.
 /// @tparam T Value type
-///
-/// This defines function for Peng-Robinson equation of state.
 template <typename T>
-class peng_robinson : public cubic_eos_policy_base<T> {
+class peng_robinson {
  public:
-  /// Base type
-  using base_type = cubic_eos_policy_base<T>;
-  /// Value type
-  using value_type = T;
-
   /// Constant for attraction parameter
   static constexpr double omega_a = 0.45724;
   /// Constant for repulsion parameter
@@ -310,40 +205,12 @@ class peng_robinson : public cubic_eos_policy_base<T> {
 
   // Constructors
 
-  /// @brief Constructs EoS from critical parameters
-  /// @param[in] pc Critical pressure
-  /// @param[in] tc Critical temperature
+  /// @brief Constructs EoS
   /// @param[in] omega Acentric factor
-  peng_robinson(const T &pc, const T &tc, const T &omega)
-      : base_type(pc, tc,
-                  (omega_a * gas_constant * gas_constant) * tc * tc / pc,
-                  (omega_b * gas_constant) * tc / pc),
-        m_{this->m(omega)} {}
+  peng_robinson(const T &omega) : m_{this->m(omega)} {}
 
   // Member functions
 
-  /// @brief Computes attraction parameter
-  /// @param[in] tr Reduced temperature
-  /// @returns Attraction parameter
-  T attraction_param(const T &tr) const noexcept {
-    return this->alpha(tr) * this->ac_;
-  }
-
-  /// @brief Computes reduced attraction parameter
-  /// @param[in] pr Reduced pressure
-  /// @param[in] tr Reduced temperature
-  T reduced_attraction_param(const T &pr, const T &tr) const noexcept {
-    return this->alpha(tr) * omega_a * pr / (tr * tr);
-  }
-
-  /// @brief Computes reduced repulsion parameter
-  /// @param[in] pr Reduced pressure
-  /// @param[in] tr Reduced temperature
-  T reduced_repulsion_param(const T &pr, const T &tr) const noexcept {
-    return omega_b * pr / tr;
-  }
-
- private:
   /// @brief Computes the temperature correction factor for the attraction
   /// parameter
   /// @param[in] tr Reduced temperature
@@ -354,6 +221,7 @@ class peng_robinson : public cubic_eos_policy_base<T> {
     return a * a;
   }
 
+ private:
   /// Correction factor for temperature dependency of attraction parameter
   T m_;
 };
@@ -362,38 +230,58 @@ class peng_robinson : public cubic_eos_policy_base<T> {
 /// @tparam Policy Policy of cubic EoS
 ///
 /// Policy must have the following static functions:
-///    - pressure(a, b)
+///    - pressure(t, v, a, b)
 ///    - cubic_eq(ar, br)
-///    - zfactor(ar, br)
 ///    - fugacity_coeff(z, ar, br)
-/// where a is attraction parameter, b is repulsion parameter, ar is reduced
-/// attraction parameter, br is reduced repulsion parameter, and z is z-factor.
+/// where t is temperature, v is volume, a is attraction parameter, b is
+/// repulsion parameter, ar is reduced attraction parameter, br is reduced
+/// repulsion parameter, and z is z-factor.
 ///
-/// In addition, the following member functions are required:
-///    - reduced_pressure(p)
-///    - reduced_temperature(t)
-///    - attraction_param(tr)
-///    - repulsion_param(tr)
-///    - reduced_attraction_param(pr, tr)
-///    - reduced_repulsion_param(pr, tr)
-/// where p is pressure, t is temperature, pr is reduced pressure, tr is reduced
-/// temperature.
-template <typename Policy>
+/// In addition, the following member function is required:
+///    - alpha(tr)
+/// where tr is reduced temperature.
+template <typename T, typename Policy>
 class cubic_eos {
  public:
-  using value_type = typename Policy::value_type;
+  // Static functions
+
+  static T attraction_param(const T &pc, const T &tc) noexcept {
+    return (Policy::omega_a * gas_constant * gas_constant) * tc * tc / pc;
+  }
+
+  static T repulsion_param(const T &pc, const T &tc) noexcept {
+    return (Policy::omega_b * gas_constant) * tc / pc;
+  }
+
+  static T reduced_attraction_param(const T &pr, const T &tr) noexcept {
+    return Policy::omega_a * pr / (tr * tr);
+  }
+
+  static T reduced_repulsion_param(const T &pr, const T &tr) noexcept {
+    return Policy::omega_b * pr / tr;
+  }
+
+  // Constructors
 
   /// @brief Constructs EoS.
-  cubic_eos(const Policy &policy) : policy_{policy} {}
+  /// @param[in] pc Critical pressure
+  /// @param[in] tc Critical temperature
+  /// @param[in] policy EoS policy
+  cubic_eos(const T &pc, const T &tc, const Policy &policy)
+      : pc_{pc},
+        tc_{tc},
+        ac_{this->attraction_param(pc, tc)},
+        bc_{this->repulsion_param(pc, tc)},
+        policy_{policy} {}
 
   /// @brief Computes pressure at given temperature and volume.
   /// @param[in] t Temperature
   /// @param[in] v Volume
   /// @returns Pressure
-  value_type pressure(const value_type &t, const value_type &v) noexcept {
-    const auto tr = policy_.reduced_temperature(t);
-    const auto a = policy_.attraction_param(tr);
-    const auto b = policy_.repulsion_param(tr);
+  T pressure(const T &t, const T &v) noexcept {
+    const auto tr = t / tc_;
+    const auto a = policy_.alpha(tr) * ac_;
+    const auto b = bc_;
     return Policy::pressure(t, v, a, b);
   }
 
@@ -404,11 +292,11 @@ class cubic_eos {
     /// @brief Constructs a state
     /// @param[in] a Reduced attration parameter
     /// @param[in] b Reduced repulsion parameter
-    pt_state(const value_type &a, const value_type &b) : a_{a}, b_{b} {}
+    pt_state(const T &a, const T &b) : a_{a}, b_{b} {}
 
     /// @brief Computes z-factor
     /// @returns An array of z-factors
-    std::vector<value_type> zfactor() const noexcept {
+    std::vector<T> zfactor() const noexcept {
       const auto p = Policy::cubic_eq(a_, b_);
       const auto x = roots(p);
       return real_roots(x);
@@ -419,48 +307,65 @@ class cubic_eos {
     /// @returns Fugacity coefficient
     ///
     /// Z-factor must be one of solutions of zfactor() function.
-    value_type fugacity_coeff(const value_type &z) const noexcept {
+    T fugacity_coeff(const T &z) const noexcept {
       return Policy::fugacity_coeff(z, a_, b_);
     }
 
    private:
     /// Reduced attraction parameter
-    value_type a_;
+    T a_;
     /// Reduced repulsion parameter
-    value_type b_;
+    T b_;
   };
 
   /// @brief Creates a state of given pressure and temperature
   /// @param[in] p Pressure
   /// @param[in] t Temperature
   /// @returns State
-  pt_state state(const value_type &p, const value_type &t) noexcept {
-    const auto pr = policy_.reduced_pressure(p);
-    const auto tr = policy_.reduced_temperature(t);
-    const auto a = policy_.reduced_attraction_param(pr, tr);
-    const auto b = policy_.reduced_repulsion_param(pr, tr);
+  pt_state state(const T &p, const T &t) noexcept {
+    const auto pr = p / pc_;
+    const auto tr = t / tc_;
+    const auto a = policy_.alpha(tr) * this->reduced_attraction_param(pr, tr);
+    const auto b = this->reduced_repulsion_param(pr, tr);
     return {a, b};
   }
 
  private:
+  T pc_;
+  T tc_;
+  T ac_;
+  T bc_;
   Policy policy_;
 };
 
 /// @brief Van der Waals equation of state.
 template <typename T>
-using vdw_eos = cubic_eos<van_der_waals<T>>;
+using vdw_eos = cubic_eos<T, van_der_waals<T>>;
 
 /// @brief Soave-Redlich-Kwong equation of state.
 template <typename T>
-using srk_eos = cubic_eos<soave_redlich_kwong<T>>;
+using srk_eos = cubic_eos<T, soave_redlich_kwong<T>>;
 
 /// @brief Peng-Robinson equation of state.
 template <typename T>
-using pr_eos = cubic_eos<peng_robinson<T>>;
+using pr_eos = cubic_eos<T, peng_robinson<T>>;
 
-template <typename Policy>
-cubic_eos<Policy> make_cubic_eos(Policy &&policy) {
-  return cubic_eos<Policy>(std::forward<Policy>(policy));
+/// @brief Makes van der Waals EoS
+template <typename T>
+vdw_eos<T> make_vdw_eos(const T &pc, const T &tc) {
+  return {pc, tc, van_der_waals<T>{}};
+}
+
+/// @brief Makes Soave-Redlich-Kwong EoS
+template <typename T>
+srk_eos<T> make_srk_eos(const T &pc, const T &tc, const T &omega) {
+  return {pc, tc, soave_redlich_kwong<T>{omega}};
+}
+
+/// @brief Makes Peng-Robinson EoS
+template <typename T>
+pr_eos<T> make_pr_eos(const T &pc, const T &tc, const T &omega) {
+  return {pc, tc, peng_robinson<T>{omega}};
 }
 
 }  // namespace shirose

@@ -31,7 +31,7 @@ TEST(EosTest, VanDerWaalsEosTest) {
   const double pc = 4e6;    // Critical pressure [Pa]
   const double tc = 190.6;  // Critical temperature [K]
 
-  auto eos = make_cubic_eos(van_der_waals<double>(pc, tc));
+  auto eos = make_vdw_eos(pc, tc);
   const double p = 3e6;    // Pressure [Pa]
   const double t = 180.0;  // Temperature [K]
   const auto state = eos.state(p, t);
@@ -58,7 +58,7 @@ TEST(EosTest, SoaveRedlichKwongEosTest) {
   const double tc = 190.6;     // Critical temperature [K]
   const double omega = 0.008;  // Acentric factor
 
-  auto eos = make_cubic_eos(soave_redlich_kwong<double>(pc, tc, omega));
+  auto eos = make_srk_eos(pc, tc, omega);
 
   const double p = 3e6;    // Pressure [Pa]
   const double t = 180.0;  // Temperature [K]
@@ -86,7 +86,7 @@ TEST(EosTest, PengRobinsonEosTest) {
   const double tc = 190.6;     // Critical temperature [K]
   const double omega = 0.008;  // Acentric factor
 
-  auto eos = make_cubic_eos(peng_robinson<double>(pc, tc, omega));
+  auto eos = make_pr_eos(pc, tc, omega);
   const double p = 3e6;    // Pressure [Pa]
   const double t = 180.0;  // Temperature [K]
   const auto state = eos.state(p, t);
