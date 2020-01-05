@@ -20,11 +20,14 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef SHIROSE_EOS_HPP
-#define SHIROSE_EOS_HPP
+#ifndef SHIROSE_CONSTANTS_HPP
+#define SHIROSE_CONSTANTS_HPP
 
-#include "shirose/pr_eos.hpp"
-#include "shirose/srk_eos.hpp"
-#include "shirose/vdw_eos.hpp"
+namespace shirose {
 
-#endif  // SHIROSE_EOS_HPP
+/// Gas constant [J/mol-K]
+static constexpr double gas_constant = 8.31446261815324;
+
+}  // namespace shirose
+
+#endif  // SHIROSE_CONSTANTS_HPP

@@ -23,10 +23,10 @@
 #ifndef SHIROSE_ROOTS_HPP
 #define SHIROSE_ROOTS_HPP
 
-#include <array>
-#include <complex>
-#include <utility>
-#include <vector>
+#include <array>    // std::array
+#include <cmath>    // std::sqrt, std::pow, std::fabs
+#include <complex>  // std::complex
+#include <vector>   // std::vector
 
 namespace shirose {
 
