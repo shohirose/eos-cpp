@@ -157,10 +157,6 @@ class peng_robinson {
   static constexpr double omega_a = 0.45724;
   /// Constant for repulsion parameter
   static constexpr double omega_b = 0.07780;
-  /// Square root of 2 (two).
-  static constexpr double sqrt2 = 1.4142135623730950488;
-  static constexpr double delta1 = 1 + sqrt2;
-  static constexpr double delta2 = 1 - sqrt2;
 
   // Static functions
 
@@ -190,6 +186,10 @@ class peng_robinson {
   static T fugacity_coeff(const T &z, const T &a, const T &b) noexcept {
     using std::exp;
     using std::log;
+    /// Square root of 2 (two).
+    constexpr double sqrt2 = 1.4142135623730950488;
+    constexpr double delta1 = 1 + sqrt2;
+    constexpr double delta2 = 1 - sqrt2;
     return exp(z - 1 - log(z - b) -
                a / (2 * sqrt2 * b) * log((z + delta1 * b) / (z - delta2 * b)));
   }
