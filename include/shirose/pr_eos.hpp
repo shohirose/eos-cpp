@@ -26,7 +26,8 @@
 #include <array>  // std::array
 #include <cmath>  // std::sqrt, std::exp, std::log
 
-#include "shirose/cubic_eos.hpp"  // shirose::cubic_eos
+#include "shirose/alpha_functions.hpp"  // shirose::alpha::peng_robinson_1976
+#include "shirose/cubic_eos.hpp"        // shirose::cubic_eos
 
 namespace shirose {
 
@@ -75,43 +76,12 @@ class peng_robinson {
     return exp(z - 1 - log(z - b) -
                a / (2 * sqrt2 * b) * log((z + delta1 * b) / (z - delta2 * b)));
   }
-
-  /// @brief Correction factor for temperature dependency of attraction
-  /// parameter
-  /// @param[in] omega Acentric factor
-  /// @returns Correction factor for temperature dependence of attraction
-  /// parameter
-  static T m(const T &omega) noexcept {
-    return 0.3796 + omega * (1.485 - omega * (0.1644 - 0.01667 * omega));
-  }
-
-  // Constructors
-
-  /// @brief Constructs EoS
-  /// @param[in] omega Acentric factor
-  peng_robinson(const T &omega) : m_{this->m(omega)} {}
-
-  // Member functions
-
-  /// @brief Computes the temperature correction factor for the attraction
-  /// parameter
-  /// @param[in] tr Reduced temperature
-  /// @returns Temperature correction factor for the attraction parameter
-  T alpha(const T &tr) const noexcept {
-    using std::sqrt;
-    const auto a = 1 + m_ * (1 - sqrt(tr));
-    return a * a;
-  }
-
- private:
-  /// Correction factor for temperature dependency of attraction parameter
-  T m_;
 };
 
 /// @brief Peng-Robinson equation of state.
 /// @tparam T Value type
 template <typename T>
-using pr_eos = cubic_eos<T, peng_robinson<T>>;
+using pr_eos = cubic_eos<T, peng_robinson<T>, alpha::peng_robinson_1976<T>>;
 
 /// @brief Makes Peng-Robinson EoS
 /// @tparam T Value type
@@ -120,7 +90,7 @@ using pr_eos = cubic_eos<T, peng_robinson<T>>;
 /// @param[in] omega Acentric factor
 template <typename T>
 pr_eos<T> make_pr_eos(const T &pc, const T &tc, const T &omega) {
-  return {pc, tc, peng_robinson<T>{omega}};
+  return {pc, tc, alpha::peng_robinson_1976<T>{omega}};
 }
 
 }  // namespace shirose

@@ -26,7 +26,8 @@
 #include <array>  // std::array
 #include <cmath>  // std::exp, std::log
 
-#include "shirose/cubic_eos.hpp"  // shirose::cubic_eos
+#include "shirose/alpha_functions.hpp"  // shirose::alpha::no_correction
+#include "shirose/cubic_eos.hpp"        // shirose::cubic_eos
 
 namespace shirose {
 
@@ -70,19 +71,12 @@ struct van_der_waals {
     using std::log;
     return exp(-log(z - b) - a / z + z - 1);
   }
-
-  // Member Functions
-
-  /// @brief Computes temperature correction factor for attraction parameter
-  /// @param[in] tr Reduced temperature
-  /// @returns Temperature correction factor
-  T alpha(const T &) const noexcept { return 1; }
 };
 
 /// @brief Van der Waals equation of state.
 /// @tparam T Value type
 template <typename T>
-using vdw_eos = cubic_eos<T, van_der_waals<T>>;
+using vdw_eos = cubic_eos<T, van_der_waals<T>, alpha::no_correction<T>>;
 
 /// @brief Makes van der Waals EoS
 /// @tparam T Value type
@@ -91,7 +85,7 @@ using vdw_eos = cubic_eos<T, van_der_waals<T>>;
 /// @param[in] omega Acentric factor
 template <typename T>
 vdw_eos<T> make_vdw_eos(const T &pc, const T &tc) {
-  return {pc, tc, van_der_waals<T>{}};
+  return {pc, tc, alpha::no_correction<T>{}};
 }
 
 }  // namespace shirose

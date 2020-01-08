@@ -26,7 +26,8 @@
 #include <array>  // std::array
 #include <cmath>  // std::sqrt, std::exp, std::log
 
-#include "shirose/cubic_eos.hpp"  // shirose::cubic_eos
+#include "shirose/alpha_functions.hpp"  // shirose::alpha::soave_1972
+#include "shirose/cubic_eos.hpp"        // shirose::cubic_eos
 
 namespace shirose {
 
@@ -70,38 +71,12 @@ class soave_redlich_kwong {
     using std::log;
     return exp(z - 1 - log(z - b) - a * a / b * log(b / z + 1));
   }
-
-  /// @brief Computes correction factor for temperature dependence of attraction
-  /// parameter
-  static T m(const T &omega) noexcept {
-    return 0.48 + (1.574 - 0.176 * omega) * omega;
-  }
-
-  // Constructors
-
-  /// @brief Constructs EoS
-  /// @param[in] omega Acentric factor
-  soave_redlich_kwong(const T &omega) noexcept : m_{this->m(omega)} {}
-
-  /// @brief Computes correction factor for temperature dependence of attraction
-  /// parameter
-  /// @param[in] tr Reduced temperature
-  /// @returns Temperature correction factor for the attraction parameter
-  T alpha(const T &tr) const noexcept {
-    using std::sqrt;
-    const auto a = 1 + m_ * (1 - sqrt(tr));
-    return a * a;
-  }
-
- private:
-  /// Correction factor for temperature dependency of attraction parameter
-  T m_;
 };
 
 /// @brief Soave-Redlich-Kwong equation of state.
 /// @tparam T Value type
 template <typename T>
-using srk_eos = cubic_eos<T, soave_redlich_kwong<T>>;
+using srk_eos = cubic_eos<T, soave_redlich_kwong<T>, alpha::soave_1972<T>>;
 
 /// @brief Makes Soave-Redlich-Kwong EoS
 /// @tparam T Value type
@@ -110,7 +85,7 @@ using srk_eos = cubic_eos<T, soave_redlich_kwong<T>>;
 /// @param[in] omega Acentric factor
 template <typename T>
 srk_eos<T> make_srk_eos(const T &pc, const T &tc, const T &omega) {
-  return {pc, tc, soave_redlich_kwong<T>{omega}};
+  return {pc, tc, alpha::soave_1972<T>{omega}};
 }
 
 }  // namespace shirose
