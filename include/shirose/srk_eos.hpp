@@ -26,7 +26,7 @@
 #include <array>  // std::array
 #include <cmath>  // std::sqrt, std::exp, std::log
 
-#include "shirose/correction_policy.hpp"  // shirose::alpha::soave_1972
+#include "shirose/correction_policy.hpp"  // shirose::policy::soave_1972
 #include "shirose/cubic_eos.hpp"          // shirose::cubic_eos
 
 namespace shirose {

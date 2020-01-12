@@ -26,7 +26,7 @@
 #include <array>  // std::array
 #include <cmath>  // std::exp, std::log
 
-#include "shirose/correction_policy.hpp"  // shirose::alpha::no_correction
+#include "shirose/correction_policy.hpp"  // shirose::policy::no_correction
 #include "shirose/cubic_eos.hpp"          // shirose::cubic_eos
 
 namespace shirose {
