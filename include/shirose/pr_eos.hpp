@@ -74,7 +74,7 @@ class peng_robinson {
     constexpr double delta1 = 1 + sqrt2;
     constexpr double delta2 = 1 - sqrt2;
     return exp(z - 1 - log(z - b) -
-               a / (2 * sqrt2 * b) * log((z + delta1 * b) / (z - delta2 * b)));
+               a / (2 * sqrt2 * b) * log((z + delta1 * b) / (z + delta2 * b)));
   }
 };
 
