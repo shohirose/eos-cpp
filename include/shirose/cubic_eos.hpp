@@ -32,22 +32,26 @@ namespace shirose {
 
 /// @brief Two-parameter cubic equation of state (EoS)
 /// @tparam Eos EoS policy
-/// @tparam Alpha Temperature correction policy for attraction parameter
+/// @tparam CorrectionPolicy Temperature correction policy for attraction
+/// parameter
 ///
 /// Eos must have the following static functions:
 ///    - pressure(t, v, a, b)
 ///    - cubic_eq(ar, br)
 ///    - fugacity_coeff(z, ar, br)
+///    - residual_enthalpy(z, t, ar, br, beta)
+///    - residual_entropy(z, ar, br, beta)
 /// where t is temperature, v is volume, a is attraction parameter, b is
 /// repulsion parameter, ar is reduced attraction parameter, br is reduced
-/// repulsion parameter, and z is z-factor.
+/// repulsion parameter, z is z-factor, and beta is a temperature correction
+/// factor.
 ///
-/// Alpha must have the following memeber functions:
-///    - value(tr), computes alpha
-///    - derivative(tr), computes the derivative of alpha
-///    - second_derivative(tr), computes the second derivative of alpha
+/// CorrectionPolicy must have the following member functions:
+///    - alpha(tr): temperature correction factor for attraction parameter
+///    - beta(tr): \f$ \beta = \frac{T_r}{\alpha} \frac{\mathrm{d}
+///    \alpha}{\mathrm{d} T_r} \f$
 /// where tr is reduced temperature.
-template <typename T, typename Eos, typename Alpha>
+template <typename T, typename Eos, typename CorrectionPolicy>
 class cubic_eos {
  public:
   // Static functions
@@ -89,13 +93,13 @@ class cubic_eos {
   /// @brief Constructs EoS.
   /// @param[in] pc Critical pressure
   /// @param[in] tc Critical temperature
-  /// @param[in] alpha Temperature correction policy for attraction parameter
-  cubic_eos(const T &pc, const T &tc, const Alpha &alpha)
+  /// @param[in] policy Temperature correction policy for attraction parameter
+  cubic_eos(const T &pc, const T &tc, const CorrectionPolicy &policy)
       : pc_{pc},
         tc_{tc},
         ac_{this->attraction_param(pc, tc)},
         bc_{this->repulsion_param(pc, tc)},
-        alpha_{alpha} {}
+        policy_{policy} {}
 
   /// @brief Computes pressure at given temperature and volume.
   /// @param[in] t Temperature
@@ -103,7 +107,7 @@ class cubic_eos {
   /// @returns Pressure
   T pressure(const T &t, const T &v) noexcept {
     const auto tr = t / tc_;
-    const auto a = alpha_.value(tr) * ac_;
+    const auto a = policy_.alpha(tr) * ac_;
     const auto b = bc_;
     return Eos::pressure(t, v, a, b);
   }
@@ -113,44 +117,75 @@ class cubic_eos {
   class pt_state {
    public:
     /// @brief Constructs a state
-    /// @param[in] a Reduced attration parameter
-    /// @param[in] b Reduced repulsion parameter
-    pt_state(const T &a, const T &b) : a_{a}, b_{b} {}
+    /// @param[in] t Temperature
+    /// @param[in] ar Reduced attration parameter
+    /// @param[in] br Reduced repulsion parameter
+    /// @param[in] beta Temperature correction factor
+    /// @param[in] gamma Temperature correction factor
+    pt_state(const T &t, const T &ar, const T &br, const T &beta,
+             const T &gamma)
+        : t_{t}, ar_{ar}, br_{br}, beta_{beta}, gamma_{gamma} {}
 
     /// @brief Computes z-factor
-    /// @returns An array of z-factors
+    /// @return An array of z-factors
     std::vector<T> zfactor() const noexcept {
-      const auto p = Eos::cubic_eq(a_, b_);
+      const auto p = Eos::cubic_eq(ar_, br_);
       const auto x = roots(p);
       return real_roots(x);
     }
 
     /// @brief Computes fugacity coefficient
     /// @param[in] z Z-factor
-    /// @returns Fugacity coefficient
-    ///
-    /// Z-factor must be one of solutions of zfactor() function.
+    /// @return Fugacity coefficient
     T fugacity_coeff(const T &z) const noexcept {
-      return Eos::fugacity_coeff(z, a_, b_);
+      return Eos::fugacity_coeff(z, ar_, br_);
+    }
+
+    /// @brief Computes residual enthalpy
+    /// @param[in] z Z-factor
+    /// @return Residual enthalpy
+    T residual_enthalpy(const T &z) const noexcept {
+      return Eos::residual_enthalpy(z, t_, ar_, br_, beta_);
+    }
+
+    /// @brief Computes residual entropy
+    /// @param[in] z Z-factor
+    /// @return Residual entropy
+    T residual_entropy(const T &z) const noexcept {
+      return Eos::residual_entropy(z, ar_, br_, beta_);
+    }
+
+    /// @brief Computes residual molar specifiec heat at constant volume
+    /// @param[in] z Z-factor
+    T residual_specific_heat_v(const T &z) const noexcept {
+      return Eos::residual_specific_heat_v(z, ar_, br_, gamma_);
     }
 
    private:
+    /// Temperature
+    T t_;
     /// Reduced attraction parameter
-    T a_;
+    T ar_;
     /// Reduced repulsion parameter
-    T b_;
+    T br_;
+    /// Temperature correction factor
+    T beta_;
+    /// Temperature correction factor
+    T gamma_;
   };
 
   /// @brief Creates a state of given pressure and temperature
   /// @param[in] p Pressure
   /// @param[in] t Temperature
   /// @returns State
-  pt_state state(const T &p, const T &t) noexcept {
+  pt_state state(const T &p, const T &t) const noexcept {
     const auto pr = p / pc_;
     const auto tr = t / tc_;
-    const auto a = alpha_.value(tr) * this->reduced_attraction_param(pr, tr);
-    const auto b = this->reduced_repulsion_param(pr, tr);
-    return {a, b};
+    const auto ar = policy_.alpha(tr) * this->reduced_attraction_param(pr, tr);
+    const auto br = this->reduced_repulsion_param(pr, tr);
+    const auto beta = policy_.beta(tr);
+    const auto gamma = policy_.gamma(tr);
+    return {t, ar, br, beta, gamma};
   }
 
  private:
@@ -163,7 +198,7 @@ class cubic_eos {
   /// Repulsion parameter at critical condition
   T bc_;
   /// Temperature correction policy for attraction parameter
-  Alpha alpha_;
+  CorrectionPolicy policy_;
 };
 
 }  // namespace shirose

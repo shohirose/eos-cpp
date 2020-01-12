@@ -26,8 +26,8 @@
 #include <array>  // std::array
 #include <cmath>  // std::sqrt, std::exp, std::log
 
-#include "shirose/alpha_functions.hpp"  // shirose::alpha::soave_1972
-#include "shirose/cubic_eos.hpp"        // shirose::cubic_eos
+#include "shirose/correction_policy.hpp"  // shirose::alpha::soave_1972
+#include "shirose/cubic_eos.hpp"          // shirose::cubic_eos
 
 namespace shirose {
 
@@ -71,12 +71,45 @@ class soave_redlich_kwong {
     using std::log;
     return exp(z - 1 - log(z - b) - a / b * log((z + b) / z));
   }
+
+  /// @brief Computes residual enthalpy
+  /// @param[in] z Z-factor
+  /// @param[in] t Temperature
+  /// @param[in] a Reduced attraction parameter
+  /// @param[in] b Reduced repulsion parameter
+  /// @param[in] beta Temperature correction factor
+  static T residual_enthalpy(const T &z, const T &t, const T &a, const T &b,
+                             const T &beta) noexcept {
+    using std::log;
+    return gas_constant * t * (z - 1 - a / b * (1 - beta) * log((z + b) / z));
+  }
+
+  /// @brief Computes residual entropy
+  /// @param[in] z Z-factor
+  /// @param[in] a Reduced attraction parameter
+  /// @param[in] b Reduced repulsion parameter
+  static T residual_entropy(const T &z, const T &a, const T &b,
+                            const T &beta) noexcept {
+    using std::log;
+    return gas_constant * (log(z - b) + a / b * beta * log((z + b) / z));
+  }
+
+  /// @brief Computes residual molar specific heat at constant volume
+  /// @param[in] z Z-factor
+  /// @param[in] a Reduced attraction parameter
+  /// @param[in] b Reduced repulsion parameter
+  /// @param[in] gamma Temperature correction factor
+  static T residual_specific_heat_v(const T &z, const T &a, const T &b,
+                                    const T &gamma) noexcept {
+    using std::log;
+    return gas_constant * gamma * a / b * log((z + b) / z);
+  }
 };
 
 /// @brief Soave-Redlich-Kwong equation of state.
 /// @tparam T Value type
 template <typename T>
-using srk_eos = cubic_eos<T, soave_redlich_kwong<T>, alpha::soave_1972<T>>;
+using srk_eos = cubic_eos<T, soave_redlich_kwong<T>, policy::soave_1972<T>>;
 
 /// @brief Makes Soave-Redlich-Kwong EoS
 /// @tparam T Value type
@@ -85,7 +118,7 @@ using srk_eos = cubic_eos<T, soave_redlich_kwong<T>, alpha::soave_1972<T>>;
 /// @param[in] omega Acentric factor
 template <typename T>
 srk_eos<T> make_srk_eos(const T &pc, const T &tc, const T &omega) {
-  return {pc, tc, alpha::soave_1972<T>{omega}};
+  return {pc, tc, policy::soave_1972<T>{omega}};
 }
 
 }  // namespace shirose

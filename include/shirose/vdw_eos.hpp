@@ -26,8 +26,8 @@
 #include <array>  // std::array
 #include <cmath>  // std::exp, std::log
 
-#include "shirose/alpha_functions.hpp"  // shirose::alpha::no_correction
-#include "shirose/cubic_eos.hpp"        // shirose::cubic_eos
+#include "shirose/correction_policy.hpp"  // shirose::alpha::no_correction
+#include "shirose/cubic_eos.hpp"          // shirose::cubic_eos
 
 namespace shirose {
 
@@ -71,12 +71,45 @@ struct van_der_waals {
     using std::log;
     return exp(-log(z - b) - a / z + z - 1);
   }
+
+  /// @brief Computes residual enthalpy
+  /// @param[in] z Z-factor
+  /// @param[in] t Temperature
+  /// @param[in] a Reduced attraction parameter
+  /// @param[in] b Reduced repulsion parameter
+  /// @param[in] beta Temperature correction factor
+  static T residual_enthalpy(const T &z, const T &t, const T &a, const T &b,
+                             const T &beta) noexcept {
+    return gas_constant * t * (z - 1 - a * (1 - beta) / z);
+  }
+
+  /// @brief Computes residual entropy
+  /// @param[in] z Z-factor
+  /// @param[in] a Reduced attraction parameter
+  /// @param[in] b Reduced repulsion parameter
+  /// @param[in] beta Temperature correction factor
+  static T residual_entropy(const T &z, const T &a, const T &b,
+                            const T &beta) noexcept {
+    using std::log;
+    return gas_constant * (log(z - b) + a * beta / z);
+  }
+
+  /// @brief Computes residual molar specific heat at constant volume
+  /// @param[in] z Z-factor
+  /// @param[in] a Reduced attraction parameter
+  /// @param[in] b Reduced repulsion parameter
+  /// @param[in] gamma Temperature correction factor
+  static T residual_specific_heat_v(const T &z, const T &a,
+                                    [[maybe_unused]] const T &b,
+                                    const T &gamma) noexcept {
+    return gas_constant * gamma * a / z;
+  }
 };
 
 /// @brief Van der Waals equation of state.
 /// @tparam T Value type
 template <typename T>
-using vdw_eos = cubic_eos<T, van_der_waals<T>, alpha::no_correction<T>>;
+using vdw_eos = cubic_eos<T, van_der_waals<T>, policy::no_correction<T>>;
 
 /// @brief Makes van der Waals EoS
 /// @tparam T Value type
@@ -85,7 +118,7 @@ using vdw_eos = cubic_eos<T, van_der_waals<T>, alpha::no_correction<T>>;
 /// @param[in] omega Acentric factor
 template <typename T>
 vdw_eos<T> make_vdw_eos(const T &pc, const T &tc) {
-  return {pc, tc, alpha::no_correction<T>{}};
+  return {pc, tc, policy::no_correction<T>{}};
 }
 
 }  // namespace shirose

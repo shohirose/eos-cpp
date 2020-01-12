@@ -26,8 +26,8 @@
 #include <array>  // std::array
 #include <cmath>  // std::sqrt, std::exp, std::log
 
-#include "shirose/alpha_functions.hpp"  // shirose::alpha::peng_robinson_1976
-#include "shirose/cubic_eos.hpp"        // shirose::cubic_eos
+#include "shirose/correction_policy.hpp"  // shirose::alpha::peng_robinson_1976
+#include "shirose/cubic_eos.hpp"          // shirose::cubic_eos
 
 namespace shirose {
 
@@ -40,6 +40,10 @@ class peng_robinson {
   static constexpr double omega_a = 0.45724;
   /// Constant for repulsion parameter
   static constexpr double omega_b = 0.07780;
+  /// Square root of 2 (two).
+  static constexpr double sqrt2 = 1.4142135623730950488;
+  static constexpr double delta1 = 1 + sqrt2;
+  static constexpr double delta2 = 1 - sqrt2;
 
   // Static functions
 
@@ -69,19 +73,54 @@ class peng_robinson {
   static T fugacity_coeff(const T &z, const T &a, const T &b) noexcept {
     using std::exp;
     using std::log;
-    /// Square root of 2 (two).
-    constexpr double sqrt2 = 1.4142135623730950488;
-    constexpr double delta1 = 1 + sqrt2;
-    constexpr double delta2 = 1 - sqrt2;
     return exp(z - 1 - log(z - b) -
                a / (2 * sqrt2 * b) * log((z + delta1 * b) / (z + delta2 * b)));
+  }
+
+  /// @brief Computes residual enthalpy
+  /// @param[in] z Z-factor
+  /// @param[in] t Temperature
+  /// @param[in] a Reduced attraction parameter
+  /// @param[in] b Reduced repulsion parameter
+  /// @param[in] beta Temperature correction factor
+  static T residual_enthalpy(const T &z, const T &t, const T &a, const T &b,
+                             const T &beta) noexcept {
+    using std::log;
+    return gas_constant * t *
+           (z - 1 -
+            a / (2 * sqrt2 * b) * (1 - beta) *
+                log((z + delta1 * b) / (z + delta2 * b)));
+  }
+
+  /// @brief Computes residual entropy
+  /// @param[in] z Z-factor
+  /// @param[in] a Reduced attraction parameter
+  /// @param[in] b Reduced repulsion parameter
+  static T residual_entropy(const T &z, const T &a, const T &b,
+                            const T &beta) noexcept {
+    using std::log;
+    return gas_constant *
+           (log(z - b) + a / (2 * sqrt2 * b) * beta *
+                             log((z + delta1 * b) / (z + delta2 * b)));
+  }
+
+  /// @brief Computes residual molar specific heat at constant volume
+  /// @param[in] z Z-factor
+  /// @param[in] a Reduced attraction parameter
+  /// @param[in] b Reduced repulsion parameter
+  /// @param[in] gamma Temperature correction factor
+  static T residual_specific_heat_v(const T &z, const T &a, const T &b,
+                                    const T &gamma) noexcept {
+    using std::log;
+    return gas_constant * gamma * a / (2 * sqrt2 * b) *
+           log((z + delta1 * b) / (z + delta2 * b));
   }
 };
 
 /// @brief Peng-Robinson equation of state.
 /// @tparam T Value type
 template <typename T>
-using pr_eos = cubic_eos<T, peng_robinson<T>, alpha::peng_robinson_1976<T>>;
+using pr_eos = cubic_eos<T, peng_robinson<T>, policy::peng_robinson_1976<T>>;
 
 /// @brief Makes Peng-Robinson EoS
 /// @tparam T Value type
@@ -90,7 +129,7 @@ using pr_eos = cubic_eos<T, peng_robinson<T>, alpha::peng_robinson_1976<T>>;
 /// @param[in] omega Acentric factor
 template <typename T>
 pr_eos<T> make_pr_eos(const T &pc, const T &tc, const T &omega) {
-  return {pc, tc, alpha::peng_robinson_1976<T>{omega}};
+  return {pc, tc, policy::peng_robinson_1976<T>{omega}};
 }
 
 }  // namespace shirose
