@@ -69,7 +69,7 @@ class soave_redlich_kwong {
   static T fugacity_coeff(const T &z, const T &a, const T &b) noexcept {
     using std::exp;
     using std::log;
-    return exp(z - 1 - log(z - b) - a * a / b * log(b / z + 1));
+    return exp(z - 1 - log(z - b) - a / b * log((z + b) / z));
   }
 };
 
