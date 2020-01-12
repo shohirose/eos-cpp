@@ -48,20 +48,14 @@ struct no_correction {
   T gamma(const T&) const noexcept { return 0; }
 };
 
-/// @brief Temperature correction proposed by Soave (1972)
+/// @brief Base class for temperature correction proposed by Soave (1972)
 /// @tparam T Value type
 template <typename T>
-class soave_1972 {
+class soave_1972_base {
  public:
-  /// @brief Computes parameter \f$ m \f$ from acentric factor
-  /// @param[in] omega Acentric factor
-  static T m(const T& omega) noexcept {
-    return 0.48 + (1.574 - 0.176 * omega) * omega;
-  }
-
   /// @brief Constructs temperature correction policy
-  /// @param[in] omega Acentric factor
-  soave_1972(const T& omega) : m_{this->m(omega)} {}
+  /// @param[in] m Correction parameter
+  soave_1972_base(const T& m) : m_{m} {}
 
   /// @brief Computes temperature correction factor for attraction parameter
   /// @param[in] tr Reduced temperature
@@ -99,10 +93,26 @@ class soave_1972 {
   T m_;
 };
 
+/// @brief Temperature correction proposed by Soave (1972)
+/// @tparam T Value type
+template <typename T>
+class soave_1972 : public soave_1972_base<T> {
+ public:
+  /// @brief Computes parameter \f$ m \f$ from acentric factor
+  /// @param[in] omega Acentric factor
+  static T m(const T& omega) noexcept {
+    return 0.48 + (1.574 - 0.176 * omega) * omega;
+  }
+
+  /// @brief Constructs temperature correction policy
+  /// @param[in] omega Acentric factor
+  soave_1972(const T& omega) : soave_1972_base<T>{this->m(omega)} {}
+};
+
 /// @brief Temperature correction proposed by Peng and Robinson (1976)
 /// @tparam T Value type
 template <typename T>
-class peng_robinson_1976 {
+class peng_robinson_1976 : public soave_1972_base<T> {
  public:
   /// @brief Computes parameter \f$ m \f$ from acentric factor
   /// @param[in] omega Acentric factor
@@ -112,42 +122,7 @@ class peng_robinson_1976 {
 
   /// @brief Constructs temperature correction policy
   /// @param[in] omega Acentric factor
-  peng_robinson_1976(const T& omega) : m_{this->m(omega)} {}
-
-  /// @brief Computes temperature correction factor for attraction parameter
-  /// @param[in] tr Reduced temperature
-  T alpha(const T& tr) const noexcept {
-    using std::sqrt;
-    const auto a = 1 + m_ * (1 - sqrt(tr));
-    return a * a;
-  }
-
-  /// @brief Computes temperature correction factor for attraction parameter
-  /// @param[in] tr Reduced temperature
-  ///
-  /// \f[ \beta = \frac{T_r}{\alpha} \frac{\mathrm{d}\alpha}{\mathrm{d}T_r} \f]
-  T beta(const T& tr) const noexcept {
-    using std::sqrt;
-    const auto sqrt_tr = sqrt(tr);
-    const auto a = 1 + m_ * (1 - sqrt_tr);
-    return -tr * m_ / (a * sqrt_tr);
-  }
-
-  /// @brief Computes temperature correction factor for attraction parameter
-  /// @param[in] tr Reduced temperature
-  ///
-  /// \f[ \gamma = \frac{T_r^2}{\alpha}
-  /// \frac{\mathrm{d}^2\alpha}{\mathrm{d}T_r^2} \f]
-  T gamma(const T& tr) const noexcept {
-    using std::sqrt;
-    const auto sqrt_tr = sqrt(tr);
-    const auto a = 1 + m_ * (1 - sqrt_tr);
-    const auto alpha = a * a;
-    return m_ / (2 * alpha) * (m_ * tr + a * sqrt_tr);
-  }
-
- private:
-  T m_;
+  peng_robinson_1976(const T& omega) : soave_1972_base<T>{this->m(omega)} {}
 };
 
 }  // namespace policy
