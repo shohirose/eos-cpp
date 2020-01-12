@@ -71,9 +71,9 @@ TEST(EosTest, SoaveRedlichKwongEosTest) {
   EXPECT_NEAR(z[1], 0.152443, 1e-6);
   EXPECT_NEAR(z[2], 0.310673, 1e-6);
 
-  EXPECT_NEAR(state.fugacity_coeff(z[0]), 1.05831, 1e-5);
-  EXPECT_NEAR(state.fugacity_coeff(z[1]), 2.44591, 1e-5);
-  EXPECT_NEAR(state.fugacity_coeff(z[2]), 1.39513, 1e-5);
+  EXPECT_NEAR(state.fugacity_coeff(z[0]), 0.70353, 1e-5);
+  EXPECT_NEAR(state.fugacity_coeff(z[1]), 0.69289, 1e-5);
+  EXPECT_NEAR(state.fugacity_coeff(z[2]), 0.70862, 1e-5);
 
   EXPECT_NEAR(eos.pressure(t, 0.001), 1.283055e6, 1.0);
   EXPECT_NEAR(eos.pressure(t, 0.01), 1.474262e5, 0.1);
@@ -98,9 +98,9 @@ TEST(EosTest, PengRobinsonEosTest) {
   EXPECT_NEAR(z[1], 0.135628, 1e-6);
   EXPECT_NEAR(z[2], 0.292355, 1e-6);
 
-  EXPECT_NEAR(state.fugacity_coeff(z[0]), 0.856818, 1e-5);
-  EXPECT_NEAR(state.fugacity_coeff(z[1]), 1.58684, 1e-5);
-  EXPECT_NEAR(state.fugacity_coeff(z[2]), 1.02133, 1e-5);
+  EXPECT_NEAR(state.fugacity_coeff(z[0]), 0.68362, 1e-5);
+  EXPECT_NEAR(state.fugacity_coeff(z[1]), 0.67210, 1e-5);
+  EXPECT_NEAR(state.fugacity_coeff(z[2]), 0.68819, 1e-5);
 
   EXPECT_NEAR(eos.pressure(t, 0.001), 1.267541e6, 1.0);
   EXPECT_NEAR(eos.pressure(t, 0.01), 1.472064e5, 0.1);
