@@ -54,7 +54,7 @@ class peng_robinson {
   /// @param[in] b Repulsion parameter
   /// @returns Pressure
   static T pressure(const T &t, const T &v, const T &a, const T &b) noexcept {
-    return gas_constant * t / (v - b) - a / ((v - b) * (v + b) + 2 * b * v);
+    return gas_constant * t / (v - b) - a / (v * (v + b) + b * (v - b));
   }
 
   /// @brief Computes coeficients of the cubic equation of z-factor.
