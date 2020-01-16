@@ -106,3 +106,25 @@ TEST(EosTest, PengRobinsonEosTest) {
   EXPECT_NEAR(eos.pressure(t, 0.01), 1.472064e5, 0.1);
   EXPECT_NEAR(eos.pressure(t, 0.1), 1.494132e4, 0.01);
 }
+
+TEST(FlashTest, VaporPressureTest) {
+  // Methane
+  const double pc = 4e6;       // Critical pressure [Pa]
+  const double tc = 190.6;     // Critical temperature [K]
+  const double omega = 0.008;  // Acentric factor
+
+  // Temperature
+  const double t = 180;
+
+  const auto p_init = estimate_vapor_pressure(t, pc, tc, omega);
+  EXPECT_NEAR(p_init, 2.90772e6, 10);
+
+  auto eos = make_pr_eos(pc, tc, omega);
+  auto flash = shirose::flash<pr_eos<double>>(eos);
+  const auto result = flash.vapor_pressure(p_init, t);
+  const auto pvap = result.first;
+  const auto report = result.second;
+
+  EXPECT_NEAR(pvap, 2.87515e6, 10);
+  EXPECT_EQ(static_cast<int>(report.error), 0);
+}

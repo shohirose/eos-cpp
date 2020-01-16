@@ -23,8 +23,10 @@
 #ifndef SHIROSE_EOS_HPP
 #define SHIROSE_EOS_HPP
 
+#include "shirose/flash.hpp"
 #include "shirose/pr_eos.hpp"
 #include "shirose/srk_eos.hpp"
 #include "shirose/vdw_eos.hpp"
+
 
 #endif  // SHIROSE_EOS_HPP
