@@ -112,6 +112,50 @@ class cubic_eos {
     return Eos::pressure(t, v, a, b);
   }
 
+  /// @brief Isothermal state of a cubic EoS
+  class isothermal_state {
+   public:
+    /// @brief Constructs isothermal state
+    /// @param[in] t Temperature
+    /// @param[in] a Attraction parameter
+    /// @param[in] b Repulsion parameter
+    isothermal_state(const T &t, const T &a, const T &b)
+        : t_{t}, a_{a}, b_{b} {}
+
+    /// @brief Computes pressure at given volume along this isothermal line
+    /// @param[in] v Volume
+    /// @return Pressure
+    T pressure(const T &v) const noexcept {
+      return Eos::pressure(t_, v, a_, b_);
+    }
+
+   private:
+    T t_;  /// Temperature
+    T a_;  /// Attraction parameter
+    T b_;  /// Repulsion parameter
+  };
+
+  /// @brief Creates isothermal state
+  /// @param[in] t Temperature
+  /// @return Isothermal state
+  isothermal_state isothermal_line(const T &t) const noexcept {
+    const auto tr = t / tc_;
+    const auto a = policy_.alpha(tr) * ac_;
+    const auto b = bc_;
+    return {t, a, b};
+  }
+
+  /// @brief Computes pressure at given temperature and pressure
+  /// @param[in] t Temperature
+  /// @param[in] v Volume
+  /// @return Pressure
+  T pressure(const T &t, const T &v) const noexcept {
+    const auto tr = t / tc_;
+    const auto a = policy_.alpha(tr) * ac_;
+    const auto b = bc_;
+    return Eos::pressure(t, v, a, b);
+  }
+
   /// @brief A state at given pressure and temperature expressed by this
   /// equation of state
   class pt_state {
