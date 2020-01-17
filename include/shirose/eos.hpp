@@ -20,13 +20,9 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef SHIROSE_EOS_HPP
-#define SHIROSE_EOS_HPP
+#pragma once
 
 #include "shirose/flash.hpp"
 #include "shirose/pr_eos.hpp"
 #include "shirose/srk_eos.hpp"
 #include "shirose/vdw_eos.hpp"
-
-
-#endif  // SHIROSE_EOS_HPP

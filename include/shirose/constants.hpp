@@ -20,8 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef SHIROSE_CONSTANTS_HPP
-#define SHIROSE_CONSTANTS_HPP
+#pragma once
 
 namespace shirose {
 
@@ -29,5 +28,3 @@ namespace shirose {
 static constexpr double gas_constant = 8.31446261815324;
 
 }  // namespace shirose
-
-#endif  // SHIROSE_CONSTANTS_HPP

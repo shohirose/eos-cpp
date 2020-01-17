@@ -20,8 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef SHIROSE_FLASH_HPP
-#define SHIROSE_FLASH_HPP
+#pragma once
 
 #include <algorithm>  // std::max_element
 #include <cassert>    // assert
@@ -133,5 +132,3 @@ class flash {
 };
 
 }  // namespace shirose
-
-#endif  // SHIROSE_FLASH_HPP

@@ -20,8 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef SHIROSE_ROOTS_HPP
-#define SHIROSE_ROOTS_HPP
+#pragma once
 
 #include <array>    // std::array
 #include <cmath>    // std::sqrt, std::pow, std::fabs
@@ -97,5 +96,3 @@ std::vector<T> real_roots(const std::array<std::complex<T>, N>& x) noexcept {
 }
 
 }  // namespace shirose
-
-#endif  // SHIROSE_ROOTS_HPP

@@ -20,8 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef SHIROSE_VDW_EOS_HPP
-#define SHIROSE_VDW_EOS_HPP
+#pragma once
 
 #include <array>  // std::array
 #include <cmath>  // std::exp, std::log
@@ -122,5 +121,3 @@ vdw_eos<T> make_vdw_eos(const T &pc, const T &tc) {
 }
 
 }  // namespace shirose
-
-#endif  // SHIROSE_VDW_EOS_HPP

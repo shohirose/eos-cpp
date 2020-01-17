@@ -20,8 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef SHIROSE_CUBIC_EOS_HPP
-#define SHIROSE_CUBIC_EOS_HPP
+#pragma once
 
 #include <vector>  // std::vector
 
@@ -246,5 +245,3 @@ class cubic_eos {
 };
 
 }  // namespace shirose
-
-#endif  // SHIROSE_CUBIC_EOS_HPP

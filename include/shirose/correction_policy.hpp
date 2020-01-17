@@ -20,8 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef SHIROSE_CORRECTION_POLICY_HPP
-#define SHIROSE_CORRECTION_POLICY_HPP
+#pragma once
 
 #include <cmath>
 
@@ -128,5 +127,3 @@ class peng_robinson_1976 : public soave_1972_base<T> {
 }  // namespace policy
 
 }  // namespace shirose
-
-#endif  // SHIROSE_CORRECTION_POLICY_HPP

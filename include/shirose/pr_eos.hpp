@@ -20,8 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef SHIROSE_PR_EOS_HPP
-#define SHIROSE_PR_EOS_HPP
+#pragma once
 
 #include <array>  // std::array
 #include <cmath>  // std::sqrt, std::exp, std::log
@@ -86,10 +85,9 @@ class peng_robinson {
   static T residual_enthalpy(const T &z, const T &t, const T &a, const T &b,
                              const T &beta) noexcept {
     using std::log;
-    return gas_constant * t *
-           (z - 1 -
-            a / (2 * sqrt2 * b) * (1 - beta) *
-                log((z + delta1 * b) / (z + delta2 * b)));
+    return gas_constant * t * (z - 1 -
+                               a / (2 * sqrt2 * b) * (1 - beta) *
+                                   log((z + delta1 * b) / (z + delta2 * b)));
   }
 
   /// @brief Computes residual entropy
@@ -99,9 +97,9 @@ class peng_robinson {
   static T residual_entropy(const T &z, const T &a, const T &b,
                             const T &beta) noexcept {
     using std::log;
-    return gas_constant *
-           (log(z - b) + a / (2 * sqrt2 * b) * beta *
-                             log((z + delta1 * b) / (z + delta2 * b)));
+    return gas_constant * (log(z - b) +
+                           a / (2 * sqrt2 * b) * beta *
+                               log((z + delta1 * b) / (z + delta2 * b)));
   }
 
   /// @brief Computes residual molar specific heat at constant volume
@@ -133,5 +131,3 @@ pr_eos<T> make_pr_eos(const T &pc, const T &tc, const T &omega) {
 }
 
 }  // namespace shirose
-
-#endif  // SHIROSE_PR_EOS_HPP

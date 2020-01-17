@@ -20,8 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef SHIROSE_SRK_EOS_HPP
-#define SHIROSE_SRK_EOS_HPP
+#pragma once
 
 #include <array>  // std::array
 #include <cmath>  // std::sqrt, std::exp, std::log
@@ -122,5 +121,3 @@ srk_eos<T> make_srk_eos(const T &pc, const T &tc, const T &omega) {
 }
 
 }  // namespace shirose
-
-#endif  // SHIROSE_SRK_EOS_HPP
