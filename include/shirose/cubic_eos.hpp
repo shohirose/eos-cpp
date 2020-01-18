@@ -31,8 +31,7 @@ namespace shirose {
 
 /// @brief Two-parameter cubic equation of state (EoS)
 /// @tparam Eos EoS policy
-/// @tparam CorrectionPolicy Temperature correction policy for attraction
-/// parameter
+/// @tparam Corrector Temperature corrector for attraction parameter
 ///
 /// Eos must have the following static functions:
 ///    - pressure(t, v, a, b)
@@ -45,12 +44,14 @@ namespace shirose {
 /// repulsion parameter, z is z-factor, and beta is a temperature correction
 /// factor.
 ///
-/// CorrectionPolicy must have the following member functions:
+/// Corrector must have the following member functions:
 ///    - alpha(tr): temperature correction factor for attraction parameter
 ///    - beta(tr): \f$ \beta = \frac{T_r}{\alpha} \frac{\mathrm{d}
 ///    \alpha}{\mathrm{d} T_r} \f$
+///    - gamma(tr): \f$ \gamma = \frac{T_r^2}{\alpha} \frac{\mathrm{d}^2
+///    \alpha}{\mathrm{d} T_r^2} \f$
 /// where tr is reduced temperature.
-template <typename T, typename Eos, typename CorrectionPolicy>
+template <typename T, typename Eos, typename Corrector>
 class cubic_eos {
  public:
   // Static functions
@@ -92,13 +93,13 @@ class cubic_eos {
   /// @brief Constructs EoS.
   /// @param[in] pc Critical pressure
   /// @param[in] tc Critical temperature
-  /// @param[in] policy Temperature correction policy for attraction parameter
-  cubic_eos(const T &pc, const T &tc, const CorrectionPolicy &policy)
+  /// @param[in] corrector Temperature corrector for attraction parameter
+  cubic_eos(const T &pc, const T &tc, const Corrector &corrector)
       : pc_{pc},
         tc_{tc},
         ac_{this->attraction_param(pc, tc)},
         bc_{this->repulsion_param(pc, tc)},
-        policy_{policy} {}
+        corrector_{corrector} {}
 
   /// @brief Computes pressure at given temperature and volume.
   /// @param[in] t Temperature
@@ -106,7 +107,7 @@ class cubic_eos {
   /// @returns Pressure
   T pressure(const T &t, const T &v) noexcept {
     const auto tr = t / tc_;
-    const auto a = policy_.alpha(tr) * ac_;
+    const auto a = corrector_.alpha(tr) * ac_;
     const auto b = bc_;
     return Eos::pressure(t, v, a, b);
   }
@@ -139,7 +140,7 @@ class cubic_eos {
   /// @return Isothermal state
   isothermal_state isothermal_line(const T &t) const noexcept {
     const auto tr = t / tc_;
-    const auto a = policy_.alpha(tr) * ac_;
+    const auto a = corrector_.alpha(tr) * ac_;
     const auto b = bc_;
     return {t, a, b};
   }
@@ -150,7 +151,7 @@ class cubic_eos {
   /// @return Pressure
   T pressure(const T &t, const T &v) const noexcept {
     const auto tr = t / tc_;
-    const auto a = policy_.alpha(tr) * ac_;
+    const auto a = corrector_.alpha(tr) * ac_;
     const auto b = bc_;
     return Eos::pressure(t, v, a, b);
   }
@@ -160,14 +161,15 @@ class cubic_eos {
   class pt_state {
    public:
     /// @brief Constructs a state
+    /// @param[in] p Pressure
     /// @param[in] t Temperature
     /// @param[in] ar Reduced attration parameter
     /// @param[in] br Reduced repulsion parameter
     /// @param[in] beta Temperature correction factor
     /// @param[in] gamma Temperature correction factor
-    pt_state(const T &t, const T &ar, const T &br, const T &beta,
+    pt_state(const T &p, const T &t, const T &ar, const T &br, const T &beta,
              const T &gamma)
-        : t_{t}, ar_{ar}, br_{br}, beta_{beta}, gamma_{gamma} {}
+        : p_{p}, t_{t}, ar_{ar}, br_{br}, beta_{beta}, gamma_{gamma} {}
 
     /// @brief Computes z-factor
     /// @return An array of z-factors
@@ -205,6 +207,8 @@ class cubic_eos {
     }
 
    private:
+    /// Pressure
+    T p_;
     /// Temperature
     T t_;
     /// Reduced attraction parameter
@@ -224,11 +228,12 @@ class cubic_eos {
   pt_state state(const T &p, const T &t) const noexcept {
     const auto pr = p / pc_;
     const auto tr = t / tc_;
-    const auto ar = policy_.alpha(tr) * this->reduced_attraction_param(pr, tr);
+    const auto ar =
+        corrector_.alpha(tr) * this->reduced_attraction_param(pr, tr);
     const auto br = this->reduced_repulsion_param(pr, tr);
-    const auto beta = policy_.beta(tr);
-    const auto gamma = policy_.gamma(tr);
-    return {t, ar, br, beta, gamma};
+    const auto beta = corrector_.beta(tr);
+    const auto gamma = corrector_.gamma(tr);
+    return {p, t, ar, br, beta, gamma};
   }
 
  private:
@@ -241,7 +246,7 @@ class cubic_eos {
   /// Repulsion parameter at critical condition
   T bc_;
   /// Temperature correction policy for attraction parameter
-  CorrectionPolicy policy_;
+  Corrector corrector_;
 };
 
 }  // namespace shirose
