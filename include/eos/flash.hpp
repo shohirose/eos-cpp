@@ -26,7 +26,7 @@
 #include <cassert>    // assert
 #include <cmath>      // std::pow
 #include <iostream>   // std::cerr
-#include <utility>    // std::pair, std::forwad
+#include <utility>    // std::pair, std::forward
 
 namespace eos {
 
