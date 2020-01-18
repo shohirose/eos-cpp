@@ -79,7 +79,8 @@ class Flash {
   /// @param[in] t Temperature
   /// @return A pair of vapor pressure and iteration report
   template <typename T>
-  std::pair<T, Report> vapor_pressure(const T& p_init, const T& t) {
+  std::pair<T, Report> vapor_pressure(const T& p_init, const T& t) const
+      noexcept {
     auto p = p_init;
     double eps = 1;
     int iter = 0;
