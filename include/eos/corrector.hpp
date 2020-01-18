@@ -26,12 +26,10 @@
 
 namespace eos {
 
-namespace policy {
-
-/// @brief No temperature correction for attraction parameter
+/// @brief Default corrector. Do not apply any correction.
 /// @tparam T Value type
 template <typename T>
-struct no_correction {
+struct DefaultCorrector {
   /// @brief Computes temperature correction factor for attraction parameter
   T alpha(const T&) const noexcept { return 1; }
 
@@ -50,11 +48,11 @@ struct no_correction {
 /// @brief Base class for temperature correction proposed by Soave (1972)
 /// @tparam T Value type
 template <typename T>
-class soave_1972_base {
+class SoaveCorrectorBase {
  public:
-  /// @brief Constructs temperature correction policy
+  /// @brief Constructs temperature corrector
   /// @param[in] m Correction parameter
-  soave_1972_base(const T& m) : m_{m} {}
+  SoaveCorrectorBase(const T& m) : m_{m} {}
 
   /// @brief Computes temperature correction factor for attraction parameter
   /// @param[in] tr Reduced temperature
@@ -95,7 +93,7 @@ class soave_1972_base {
 /// @brief Temperature correction proposed by Soave (1972)
 /// @tparam T Value type
 template <typename T>
-class soave_1972 : public soave_1972_base<T> {
+class SoaveCorrector : public SoaveCorrectorBase<T> {
  public:
   /// @brief Computes parameter \f$ m \f$ from acentric factor
   /// @param[in] omega Acentric factor
@@ -103,15 +101,15 @@ class soave_1972 : public soave_1972_base<T> {
     return 0.48 + (1.574 - 0.176 * omega) * omega;
   }
 
-  /// @brief Constructs temperature correction policy
+  /// @brief Constructs temperature corrector
   /// @param[in] omega Acentric factor
-  soave_1972(const T& omega) : soave_1972_base<T>{this->m(omega)} {}
+  SoaveCorrector(const T& omega) : SoaveCorrectorBase<T>{this->m(omega)} {}
 };
 
 /// @brief Temperature correction proposed by Peng and Robinson (1976)
 /// @tparam T Value type
 template <typename T>
-class peng_robinson_1976 : public soave_1972_base<T> {
+class PengRobinsonCorrector : public SoaveCorrectorBase<T> {
  public:
   /// @brief Computes parameter \f$ m \f$ from acentric factor
   /// @param[in] omega Acentric factor
@@ -119,11 +117,10 @@ class peng_robinson_1976 : public soave_1972_base<T> {
     return 0.3796 + omega * (1.485 - omega * (0.1644 - 0.01667 * omega));
   }
 
-  /// @brief Constructs temperature correction policy
+  /// @brief Constructs temperature corrector
   /// @param[in] omega Acentric factor
-  peng_robinson_1976(const T& omega) : soave_1972_base<T>{this->m(omega)} {}
+  PengRobinsonCorrector(const T& omega)
+      : SoaveCorrectorBase<T>{this->m(omega)} {}
 };
-
-}  // namespace policy
 
 }  // namespace eos

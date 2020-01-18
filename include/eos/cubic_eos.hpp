@@ -52,7 +52,7 @@ namespace eos {
 ///    \alpha}{\mathrm{d} T_r^2} \f$
 /// where tr is reduced temperature.
 template <typename T, typename Eos, typename Corrector>
-class cubic_eos {
+class CubicEos {
  public:
   // Static functions
 
@@ -94,12 +94,23 @@ class cubic_eos {
   /// @param[in] pc Critical pressure
   /// @param[in] tc Critical temperature
   /// @param[in] corrector Temperature corrector for attraction parameter
-  cubic_eos(const T &pc, const T &tc, const Corrector &corrector)
+  CubicEos(const T &pc, const T &tc, const Corrector &corrector)
       : pc_{pc},
         tc_{tc},
         ac_{this->attraction_param(pc, tc)},
         bc_{this->repulsion_param(pc, tc)},
         corrector_{corrector} {}
+
+  /// @brief Constructs EoS.
+  /// @param[in] pc Critical pressure
+  /// @param[in] tc Critical temperature
+  /// @param[in] corrector Temperature corrector for attraction parameter
+  CubicEos(const T &pc, const T &tc, Corrector &&corrector)
+      : pc_{pc},
+        tc_{tc},
+        ac_{this->attraction_param(pc, tc)},
+        bc_{this->repulsion_param(pc, tc)},
+        corrector_{std::move(corrector)} {}
 
   /// @brief Computes pressure at given temperature and volume.
   /// @param[in] t Temperature
@@ -113,14 +124,13 @@ class cubic_eos {
   }
 
   /// @brief Isothermal state of a cubic EoS
-  class isothermal_state {
+  class IsothermalState {
    public:
     /// @brief Constructs isothermal state
     /// @param[in] t Temperature
     /// @param[in] a Attraction parameter
     /// @param[in] b Repulsion parameter
-    isothermal_state(const T &t, const T &a, const T &b)
-        : t_{t}, a_{a}, b_{b} {}
+    IsothermalState(const T &t, const T &a, const T &b) : t_{t}, a_{a}, b_{b} {}
 
     /// @brief Computes pressure at given volume along this isothermal line
     /// @param[in] v Volume
@@ -138,7 +148,7 @@ class cubic_eos {
   /// @brief Creates isothermal state
   /// @param[in] t Temperature
   /// @return Isothermal state
-  isothermal_state isothermal_line(const T &t) const noexcept {
+  IsothermalState state(const T &t) const noexcept {
     const auto tr = t / tc_;
     const auto a = corrector_.alpha(tr) * ac_;
     const auto b = bc_;
@@ -158,7 +168,7 @@ class cubic_eos {
 
   /// @brief A state at given pressure and temperature expressed by this
   /// equation of state
-  class pt_state {
+  class IsobaricIsothermalState {
    public:
     /// @brief Constructs a state
     /// @param[in] p Pressure
@@ -167,8 +177,8 @@ class cubic_eos {
     /// @param[in] br Reduced repulsion parameter
     /// @param[in] beta Temperature correction factor
     /// @param[in] gamma Temperature correction factor
-    pt_state(const T &p, const T &t, const T &ar, const T &br, const T &beta,
-             const T &gamma)
+    IsobaricIsothermalState(const T &p, const T &t, const T &ar, const T &br,
+                            const T &beta, const T &gamma)
         : p_{p}, t_{t}, ar_{ar}, br_{br}, beta_{beta}, gamma_{gamma} {}
 
     /// @brief Computes z-factor
@@ -225,7 +235,7 @@ class cubic_eos {
   /// @param[in] p Pressure
   /// @param[in] t Temperature
   /// @returns State
-  pt_state state(const T &p, const T &t) const noexcept {
+  IsobaricIsothermalState state(const T &p, const T &t) const noexcept {
     const auto pr = p / pc_;
     const auto tr = t / tc_;
     const auto ar =

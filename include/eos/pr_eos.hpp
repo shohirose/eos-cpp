@@ -25,15 +25,15 @@
 #include <array>  // std::array
 #include <cmath>  // std::sqrt, std::exp, std::log
 
-#include "eos/correction_policy.hpp"  // eos::policy::peng_robinson_1976
-#include "eos/cubic_eos.hpp"          // eos::cubic_eos
+#include "eos/corrector.hpp"  // eos::pengRobinsonCorrector
+#include "eos/cubic_eos.hpp"  // eos::CubicEos
 
 namespace eos {
 
-/// @brief Peng-Robinson EoS policy for cubic_eos.
+/// @brief Peng-Robinson EoS policy for CubicEos.
 /// @tparam T Value type
 template <typename T>
-class peng_robinson {
+class PengRobinson {
  public:
   /// Constant for attraction parameter
   static constexpr double omega_a = 0.45724;
@@ -118,7 +118,7 @@ class peng_robinson {
 /// @brief Peng-Robinson equation of state.
 /// @tparam T Value type
 template <typename T>
-using pr_eos = cubic_eos<T, peng_robinson<T>, policy::peng_robinson_1976<T>>;
+using PengRobinsonEos = CubicEos<T, PengRobinson<T>, PengRobinsonCorrector<T>>;
 
 /// @brief Makes Peng-Robinson EoS
 /// @tparam T Value type
@@ -126,8 +126,9 @@ using pr_eos = cubic_eos<T, peng_robinson<T>, policy::peng_robinson_1976<T>>;
 /// @param[in] tc Critical temperature
 /// @param[in] omega Acentric factor
 template <typename T>
-pr_eos<T> make_pr_eos(const T &pc, const T &tc, const T &omega) {
-  return {pc, tc, policy::peng_robinson_1976<T>{omega}};
+inline PengRobinsonEos<T> make_pr_eos(const T &pc, const T &tc,
+                                      const T &omega) {
+  return {pc, tc, PengRobinsonCorrector<T>{omega}};
 }
 
 }  // namespace eos

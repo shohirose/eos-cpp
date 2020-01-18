@@ -25,16 +25,16 @@
 #include <array>  // std::array
 #include <cmath>  // std::exp, std::log
 
-#include "eos/correction_policy.hpp"  // eos::policy::no_correction
-#include "eos/cubic_eos.hpp"          // eos::cubic_eos
+#include "eos/corrector.hpp"  // eos::DefaultCorrector
+#include "eos/cubic_eos.hpp"  // eos::CubicEos
 
 namespace eos {
 
-/// @brief Van der Waals EoS policy for cubic_eos.
+/// @brief Van der Waals EoS policy for CubicEos.
 /// @tparam T Value type
 /// @tparam F Function to compute alpha.
 template <typename T>
-struct van_der_waals {
+struct VanDerWaals {
   /// Constant for attraction parameter
   static constexpr double omega_a = 0.421875;
   /// Constant for respulsion parameter
@@ -108,7 +108,7 @@ struct van_der_waals {
 /// @brief Van der Waals equation of state.
 /// @tparam T Value type
 template <typename T>
-using vdw_eos = cubic_eos<T, van_der_waals<T>, policy::no_correction<T>>;
+using VanDerWaalsEos = CubicEos<T, VanDerWaals<T>, DefaultCorrector<T>>;
 
 /// @brief Makes van der Waals EoS
 /// @tparam T Value type
@@ -116,8 +116,8 @@ using vdw_eos = cubic_eos<T, van_der_waals<T>, policy::no_correction<T>>;
 /// @param[in] tc Critical temperature
 /// @param[in] omega Acentric factor
 template <typename T>
-vdw_eos<T> make_vdw_eos(const T &pc, const T &tc) {
-  return {pc, tc, policy::no_correction<T>{}};
+inline VanDerWaalsEos<T> make_vdw_eos(const T &pc, const T &tc) {
+  return {pc, tc, DefaultCorrector<T>{}};
 }
 
 }  // namespace eos

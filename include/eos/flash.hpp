@@ -26,7 +26,7 @@
 #include <cassert>    // assert
 #include <cmath>      // std::pow
 #include <iostream>   // std::cerr
-#include <utility>    // std::pair
+#include <utility>    // std::pair, std::forwad
 
 namespace eos {
 
@@ -43,34 +43,34 @@ T estimate_vapor_pressure(const T& t, const T& pc, const T& tc,
 /// @brief Flash calculation class
 /// @tparam Eos Equation of State
 template <typename Eos>
-class flash {
+class Flash {
  public:
   /// @brief Constructs flash object
   /// @param[in] eos EoS
   ///
   /// The default values of tolerance and maxixum iteration are 1e-6 and 100,
   /// respectively.
-  flash(const Eos& eos) : eos_{eos}, tol_{1e-6}, max_iter_{100} {}
+  Flash(const Eos& eos) : eos_{eos}, tol_{1e-6}, max_iter_{100} {}
 
   /// @brief Constructs flash object
   /// @param[in] eos EoS
-  /// @param[in] tol Tolerance for flash calculation convergence
+  /// @param[in] tol Tolerance for Flash calculation convergence
   /// @param[in] max_iter Maximum iteration
-  flash(const Eos& eos, double tol, int max_iter)
+  Flash(const Eos& eos, double tol, int max_iter)
       : eos_{eos}, tol_{tol}, max_iter_{max_iter} {}
 
-  /// @brief Error code for flash calculation
-  enum class error_code {
+  /// @brief Error code for Flash calculation
+  enum class ErrorCode {
     success,                   /// Calculation succeeded
     max_iter_reached,          /// Maximum iteration reached
     multiple_roots_not_found,  /// Multiple roots not found in z-factor
   };
 
   /// @brief Iteration report
-  struct report {
-    double rsd;        /// Relative residual
-    int iter;          /// Iteration count
-    error_code error;  /// Error code
+  struct Report {
+    double rsd;       /// Relative residual
+    int iter;         /// Iteration count
+    ErrorCode error;  /// Error code
   };
 
   /// @brief Computes vapor pressure
@@ -79,7 +79,7 @@ class flash {
   /// @param[in] t Temperature
   /// @return A pair of vapor pressure and iteration report
   template <typename T>
-  std::pair<T, report> vapor_pressure(const T& p_init, const T& t) {
+  std::pair<T, Report> vapor_pressure(const T& p_init, const T& t) {
     auto p = p_init;
     double eps = 1;
     int iter = 0;
@@ -92,7 +92,7 @@ class flash {
 
       if (z.size() < 2) {
         std::cerr << "Multiple roots not found in z-factor." << std::endl;
-        return {0, {eps, iter, error_code::multiple_roots_not_found}};
+        return {0, {eps, iter, ErrorCode::multiple_roots_not_found}};
       }
 
       const auto z_vap = *std::max_element(z.begin(), z.end());
@@ -110,10 +110,10 @@ class flash {
 
     if (iter >= max_iter_) {
       std::cerr << "Max iteration reached." << std::endl;
-      return {0, {eps, iter, error_code::max_iter_reached}};
+      return {0, {eps, iter, ErrorCode::max_iter_reached}};
     }
 
-    return {p, {eps, iter, error_code::success}};
+    return {p, {eps, iter, ErrorCode::success}};
   }
 
   double tolerance() const noexcept { return tol_; }
@@ -130,5 +130,10 @@ class flash {
   /// Maximum iteration
   int max_iter_;
 };
+
+template <typename Eos>
+inline Flash<Eos> make_flash(Eos&& eos) {
+  return Flash<Eos>{std::forward<Eos>(eos)};
+}
 
 }  // namespace eos

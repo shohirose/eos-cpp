@@ -25,15 +25,15 @@
 #include <array>  // std::array
 #include <cmath>  // std::sqrt, std::exp, std::log
 
-#include "eos/correction_policy.hpp"  // eos::policy::soave_1972
-#include "eos/cubic_eos.hpp"          // eos::cubic_eos
+#include "eos/corrector.hpp"  // eos::SoaveCorrector
+#include "eos/cubic_eos.hpp"  // eos::CubicEos
 
 namespace eos {
 
-/// @brief Soave-Redlich-Kwong EoS policy for cubic_eos.
+/// @brief Soave-Redlich-Kwong EoS policy for CubicEos.
 /// @tparam T Value type
 template <typename T>
-class soave_redlich_kwong {
+class SoaveRedlichKwong {
  public:
   /// Constant for attraction parameter
   static constexpr double omega_a = 0.42748;
@@ -108,7 +108,8 @@ class soave_redlich_kwong {
 /// @brief Soave-Redlich-Kwong equation of state.
 /// @tparam T Value type
 template <typename T>
-using srk_eos = cubic_eos<T, soave_redlich_kwong<T>, policy::soave_1972<T>>;
+using SoaveRedlichKwongEos =
+    CubicEos<T, SoaveRedlichKwong<T>, SoaveCorrector<T>>;
 
 /// @brief Makes Soave-Redlich-Kwong EoS
 /// @tparam T Value type
@@ -116,8 +117,9 @@ using srk_eos = cubic_eos<T, soave_redlich_kwong<T>, policy::soave_1972<T>>;
 /// @param[in] tc Critical temperature
 /// @param[in] omega Acentric factor
 template <typename T>
-srk_eos<T> make_srk_eos(const T &pc, const T &tc, const T &omega) {
-  return {pc, tc, policy::soave_1972<T>{omega}};
+inline SoaveRedlichKwongEos<T> make_srk_eos(const T &pc, const T &tc,
+                                            const T &omega) {
+  return {pc, tc, SoaveCorrector<T>{omega}};
 }
 
 }  // namespace eos
