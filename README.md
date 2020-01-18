@@ -4,9 +4,9 @@ This is c++ code for equation of states (EoSs).
 
 This module provides templated classes for three types of cubic EoS: van der Waals, Soave-Redlich-Kwong, and Peng-Robinson EoS. These are respectively defined as the following classes:
 
-- `VanDerWaalsEos`
-- `SoaveRedlichKwongEos`
-- `PengRobinsonEos`
+- `eos::VanDerWaalsEos`
+- `eos::SoaveRedlichKwongEos`
+- `eos::PengRobinsonEos`
 
 In addition, you can customize and create a new cubic EoS from `CubicEos`. `CubicEos` is a template class for general two-parameter cubic EoS with three template parameters: value type `T`, EoS type `Eos`, and temperature corrector type for attraction parameter `Corrector`. `Eos` is a policy class which implements thermodynamic property calculation using static member functions. `Corrector` is a policy class which computes temperature correction factor using non-static member functions. For example, `VanDerWaalsEos` is defined as
 
@@ -15,12 +15,11 @@ template <typename T>
 using VanDerWaalsEos = CubicEos<T, VanDerWaals<T>, DefaultCorrector<T>>;
 ```
 
-, and `PengRobinsonEos` is defined as
+Helper functions are defined for each EoS to easily create EoS objects:
 
-```cpp
-template <typename T>
-using PengRobinsonEos = CubicEos<T, PengRobinson<T>, PengRobinsonCorrector<T>>;
-```
+- `eos::make_vdw_eos`
+- `eos::make_sdk_eos`
+- `eos::make_pr_eos`
 
 ## Example of Usage
 
@@ -33,7 +32,7 @@ const double tc = 190.6;    // Critical temperature [K]
 const double omega = 0.008; // Acentric factor
 
 // Creates EoS
-const auto eos = make_pr_eos(pc, tc, omega);
+const auto eos = eos::make_pr_eos(pc, tc, omega);
 ```
 
 Z-factor and fugacity coefficients at given pressure and temperature can be computed from a state:
@@ -85,10 +84,10 @@ Vapor pressure can be computed by flash calculation:
 
 ```cpp
 // Estimate initial pressure for flash calculation by using Wilson equation
-const auto p_init = estimate_vapor_pressure(t, pc, tc, omega);
+const auto p_init = eos::estimate_vapor_pressure(t, pc, tc, omega);
 
 // Creates flash object
-const auto flash = make_flash(make_pr_eos(pc, tc, omega));
+const auto flash = eos::make_flash(make_pr_eos(pc, tc, omega));
 
 // Computes vapor pressure at a given temperature
 const auto result = flash.vapor_pressure(p_init, t);
