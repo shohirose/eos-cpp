@@ -23,44 +23,44 @@
 #pragma once
 
 #include <array>  // std::array
-#include <cmath>  // std::sqrt, std::exp, std::log
+#include <cmath>  // std::exp, std::log
 
-#include "shirose/correction_policy.hpp"  // shirose::policy::soave_1972
-#include "shirose/cubic_eos.hpp"          // shirose::cubic_eos
+#include "eos/correction_policy.hpp"  // eos::policy::no_correction
+#include "eos/cubic_eos.hpp"          // eos::cubic_eos
 
-namespace shirose {
+namespace eos {
 
-/// @brief Soave-Redlich-Kwong EoS policy for cubic_eos.
+/// @brief Van der Waals EoS policy for cubic_eos.
 /// @tparam T Value type
+/// @tparam F Function to compute alpha.
 template <typename T>
-class soave_redlich_kwong {
- public:
+struct van_der_waals {
   /// Constant for attraction parameter
-  static constexpr double omega_a = 0.42748;
-  /// Constant for repulsion parameter
-  static constexpr double omega_b = 0.08664;
+  static constexpr double omega_a = 0.421875;
+  /// Constant for respulsion parameter
+  static constexpr double omega_b = 0.125;
 
-  // Static functions
+  // Static Functions
 
-  /// @brief Computes pressure at given temperature and volume
+  /// @brief Computes pressure at given temperature and volume.
   /// @param[in] t Temperature
   /// @param[in] v Volume
   /// @param[in] a Attraction parameter
   /// @param[in] b Repulsion parameter
   /// @returns Pressure
   static T pressure(const T &t, const T &v, const T &a, const T &b) noexcept {
-    return gas_constant * t / (v - b) - a / (v * (v + b));
+    return gas_constant * t / (v - b) - a / (v * v);
   }
 
-  /// @brief Computes the coefficients of the cubic equation of z-factor.
+  /// @brief Computes coefficients of cubic equation
   /// @param[in] a Reduced attraction parameter
   /// @param[in] b Reduced repulsion parameter
-  /// @returns Coefficients of the cubic equation of z-factor.
+  /// @returns Coefficients of the cubic equation of z-factor
   static std::array<T, 3> cubic_eq(const T &a, const T &b) noexcept {
-    return {-1, a - b - b * b, -a * b};
+    return {-b - 1, a, -a * b};
   }
 
-  /// @brief Computes the fugacity coefficient
+  /// @brief Computes fugacity coefficient
   /// @param[in] z Z-factor
   /// @param[in] a Reduced attraction parameter
   /// @param[in] b Reduced repulsion parameter
@@ -68,7 +68,7 @@ class soave_redlich_kwong {
   static T fugacity_coeff(const T &z, const T &a, const T &b) noexcept {
     using std::exp;
     using std::log;
-    return exp(z - 1 - log(z - b) - a / b * log((z + b) / z));
+    return exp(-log(z - b) - a / z + z - 1);
   }
 
   /// @brief Computes residual enthalpy
@@ -79,18 +79,18 @@ class soave_redlich_kwong {
   /// @param[in] beta Temperature correction factor
   static T residual_enthalpy(const T &z, const T &t, const T &a, const T &b,
                              const T &beta) noexcept {
-    using std::log;
-    return gas_constant * t * (z - 1 - a / b * (1 - beta) * log((z + b) / z));
+    return gas_constant * t * (z - 1 - a * (1 - beta) / z);
   }
 
   /// @brief Computes residual entropy
   /// @param[in] z Z-factor
   /// @param[in] a Reduced attraction parameter
   /// @param[in] b Reduced repulsion parameter
+  /// @param[in] beta Temperature correction factor
   static T residual_entropy(const T &z, const T &a, const T &b,
                             const T &beta) noexcept {
     using std::log;
-    return gas_constant * (log(z - b) + a / b * beta * log((z + b) / z));
+    return gas_constant * (log(z - b) + a * beta / z);
   }
 
   /// @brief Computes residual molar specific heat at constant volume
@@ -98,26 +98,26 @@ class soave_redlich_kwong {
   /// @param[in] a Reduced attraction parameter
   /// @param[in] b Reduced repulsion parameter
   /// @param[in] gamma Temperature correction factor
-  static T residual_specific_heat_v(const T &z, const T &a, const T &b,
+  static T residual_specific_heat_v(const T &z, const T &a,
+                                    [[maybe_unused]] const T &b,
                                     const T &gamma) noexcept {
-    using std::log;
-    return gas_constant * gamma * a / b * log((z + b) / z);
+    return gas_constant * gamma * a / z;
   }
 };
 
-/// @brief Soave-Redlich-Kwong equation of state.
+/// @brief Van der Waals equation of state.
 /// @tparam T Value type
 template <typename T>
-using srk_eos = cubic_eos<T, soave_redlich_kwong<T>, policy::soave_1972<T>>;
+using vdw_eos = cubic_eos<T, van_der_waals<T>, policy::no_correction<T>>;
 
-/// @brief Makes Soave-Redlich-Kwong EoS
+/// @brief Makes van der Waals EoS
 /// @tparam T Value type
 /// @param[in] pc Critical pressure
 /// @param[in] tc Critical temperature
 /// @param[in] omega Acentric factor
 template <typename T>
-srk_eos<T> make_srk_eos(const T &pc, const T &tc, const T &omega) {
-  return {pc, tc, policy::soave_1972<T>{omega}};
+vdw_eos<T> make_vdw_eos(const T &pc, const T &tc) {
+  return {pc, tc, policy::no_correction<T>{}};
 }
 
-}  // namespace shirose
+}  // namespace eos

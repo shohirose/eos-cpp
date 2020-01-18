@@ -27,7 +27,7 @@
 #include <complex>  // std::complex
 #include <vector>   // std::vector
 
-namespace shirose {
+namespace eos {
 
 /// @brief Computes roots of a cubic equation by using Cardano's formula.
 /// @param[in] a Array of coefficients of a cubic equation
@@ -95,4 +95,4 @@ std::vector<T> real_roots(const std::array<std::complex<T>, N>& x) noexcept {
   return xreal;
 }
 
-}  // namespace shirose
+}  // namespace eos

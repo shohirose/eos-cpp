@@ -20,11 +20,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#include "shirose/eos.hpp"
+#include "eos/eos.hpp"
 #include <gtest/gtest.h>
 #include <iostream>
 
-using namespace shirose;
+using namespace eos;
 
 TEST(EosTest, VanDerWaalsEosTest) {
   // Methane
@@ -120,7 +120,7 @@ TEST(FlashTest, VaporPressureTest) {
   EXPECT_NEAR(p_init, 2.90772e6, 10);
 
   auto eos = make_pr_eos(pc, tc, omega);
-  auto flash = shirose::flash<pr_eos<double>>(eos);
+  auto flash = eos::flash<pr_eos<double>>(eos);
   const auto result = flash.vapor_pressure(p_init, t);
   const auto pvap = result.first;
   const auto report = result.second;

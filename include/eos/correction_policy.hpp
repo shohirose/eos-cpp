@@ -24,7 +24,7 @@
 
 #include <cmath>
 
-namespace shirose {
+namespace eos {
 
 namespace policy {
 
@@ -126,4 +126,4 @@ class peng_robinson_1976 : public soave_1972_base<T> {
 
 }  // namespace policy
 
-}  // namespace shirose
+}  // namespace eos

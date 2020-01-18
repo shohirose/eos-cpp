@@ -28,7 +28,7 @@
 #include <iostream>   // std::cerr
 #include <utility>    // std::pair
 
-namespace shirose {
+namespace eos {
 
 /// @brief Estimates vapor pressure of a pure component by using Wilson
 /// equation.
@@ -131,4 +131,4 @@ class flash {
   int max_iter_;
 };
 
-}  // namespace shirose
+}  // namespace eos

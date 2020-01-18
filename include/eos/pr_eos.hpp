@@ -23,41 +23,45 @@
 #pragma once
 
 #include <array>  // std::array
-#include <cmath>  // std::exp, std::log
+#include <cmath>  // std::sqrt, std::exp, std::log
 
-#include "shirose/correction_policy.hpp"  // shirose::policy::no_correction
-#include "shirose/cubic_eos.hpp"          // shirose::cubic_eos
+#include "eos/correction_policy.hpp"  // eos::policy::peng_robinson_1976
+#include "eos/cubic_eos.hpp"          // eos::cubic_eos
 
-namespace shirose {
+namespace eos {
 
-/// @brief Van der Waals EoS policy for cubic_eos.
+/// @brief Peng-Robinson EoS policy for cubic_eos.
 /// @tparam T Value type
-/// @tparam F Function to compute alpha.
 template <typename T>
-struct van_der_waals {
+class peng_robinson {
+ public:
   /// Constant for attraction parameter
-  static constexpr double omega_a = 0.421875;
-  /// Constant for respulsion parameter
-  static constexpr double omega_b = 0.125;
+  static constexpr double omega_a = 0.45724;
+  /// Constant for repulsion parameter
+  static constexpr double omega_b = 0.07780;
+  /// Square root of 2 (two).
+  static constexpr double sqrt2 = 1.4142135623730950488;
+  static constexpr double delta1 = 1 + sqrt2;
+  static constexpr double delta2 = 1 - sqrt2;
 
-  // Static Functions
+  // Static functions
 
-  /// @brief Computes pressure at given temperature and volume.
+  /// @brief Computes pressure at given temperature and volume
   /// @param[in] t Temperature
   /// @param[in] v Volume
   /// @param[in] a Attraction parameter
   /// @param[in] b Repulsion parameter
   /// @returns Pressure
   static T pressure(const T &t, const T &v, const T &a, const T &b) noexcept {
-    return gas_constant * t / (v - b) - a / (v * v);
+    return gas_constant * t / (v - b) - a / (v * (v + b) + b * (v - b));
   }
 
-  /// @brief Computes coefficients of cubic equation
+  /// @brief Computes coeficients of the cubic equation of z-factor.
   /// @param[in] a Reduced attraction parameter
   /// @param[in] b Reduced repulsion parameter
-  /// @returns Coefficients of the cubic equation of z-factor
+  /// @returns Coefficients of the cubic equation of z-factor.
   static std::array<T, 3> cubic_eq(const T &a, const T &b) noexcept {
-    return {-b - 1, a, -a * b};
+    return {b - 1, a - (3 * b + 2) * b, (-a + b + b * b) * b};
   }
 
   /// @brief Computes fugacity coefficient
@@ -68,7 +72,8 @@ struct van_der_waals {
   static T fugacity_coeff(const T &z, const T &a, const T &b) noexcept {
     using std::exp;
     using std::log;
-    return exp(-log(z - b) - a / z + z - 1);
+    return exp(z - 1 - log(z - b) -
+               a / (2 * sqrt2 * b) * log((z + delta1 * b) / (z + delta2 * b)));
   }
 
   /// @brief Computes residual enthalpy
@@ -79,18 +84,22 @@ struct van_der_waals {
   /// @param[in] beta Temperature correction factor
   static T residual_enthalpy(const T &z, const T &t, const T &a, const T &b,
                              const T &beta) noexcept {
-    return gas_constant * t * (z - 1 - a * (1 - beta) / z);
+    using std::log;
+    return gas_constant * t * (z - 1 -
+                               a / (2 * sqrt2 * b) * (1 - beta) *
+                                   log((z + delta1 * b) / (z + delta2 * b)));
   }
 
   /// @brief Computes residual entropy
   /// @param[in] z Z-factor
   /// @param[in] a Reduced attraction parameter
   /// @param[in] b Reduced repulsion parameter
-  /// @param[in] beta Temperature correction factor
   static T residual_entropy(const T &z, const T &a, const T &b,
                             const T &beta) noexcept {
     using std::log;
-    return gas_constant * (log(z - b) + a * beta / z);
+    return gas_constant * (log(z - b) +
+                           a / (2 * sqrt2 * b) * beta *
+                               log((z + delta1 * b) / (z + delta2 * b)));
   }
 
   /// @brief Computes residual molar specific heat at constant volume
@@ -98,26 +107,27 @@ struct van_der_waals {
   /// @param[in] a Reduced attraction parameter
   /// @param[in] b Reduced repulsion parameter
   /// @param[in] gamma Temperature correction factor
-  static T residual_specific_heat_v(const T &z, const T &a,
-                                    [[maybe_unused]] const T &b,
+  static T residual_specific_heat_v(const T &z, const T &a, const T &b,
                                     const T &gamma) noexcept {
-    return gas_constant * gamma * a / z;
+    using std::log;
+    return gas_constant * gamma * a / (2 * sqrt2 * b) *
+           log((z + delta1 * b) / (z + delta2 * b));
   }
 };
 
-/// @brief Van der Waals equation of state.
+/// @brief Peng-Robinson equation of state.
 /// @tparam T Value type
 template <typename T>
-using vdw_eos = cubic_eos<T, van_der_waals<T>, policy::no_correction<T>>;
+using pr_eos = cubic_eos<T, peng_robinson<T>, policy::peng_robinson_1976<T>>;
 
-/// @brief Makes van der Waals EoS
+/// @brief Makes Peng-Robinson EoS
 /// @tparam T Value type
 /// @param[in] pc Critical pressure
 /// @param[in] tc Critical temperature
 /// @param[in] omega Acentric factor
 template <typename T>
-vdw_eos<T> make_vdw_eos(const T &pc, const T &tc) {
-  return {pc, tc, policy::no_correction<T>{}};
+pr_eos<T> make_pr_eos(const T &pc, const T &tc, const T &omega) {
+  return {pc, tc, policy::peng_robinson_1976<T>{omega}};
 }
 
-}  // namespace shirose
+}  // namespace eos

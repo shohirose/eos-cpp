@@ -24,10 +24,10 @@
 
 #include <vector>  // std::vector
 
-#include "shirose/constants.hpp"  // shirose::gas_constant
-#include "shirose/roots.hpp"      // shirose::roots
+#include "eos/constants.hpp"  // eos::gas_constant
+#include "eos/roots.hpp"      // eos::roots
 
-namespace shirose {
+namespace eos {
 
 /// @brief Two-parameter cubic equation of state (EoS)
 /// @tparam Eos EoS policy
@@ -249,4 +249,4 @@ class cubic_eos {
   Corrector corrector_;
 };
 
-}  // namespace shirose
+}  // namespace eos

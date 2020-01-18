@@ -22,7 +22,9 @@
 
 #pragma once
 
-#include "shirose/flash.hpp"
-#include "shirose/pr_eos.hpp"
-#include "shirose/srk_eos.hpp"
-#include "shirose/vdw_eos.hpp"
+namespace eos {
+
+/// Gas constant [J/mol-K]
+static constexpr double gas_constant = 8.31446261815324;
+
+}  // namespace eos

@@ -22,9 +22,7 @@
 
 #pragma once
 
-namespace shirose {
-
-/// Gas constant [J/mol-K]
-static constexpr double gas_constant = 8.31446261815324;
-
-}  // namespace shirose
+#include "eos/flash.hpp"
+#include "eos/pr_eos.hpp"
+#include "eos/srk_eos.hpp"
+#include "eos/vdw_eos.hpp"
