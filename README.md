@@ -2,15 +2,29 @@
 
 This is c++ code for equation of states (EoSs).
 
-This module provides templated classes for three types of cubic EoSs: van der Waals, Soave-Redlich-Kwong, and Peng-Robinson EoS. These are respectively defined as the following classes:
+This module provides templated classes for three types of cubic EoS: van der Waals, Soave-Redlich-Kwong, and Peng-Robinson EoS. These are respectively defined as the following classes:
 
-- vdw_eos
-- srk_eos
-- pr_eos
+- `VanDerWaalsEos`
+- `SoaveRedlichKwongEos`
+- `PengRobinsonEos`
+
+In addition, you can customize and create a new cubic EoS from `CubicEos`. `CubicEos` is a template class for general two-parameter cubic EoS with three template parameters: value type `T`, EoS type `Eos`, and temperature corrector type for attraction parameter `Corrector`. `Eos` is a policy class which implements thermodynamic property calculation using static member functions. `Corrector` is a policy class which computes temperature correction factor using non-static member functions. For example, `VanDerWaalsEos` is defined as
+
+```cpp
+template <typename T>
+using VanDerWaalsEos = CubicEos<T, VanDerWaals<T>, DefaultCorrector<T>>;
+```
+
+, and `PengRobinsonEos` is defined as
+
+```cpp
+template <typename T>
+using PengRobinsonEos = CubicEos<T, PengRobinson<T>, PengRobinsonCorrector<T>>;
+```
 
 ## Example of Usage
 
-First, let's create an eos:
+First, let's create an EoS:
 
 ```cpp
 // Critical parameters of methane
@@ -18,7 +32,7 @@ const double pc = 4e6;      // Critical pressure [Pa]
 const double tc = 190.6;    // Critical temperature [K]
 const double omega = 0.008; // Acentric factor
 
-// Creates EOS
+// Creates EoS
 const auto eos = make_pr_eos(pc, tc, omega);
 ```
 
