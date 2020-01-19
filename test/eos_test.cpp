@@ -121,9 +121,7 @@ TEST(FlashTest, VaporPressureTest) {
 
   auto eos = make_pr_eos(pc, tc, omega);
   auto flash = make_flash(eos);
-  const auto result = flash.vapor_pressure(p_init, t);
-  const auto pvap = result.first;
-  const auto report = result.second;
+  auto [pvap, report] = flash.vapor_pressure(p_init, t);
 
   EXPECT_NEAR(pvap, 2.87515e6, 10);
   EXPECT_EQ(static_cast<int>(report.error), 0);
