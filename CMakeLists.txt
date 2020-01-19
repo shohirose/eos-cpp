@@ -1,10 +1,10 @@
-cmake_minimum_required(VERSION 3.8)
+cmake_minimum_required(VERSION 3.13)
 project(eoscpp CXX)
 
 add_library(eos INTERFACE)
 target_compile_features(eos
   INTERFACE
-    cxx_std_11
+    cxx_std_17
   )
 target_compile_options(eos
   INTERFACE
