@@ -31,14 +31,15 @@ namespace eos {
 
 /// @brief Computes roots of a cubic equation by using Cardano's formula.
 /// @param[in] a Array of coefficients of a cubic equation
-/// @returns Array of roots of a cubic equation
+/// @returns Array of complex roots of a cubic equation
 ///
 /// The cubic equation takes the form of:
 /// \f[
 ///   x^3 + a[0] x^2 + a[1] x + a[2] = 0.
 /// \f]
 template <typename T>
-std::array<std::complex<T>, 3> roots(const std::array<T, 3>& a) noexcept {
+auto roots(const std::array<T, 3>& a) noexcept
+    -> std::array<std::complex<T>, 3> {
   const auto p = (3 * a[1] - a[0] * a[0]) / 9;
   const auto q = (27 * a[2] + a[0] * (2 * a[0] * a[0] - 9 * a[1])) / 54;
   // Discriminant of the cubic equation
@@ -84,10 +85,14 @@ int num_of_real_roots(const std::array<T, 3>& a) noexcept {
   }
 }
 
-template <typename T, std::size_t N>
-std::vector<T> real_roots(const std::array<std::complex<T>, N>& x) noexcept {
+/// @brief Computes real roots of a cubic equation
+/// @param[in] a Coefficients of a cubic equation
+/// @return An array of real roots of a cubic equation
+template <typename T>
+std::vector<T> real_roots(const std::array<T, 3>& a) noexcept {
+  const auto x = roots(a);
   std::vector<T> xreal;
-  xreal.reserve(N);
+  xreal.reserve(3);
   using std::fabs;
   constexpr double eps = 1e-10;
   for (auto&& xi : x)

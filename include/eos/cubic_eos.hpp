@@ -185,8 +185,7 @@ class CubicEos {
     /// @return An array of z-factors
     std::vector<T> zfactor() const noexcept {
       const auto p = Eos::cubic_eq(ar_, br_);
-      const auto x = roots(p);
-      return real_roots(x);
+      return real_roots(p);
     }
 
     /// @brief Computes fugacity coefficient
