@@ -32,19 +32,6 @@
 
 namespace eos {
 
-/*
-template <typename T>
-inline sign(const T& x) noexcept {
-  if (x > 0) {
-    return 1;
-  } else if (x < 0) {
-    return -1;
-  } else {
-    return 0;
-  }
-}
-*/
-
 template <typename T, std::size_t N>
 class LucasMethod {
  public:
@@ -59,23 +46,26 @@ class LucasMethod {
   /// @param[in] pc Critical pressure
   /// @param[in] tc Critical Temperature
   /// @return Reduced dipole moment
-  static T reduced_dipole_moment(const T& dipole, const T& pc,
-                                 const T& tc) noexcept {
-    const auto tmp = dipole / tc;
-    return 52.46 * tmp * tmp * (pc * 1e-5);
+  template <typename Derived1, typename Derived2, typename Derived3>
+  static vector reduced_dipole_moment(
+      const Eigen::MatrixBase<Derived1>& dipole,
+      const Eigen::MatrixBase<Derived2>& pc,
+      const Eigen::MatrixBase<Derived3>& tc) noexcept {
+    return 52.46e-5 *
+           ((dipole.array() / tc.array()).square() * pc.array()).matrix();
   }
 
   /// @brief Computes polarity factor at low pressure
-  /// @param[in] dr Reduced dipole moment
+  /// @param[in] dipole_r Reduced dipole moment
   /// @param[in] zc Critical z-factor
   /// @param[in] tr Reduced temperature
-  static T low_pressure_polarity_factor(const T& dr, const T& zc,
+  static T low_pressure_polarity_factor(const T& dipole_r, const T& zc,
                                         const T& tr) noexcept {
     using std::fabs;
     using std::pow;
-    if (dr >= 0 && dr < 0.022) {
+    if (dipole_r >= 0.0 && dipole_r < 0.022) {
       return 1.0;
-    } else if (dr < 0.075) {
+    } else if (dipole_r < 0.075) {
       return 1.0 + 30.55 * pow(0.292 - zc, 1.72);
     } else {
       return 1.0 +
@@ -83,19 +73,74 @@ class LucasMethod {
     }
   }
 
-  /*
+  /// @brief Computes polarity factor at low pressure
+  /// @param[in] dipole_r Reduced dipole moment
+  /// @param[in] zc Critical z-factor
+  /// @param[in] tr Reduced temperature
+  template <typename Derived1, typename Derived2, typename Derived3>
+  static vector low_pressure_polarity_factor(
+      const Eigen::MatrixBase<Derived1>& dipole_r,
+      const Eigen::MatrixBase<Derived2>& zc,
+      const Eigen::MatrixBase<Derived3>& tr) noexcept {
+    vector fp0;
+    if constexpr (N == dynamic_extent) {
+      fp0.resize(dipole_r.size());
+    }
+    for (Eigen::Index i = 0; i < dipole_r.size(); ++i) {
+      fp0[i] = low_pressure_polarity_factor(dipole_r[i], zc[i], tr[i]);
+    }
+    return fp0;
+  }
+
   /// @brief Computes quantum factor at low pressure
-  /// @param[in] q Quantum
+  /// @param[in] q Quantum parameter
   /// @param[in] tr Reduced pressure
   /// @param[in] mw Molecular weight
+  ///
+  /// Quantum factor is required only for quantum gases, H2, He, D2.
+  /// q = 1.38 (He), q = 0.76 (H2), q = 0.52 (D2).
+  /// Please refer to Poling et al. (2001) "The Properties of Gases and
+  /// Liquids", fifth edition. McGRAW-HILL.
   static T low_pressure_quantum_factor(const T& q, const T& tr,
-                                        const T& mw) noexcept {
+                                       const T& mw) noexcept {
+    using std::copysign;
     using std::pow;
-    const auto tmp = tr - 12.0;
-    return 1.22 * pow(q, 0.15) *
-            (1.0 + 0.00385 * pow(tmp, 2.0 / mw) * sign(tmp));
+    if (q == 0.0) {
+      return 1.0;
+    } else {
+      const auto tmp = tr - 12.0;
+      if (tmp == 0.0) {
+        return 1.22 * pow(q, 0.15);
+      } else {
+        return 1.22 * pow(q, 0.15) *
+               (1.0 + copysign(0.00385 * pow(tmp, 2.0 / mw), tmp));
+      }
+    }
   }
-  */
+
+  /// @brief Computes quantum factor at low pressure
+  /// @param[in] q Quantum parameter
+  /// @param[in] tr Reduced pressure
+  /// @param[in] mw Molecular weight
+  ///
+  /// Quantum factor is required only for quantum gases, H2, He, D2.
+  /// q = 1.38 (He), q = 0.76 (H2), q = 0.52 (D2).
+  /// Please refer to Poling et al. (2001) "The Properties of Gases and
+  /// Liquids", fifth edition. McGRAW-HILL.
+  template <typename Derived1, typename Derived2, typename Derived3>
+  static vector low_pressure_quantum_factor(
+      const Eigen::MatrixBase<Derived1>& q,
+      const Eigen::MatrixBase<Derived2>& tr,
+      const Eigen::MatrixBase<Derived3>& mw) noexcept {
+    vector fq0;
+    if constexpr (N == dynamic_extent) {
+      fq0.resize(q.size());
+    }
+    for (Eigen::Index i = 0; i < q.size(); ++i) {
+      fq0[i] = low_pressure_quantum_factor(q[i], tr[i], mw[i]);
+    }
+    return fq0;
+  }
 
   /// @param[in] fp0 Polarity factor at low pressure
   /// @param[in] z1 Reduced viscosity at low pressure
@@ -123,8 +168,8 @@ class LucasMethod {
                                           const T& fq) noexcept {
     using std::exp;
     using std::pow;
-    double z1 = 0.807 * pow(tr, 0.618) - 0.357 * exp(-0.449 * tr) +
-                0.340 * exp(-4.058 * tr) + 0.018;
+    const auto z1 = 0.807 * pow(tr, 0.618) - 0.357 * exp(-0.449 * tr) +
+                    0.340 * exp(-4.058 * tr) + 0.018;
     return z1 * fp * fq;
   }
 
@@ -185,39 +230,24 @@ class LucasMethod {
   /// @param[in] zc Critical z-factor
   /// @param[in] mw Molecular weight
   /// @param[in] dipole Dipole moment
+  /// @param[in] q Quantum parameter for quantum gases
   LucasMethod(const Eigen::Ref<const vector>& pc,
               const Eigen::Ref<const vector>& tc,
               const Eigen::Ref<const vector>& vc,
               const Eigen::Ref<const vector>& zc,
               const Eigen::Ref<const vector>& mw,
-              const Eigen::Ref<const vector>& dipole)
-      : pc_{pc}, tc_{tc}, vc_{vc}, zc_{zc}, mw_{mw}, dipole_{dipole} {}
+              const Eigen::Ref<const vector>& dipole,
+              const Eigen::Ref<const vector>& q)
+      : pc_{pc}, tc_{tc}, vc_{vc}, zc_{zc}, mw_{mw}, dipole_{dipole}, q_{q} {}
 
   /// @parma[in] p Pressure
   /// @param[in] t Temperature
   T viscosity(const T& p, const T& t, const Eigen::Ref<const vector>& x) const
       noexcept {
-    const auto ncomp = dipole_.size();
-
     const vector tr = (t / tc_.array()).matrix();
-
-    vector fp0;
-    if constexpr (N == dynamic_extent) {
-      fp0.resize(ncomp);
-    }
-
-    for (Eigen::Index i = 0; i < ncomp; ++i) {
-      const auto dipole_r =
-          this->reduced_dipole_moment(dipole_[i], pc_[i], tc_[i]);
-      fp0[i] = this->low_pressure_polarity_factor(dipole_r, zc_[i], tr[i]);
-    }
-
-    vector fq0;
-    if constexpr (N == dynamic_extent) {
-      fq0 = vector::Ones(ncomp);
-    } else {
-      fq0 = vector::Ones();
-    }
+    const auto dipole_r = reduced_dipole_moment(dipole_, pc_, tc_);
+    const auto fp0 = low_pressure_polarity_factor(dipole_r, zc_, tr);
+    const auto fq0 = low_pressure_quantum_factor(q_, tr, mw_);
 
     const auto tc_m = x.dot(tc_);
     const auto mw_m = x.dot(mw_);
@@ -229,10 +259,11 @@ class LucasMethod {
     const auto pr_m = p / pc_m;
     const auto tr_m = t / tc_m;
 
-    const auto z1 = this->low_pressure_reduced_viscosity(tr_m, fp0_m, fq0_m);
-    const auto z2 = this->high_pressure_reduced_viscosity(z1, pr_m, tr_m);
-    const auto fp = this->polarity_factor(fp0_m, z1, z2);
-    const auto xi = this->inverse_reduced_viscosity(pc_m, tc_m, mw_m);
+    const auto z1 = low_pressure_reduced_viscosity(tr_m, fp0_m, fq0_m);
+    const auto z2 = high_pressure_reduced_viscosity(z1, pr_m, tr_m);
+    const auto fp = polarity_factor(fp0_m, z1, z2);
+    const auto xi = inverse_reduced_viscosity(pc_m, tc_m, mw_m);
+
     return z2 * fp / xi * 1e-7;
   }
 
@@ -248,6 +279,7 @@ class LucasMethod {
   vector zc_;      /// Critical Z-factor
   vector mw_;      /// Molecular weight
   vector dipole_;  /// Dipole moment
-};
+  vector q_;       /// Quantum parameter
+};                 // namespace eos
 
 }  // namespace eos

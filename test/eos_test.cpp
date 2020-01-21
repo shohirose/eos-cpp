@@ -137,8 +137,9 @@ TEST(ViscosityTest, LucasMethodTest) {
   const Vector3d zc = {0.286, 0.289, 0.274};
   const Vector3d mw = {16.043, 28.014, 44.010};
   const Vector3d dipole = {0.0, 0.0, 0.0};
+  const Vector3d q = {0.0, 0.0, 0.0};
 
-  const LucasMethod<double, 3> lucas(pc, tc, vc, zc, mw, dipole);
+  const LucasMethod<double, 3> lucas(pc, tc, vc, zc, mw, dipole, q);
 
   const auto p = 7e6;                    // pressure [Pa]
   const auto t = 300.0;                  // temperature [K]
