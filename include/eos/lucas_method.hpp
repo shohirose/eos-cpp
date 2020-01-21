@@ -135,8 +135,8 @@ class LucasMethod {
   static T high_pressure_reduced_viscosity(const T& z1, const T& pr,
                                            const T& tr) noexcept {
     return (tr <= 1.0)
-               ? lucas_method::low_temperature_reduced_viscosity(pr, tr)
-               : lucas_method::high_temperature_reduced_viscosity(z1, pr, tr);
+               ? LucasMethod::low_temperature_reduced_viscosity(pr, tr)
+               : LucasMethod::high_temperature_reduced_viscosity(z1, pr, tr);
   }
 
   /// @brief Computes reduced viscosity at low temperature
