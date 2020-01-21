@@ -126,3 +126,24 @@ TEST(FlashTest, VaporPressureTest) {
   EXPECT_NEAR(pvap, 2.87515e6, 10);
   EXPECT_EQ(static_cast<int>(report.error), 0);
 }
+
+TEST(ViscosityTest, LucasMethodTest) {
+  using Eigen::Vector3d;
+
+  // CH4, N2, CO2
+  const Vector3d pc = {4.599e6, 3.398e6, 7.374e6};
+  const Vector3d tc = {190.56, 126.20, 304.12};
+  const Vector3d vc = {98.06e-6, 90.10e-6, 94.07e-6};
+  const Vector3d zc = {0.286, 0.289, 0.274};
+  const Vector3d mw = {16.043, 28.014, 44.010};
+  const Vector3d dipole = {0.0, 0.0, 0.0};
+
+  const LucasMethod<double, 3> lucas(pc, tc, vc, zc, mw, dipole);
+
+  const auto p = 7e6;                    // pressure [Pa]
+  const auto t = 300.0;                  // temperature [K]
+  const Vector3d x = {0.8, 0.15, 0.05};  // Composition
+
+  const auto visc = lucas.viscosity(p, t, x);
+  EXPECT_NEAR(visc, 1.41055e-5, 1e-10);
+}

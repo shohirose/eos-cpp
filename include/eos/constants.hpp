@@ -22,9 +22,14 @@
 
 #pragma once
 
+#include <cstddef>
+
 namespace eos {
 
 /// Gas constant [J/mol-K]
 static constexpr double gas_constant = 8.31446261815324;
+
+/// Size of vectors
+static constexpr std::size_t dynamic_extent = SIZE_MAX;
 
 }  // namespace eos
