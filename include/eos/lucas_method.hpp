@@ -32,6 +32,13 @@
 
 namespace eos {
 
+/// @brief Class to computes gas viscosity at high pressure by using Lucas
+/// method.
+/// @tparam T Value type
+/// @tparam N Number of components
+///
+/// Please refer to Poling et al. (2001) "The Properties of Gases and
+/// Liquids", fifth edition. McGRAW-HILL.
 template <typename T, std::size_t N>
 class LucasMethod {
  public:
@@ -42,30 +49,31 @@ class LucasMethod {
   // Static functions
 
   /// @brief Computes reduced dipole moment
-  /// @param[in] dipole Dipole moment
+  /// @param[in] dm Dipole moment
   /// @param[in] pc Critical pressure
   /// @param[in] tc Critical Temperature
   /// @return Reduced dipole moment
   template <typename Derived1, typename Derived2, typename Derived3>
   static vector reduced_dipole_moment(
-      const Eigen::MatrixBase<Derived1>& dipole,
+      const Eigen::MatrixBase<Derived1>& dm,
       const Eigen::MatrixBase<Derived2>& pc,
       const Eigen::MatrixBase<Derived3>& tc) noexcept {
     return 52.46e-5 *
-           ((dipole.array() / tc.array()).square() * pc.array()).matrix();
+           ((dm.array() / tc.array()).square() * pc.array()).matrix();
   }
 
   /// @brief Computes polarity factor at low pressure
-  /// @param[in] dipole_r Reduced dipole moment
+  /// @param[in] dmr Reduced dipole moment
   /// @param[in] zc Critical z-factor
   /// @param[in] tr Reduced temperature
-  static T low_pressure_polarity_factor(const T& dipole_r, const T& zc,
+  static T low_pressure_polarity_factor(const T& dmr, const T& zc,
                                         const T& tr) noexcept {
     using std::fabs;
     using std::pow;
-    if (dipole_r >= 0.0 && dipole_r < 0.022) {
+    assert(dmr >= 0.0);
+    if (dmr >= 0.0 && dmr < 0.022) {
       return 1.0;
-    } else if (dipole_r < 0.075) {
+    } else if (dmr < 0.075) {
       return 1.0 + 30.55 * pow(0.292 - zc, 1.72);
     } else {
       return 1.0 +
@@ -74,20 +82,20 @@ class LucasMethod {
   }
 
   /// @brief Computes polarity factor at low pressure
-  /// @param[in] dipole_r Reduced dipole moment
+  /// @param[in] dmr Reduced dipole moment
   /// @param[in] zc Critical z-factor
   /// @param[in] tr Reduced temperature
   template <typename Derived1, typename Derived2, typename Derived3>
   static vector low_pressure_polarity_factor(
-      const Eigen::MatrixBase<Derived1>& dipole_r,
+      const Eigen::MatrixBase<Derived1>& dmr,
       const Eigen::MatrixBase<Derived2>& zc,
       const Eigen::MatrixBase<Derived3>& tr) noexcept {
     vector fp0;
     if constexpr (N == dynamic_extent) {
-      fp0.resize(dipole_r.size());
+      fp0.resize(dmr.size());
     }
-    for (Eigen::Index i = 0; i < dipole_r.size(); ++i) {
-      fp0[i] = low_pressure_polarity_factor(dipole_r[i], zc[i], tr[i]);
+    for (Eigen::Index i = 0; i < dmr.size(); ++i) {
+      fp0[i] = low_pressure_polarity_factor(dmr[i], zc[i], tr[i]);
     }
     return fp0;
   }
@@ -179,9 +187,8 @@ class LucasMethod {
   /// @param[in] tr Reduced temperature
   static T high_pressure_reduced_viscosity(const T& z1, const T& pr,
                                            const T& tr) noexcept {
-    return (tr <= 1.0)
-               ? LucasMethod::low_temperature_reduced_viscosity(pr, tr)
-               : LucasMethod::high_temperature_reduced_viscosity(z1, pr, tr);
+    return (tr <= 1.0) ? low_temperature_reduced_viscosity(pr, tr)
+                       : high_temperature_reduced_viscosity(z1, pr, tr);
   }
 
   /// @brief Computes reduced viscosity at low temperature
@@ -220,7 +227,9 @@ class LucasMethod {
   static T inverse_reduced_viscosity(const T& pc, const T& tc,
                                      const T& mw) noexcept {
     using std::pow;
-    return 0.176 * pow(tc / pow(mw, 3.0) / pow(pc * 1e-5, 4.0), 1.0 / 6.0);
+    const auto pc_bar = pc * 1e-5;
+    const auto pc2 = pc_bar * pc_bar;
+    return 0.176 * pow(tc / (mw * mw * mw * pc2 * pc2), 1.0 / 6.0);
   }
 
   /// @brief Constructs object
@@ -229,24 +238,24 @@ class LucasMethod {
   /// @param[in] vc Critical volume
   /// @param[in] zc Critical z-factor
   /// @param[in] mw Molecular weight
-  /// @param[in] dipole Dipole moment
+  /// @param[in] dm Dipole moment
   /// @param[in] q Quantum parameter for quantum gases
   LucasMethod(const Eigen::Ref<const vector>& pc,
               const Eigen::Ref<const vector>& tc,
               const Eigen::Ref<const vector>& vc,
               const Eigen::Ref<const vector>& zc,
               const Eigen::Ref<const vector>& mw,
-              const Eigen::Ref<const vector>& dipole,
+              const Eigen::Ref<const vector>& dm,
               const Eigen::Ref<const vector>& q)
-      : pc_{pc}, tc_{tc}, vc_{vc}, zc_{zc}, mw_{mw}, dipole_{dipole}, q_{q} {}
+      : pc_{pc}, tc_{tc}, vc_{vc}, zc_{zc}, mw_{mw}, dm_{dm}, q_{q} {}
 
   /// @parma[in] p Pressure
   /// @param[in] t Temperature
   T viscosity(const T& p, const T& t, const Eigen::Ref<const vector>& x) const
       noexcept {
     const vector tr = (t / tc_.array()).matrix();
-    const auto dipole_r = reduced_dipole_moment(dipole_, pc_, tc_);
-    const auto fp0 = low_pressure_polarity_factor(dipole_r, zc_, tr);
+    const auto dmr = reduced_dipole_moment(dm_, pc_, tc_);
+    const auto fp0 = low_pressure_polarity_factor(dmr, zc_, tr);
     const auto fq0 = low_pressure_quantum_factor(q_, tr, mw_);
 
     const auto tc_m = x.dot(tc_);
@@ -273,13 +282,13 @@ class LucasMethod {
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(requires_aligned_alloc)
 
  private:
-  vector pc_;      /// Critical pressure
-  vector tc_;      /// Critical temperature
-  vector vc_;      /// Critical volume
-  vector zc_;      /// Critical Z-factor
-  vector mw_;      /// Molecular weight
-  vector dipole_;  /// Dipole moment
-  vector q_;       /// Quantum parameter
-};                 // namespace eos
+  vector pc_;  /// Critical pressure
+  vector tc_;  /// Critical temperature
+  vector vc_;  /// Critical volume
+  vector zc_;  /// Critical Z-factor
+  vector mw_;  /// Molecular weight
+  vector dm_;  /// Dipole moment
+  vector q_;   /// Quantum parameter
+};             // namespace eos
 
 }  // namespace eos
