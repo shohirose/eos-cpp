@@ -127,24 +127,45 @@ TEST(FlashTest, VaporPressureTest) {
   EXPECT_EQ(static_cast<int>(report.error), 0);
 }
 
-TEST(ViscosityTest, LucasMethodTest) {
+// Unit test using Example 9-10 in Poling et al. 2001. "The Properties of
+// Gases and Liquids", fifth edition. McGRAW-HILL.
+TEST(LucasMethodTest, PureComponentTest) {
+  // Ammonia
+  const double pc = 113.53 * 1e5;               // Critical pressure [Pa]
+  const double tc = 405.5;                      // Critical temperature [K]
+  const double mw = 17.031;                     // Molecular weight [g/mol]
+  const double zc = 0.244;                      // Critical z-factor
+  const double dm = 1.47;                       // Dipole moment [debyes]
+  const auto vc = zc * gas_constant * tc / pc;  // Critical volume [m3/mol]
+  const double q = 0.0;                         // Quantum factor
+
+  const LucasMethod<double, 1> lucas(pc, tc, vc, zc, mw, dm, q);
+
+  const double p = 300.0 * 1e5;             // Pressure [Pa]
+  const double t = 420.0;                   // Temperature [K]
+  const auto visc = lucas.viscosity(p, t);  // Viscosity [Pa-s]
+
+  EXPECT_NEAR(visc, 602.0 * 1e-6 * 0.1, 1e-7);
+}
+
+TEST(LucasMethodTest, MultiComponentsTest) {
   using Eigen::Vector3d;
 
   // CH4, N2, CO2
-  const Vector3d pc = {4.599e6, 3.398e6, 7.374e6};
-  const Vector3d tc = {190.56, 126.20, 304.12};
-  const Vector3d vc = {98.06e-6, 90.10e-6, 94.07e-6};
-  const Vector3d zc = {0.286, 0.289, 0.274};
-  const Vector3d mw = {16.043, 28.014, 44.010};
-  const Vector3d dipole = {0.0, 0.0, 0.0};
-  const Vector3d q = {0.0, 0.0, 0.0};
+  const Vector3d pc = {4.599e6, 3.398e6, 7.374e6};  // Critical pressure [Pa]
+  const Vector3d tc = {190.56, 126.20, 304.12};     // Critical temperature [K]
+  const Vector3d vc = {98.06e-6, 90.10e-6, 94.07e-6};  // Critical volume [m3]
+  const Vector3d zc = {0.286, 0.289, 0.274};           // Critical z-factor
+  const Vector3d mw = {16.043, 28.014, 44.010};  // Molecular weight [g/mol]
+  const Vector3d dm = {0.0, 0.0, 0.0};           // Dipole moment [debyes]
+  const Vector3d q = {0.0, 0.0, 0.0};            // Quantum factor
 
-  const LucasMethod<double, 3> lucas(pc, tc, vc, zc, mw, dipole, q);
+  const LucasMethod<double, 3> lucas(pc, tc, vc, zc, mw, dm, q);
 
-  const auto p = 7e6;                    // pressure [Pa]
-  const auto t = 300.0;                  // temperature [K]
-  const Vector3d x = {0.8, 0.15, 0.05};  // Composition
+  const auto p = 7e6;                          // pressure [Pa]
+  const auto t = 300.0;                        // temperature [K]
+  const Vector3d x = {0.8, 0.15, 0.05};        // Composition [CH4, N2, CO2]
+  const auto visc = lucas.viscosity(p, t, x);  // Viscosity [Pa-s]
 
-  const auto visc = lucas.viscosity(p, t, x);
   EXPECT_NEAR(visc, 1.41055e-5, 1e-10);
 }
