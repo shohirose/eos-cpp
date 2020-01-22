@@ -263,7 +263,7 @@ class LucasMethod : public LucasMethodBase<T> {
               const Eigen::Ref<const Vector>& mw,
               const Eigen::Ref<const Vector>& dm,
               const Eigen::Ref<const Vector>& q)
-      : pc_{pc}, tc_{tc}, vc_{vc}, zc_{zc}, mw_{mw}, dm_{dm}, q_{q} {}
+      : Base{}, pc_{pc}, tc_{tc}, vc_{vc}, zc_{zc}, mw_{mw}, dm_{dm}, q_{q} {}
 
   /// @brief Computes gas viscosity
   /// @param[in] p Pressure
@@ -324,7 +324,7 @@ class LucasMethod<T, 1> : public LucasMethodBase<T> {
   /// @param[in] q Quantum parameter for quantum gases
   LucasMethod(const T& pc, const T& tc, const T& vc, const T& zc, const T& mw,
               const T& dm, const T& q)
-      : pc_{pc}, tc_{tc}, vc_{vc}, zc_{zc}, mw_{mw}, dm_{dm}, q_{q} {}
+      : Base{}, pc_{pc}, tc_{tc}, vc_{vc}, zc_{zc}, mw_{mw}, dm_{dm}, q_{q} {}
 
   /// @brief Computes gas viscosity
   /// @param[in] p Pressure
