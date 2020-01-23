@@ -131,15 +131,14 @@ TEST(FlashTest, VaporPressureTest) {
 // Gases and Liquids", fifth edition. McGRAW-HILL.
 TEST(LucasMethodTest, PureComponentTest) {
   // Ammonia
-  const double pc = 113.53 * 1e5;               // Critical pressure [Pa]
-  const double tc = 405.5;                      // Critical temperature [K]
-  const double mw = 17.031;                     // Molecular weight [g/mol]
-  const double zc = 0.244;                      // Critical z-factor
-  const double dm = 1.47;                       // Dipole moment [debyes]
-  const auto vc = zc * gas_constant * tc / pc;  // Critical volume [m3/mol]
-  const double q = 0.0;                         // Quantum factor
+  const double pc = 113.53 * 1e5;  // Critical pressure [Pa]
+  const double tc = 405.5;         // Critical temperature [K]
+  const double mw = 17.031;        // Molecular weight [g/mol]
+  const double zc = 0.244;         // Critical z-factor
+  const double dm = 1.47;          // Dipole moment [debyes]
+  const double q = 0.0;            // Quantum factor
 
-  const LucasMethod<double, 1> lucas(pc, tc, vc, zc, mw, dm, q);
+  const Lucas<double, 1> lucas(pc, tc, zc, mw, dm, q);
 
   const double p = 300.0 * 1e5;             // Pressure [Pa]
   const double t = 420.0;                   // Temperature [K]
@@ -160,7 +159,7 @@ TEST(LucasMethodTest, MultiComponentsTest) {
   const Vector3d dm = {0.0, 0.0, 0.0};           // Dipole moment [debyes]
   const Vector3d q = {0.0, 0.0, 0.0};            // Quantum factor
 
-  const LucasMethod<double, 3> lucas(pc, tc, vc, zc, mw, dm, q);
+  const Lucas<double, 3> lucas(pc, tc, vc, zc, mw, dm, q);
 
   const auto p = 7e6;                          // pressure [Pa]
   const auto t = 300.0;                        // temperature [K]
