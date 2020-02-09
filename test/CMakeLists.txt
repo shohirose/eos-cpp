@@ -1,15 +1,20 @@
 find_package(GTest REQUIRED)
 
-add_executable(eos_test
-  eos_test.cpp
-  )
-target_link_libraries(eos_test
-  PUBLIC
-    eos
-    GTest::GTest
-    GTest::Main
-  )
-add_test(
-  NAME eos_test
-  COMMAND eos_test
-  )
+function(add_unit_test name)
+  add_executable(${name}
+    ${name}.cpp
+    )
+  target_link_libraries(${name}
+    PUBLIC
+      eos
+      GTest::GTest
+      GTest::Main
+    )
+  add_test(
+    NAME ${name}
+    COMMAND ${name}
+    )
+endfunction()
+
+add_unit_test(eos_test)
+add_unit_test(lucas_test)

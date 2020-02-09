@@ -90,8 +90,5 @@ const auto p_init = eos::estimate_vapor_pressure(t, pc, tc, omega);
 const auto flash = eos::make_flash(make_pr_eos(pc, tc, omega));
 
 // Computes vapor pressure at a given temperature
-const auto result = flash.vapor_pressure(p_init, t);
-
-const auto p_vap = result.first;   // Vapor pressure
-const auto report = result.second; // Iteration report
+auto [p_vap, report] = flash.vapor_pressure(p_init, t);
 ```

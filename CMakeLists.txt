@@ -1,10 +1,12 @@
-cmake_minimum_required(VERSION 3.8)
+cmake_minimum_required(VERSION 3.13)
 project(eoscpp CXX)
+
+find_package(Eigen3 REQUIRED)
 
 add_library(eos INTERFACE)
 target_compile_features(eos
   INTERFACE
-    cxx_std_11
+    cxx_std_17
   )
 target_compile_options(eos
   INTERFACE
@@ -15,6 +17,10 @@ target_compile_options(eos
 target_include_directories(eos
   INTERFACE
     include
+  )
+target_link_libraries(eos
+  INTERFACE
+    Eigen3::Eigen
   )
 
 enable_testing()

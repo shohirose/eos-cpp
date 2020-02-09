@@ -117,7 +117,7 @@ using VanDerWaalsEos = CubicEos<T, VanDerWaals<T>, DefaultCorrector<T>>;
 /// @param[in] omega Acentric factor
 template <typename T>
 inline VanDerWaalsEos<T> make_vdw_eos(const T &pc, const T &tc) {
-  return {pc, tc, DefaultCorrector<T>{}};
+  return {pc, tc};
 }
 
 }  // namespace eos
