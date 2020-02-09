@@ -33,6 +33,7 @@ namespace eos {
 namespace lucas {
 
 /// @brief Computes inverse viscosity.
+/// @tparam T Value type
 /// @param[in] pc Critical pressure [Pa]
 /// @param[in] tc Critical temperature [K]
 /// @param[in] mw Molecular weight [kg/kmol]
@@ -46,6 +47,7 @@ T inverse_viscosity(const T& pc, const T& tc, const T& mw) noexcept {
 }
 
 /// @brief Computes reduced dipole moment
+/// @tparam T Value type
 /// @param[in] dm Dipole moment
 /// @param[in] tc Critical temperature
 /// @param[in] pc Critical pressure
@@ -57,6 +59,7 @@ T reduced_dipole_moment(const T& dm, const T& tc, const T& pc) noexcept {
 namespace low_pressure {
 
 /// @brief Computes reduced viscosity at low pressure.
+/// @tparam T Value type
 /// @param[in] tr Reduced temperature
 /// @param[in] fp0 Polarity factor at low pressure
 /// @param[in] fq0 Quantum factor at low pressure
@@ -70,6 +73,7 @@ T reduced_viscosity(const T& tr, const T& fp0, const T& fq0) noexcept {
 }
 
 /// @brief Computes polarity factor at low pressure.
+/// @tparam T Value type
 /// @param[in] dmr Reduced dipole momen [Debyes]
 /// @param[in] zc Critical z-factor
 /// @param[in] tr Reduced temperature
@@ -88,6 +92,7 @@ T polarity_factor(const T& dmr, const T& zc, const T& tr) noexcept {
 }
 
 /// @brief Computes quantum factor at low pressure.
+/// @tparam T Value type
 /// @param[in] q Quantum factor
 /// @param[in] tr Reduced temperature [K]
 /// @param[in] mw Molecular weight [kg/kmol]
@@ -107,7 +112,7 @@ T quantum_factor(const T& q, const T& tr, const T& mw) noexcept {
       return 1.22 * pow(q, 0.15);
     } else {
       return 1.22 * pow(q, 0.15) *
-             (1.0 + copysign(0.00385 * pow(tmp, 2.0 / mw), tmp));
+             (1.0 + copysign(0.00385 * pow(tmp * tmp, 1.0 / mw), tmp));
     }
   }
 }
@@ -118,6 +123,7 @@ T quantum_factor(const T& q, const T& tr, const T& mw) noexcept {
 template <typename T, std::size_t N>
 class Lucas {
  public:
+  /// Vector type
   using Vector = Eigen::Matrix<T, N, 1>;
 
   /// @brief Constructs object
@@ -201,12 +207,10 @@ class Lucas {
   }
 
   /// @brief Computes gas viscosity at low pressure for mixtures
-  /// @param[in] p Pressure [Pa]
   /// @param[in] t Temperature [K]
   /// @param[in] x Composition
-  T viscosity(const T& p, const T& t, const Eigen::Ref<const Vector>& x) const
-      noexcept {
-    const auto tr = this->reduced_temperature(p);
+  T viscosity(const T& t, const Eigen::Ref<const Vector>& x) const noexcept {
+    const auto tr = this->reduced_temperature(t);
     const auto dmr = this->reduced_dipole_moment();
     const auto fp0 = this->polarity_factor(dmr, tr);
     const auto fq0 = this->quantum_factor(tr);
@@ -319,6 +323,7 @@ class Lucas<T, 1> {
 namespace high_pressure {
 
 /// @brief Computes reduced viscosity at high pressure
+/// @tparam T Value type
 /// @param[in] z1 Reduced viscosity at low pressure
 /// @param[in] pr Reduced pressure
 /// @param[in] tr Reduced temperature
@@ -346,6 +351,7 @@ T reduced_viscosity(const T& z1, const T& pr, const T& tr) noexcept {
 }
 
 /// @brief Computes polarity factor at high pressure.
+/// @tparam T Value type
 /// @param[in] fp0 Polarity factor at low pressure
 /// @param[in] z1 Reduced viscosity at low pressure
 /// @param[in] z2 Reduced viscosity at high pressure
@@ -356,6 +362,7 @@ T polarity_factor(const T& fp0, const T& z1, const T& z2) noexcept {
 }
 
 /// @brief Computes quantum factor at high pressure.
+/// @tparam T Value type
 /// @param[in] fq0 Quantum factor at low pressure
 /// @param[in] z1 Reduced viscosity at low pressure
 /// @param[in] z2 Reduced viscosity at high pressure
@@ -374,7 +381,9 @@ T quantum_factor(const T& fq0, const T& z1, const T& z2) noexcept {
 template <typename T, std::size_t N>
 class Lucas : public low_pressure::Lucas<T, N> {
  public:
+  /// Base type
   using Base = low_pressure::Lucas<T, N>;
+  /// Vector type
   using Vector = typename Base::Vector;
 
   /// @brief Constructs object
