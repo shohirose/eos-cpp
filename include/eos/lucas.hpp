@@ -124,7 +124,11 @@ template <typename T, std::size_t N>
 class Lucas {
  public:
   /// Vector type
-  using Vector = Eigen::Matrix<T, N, 1>;
+  using Vector = typename std::conditional<N == dynamic_extent,
+                                           Eigen::Matrix<T, Eigen::Dynamic, 1>,
+                                           Eigen::Matrix<T, N, 1>>::type;
+
+  Lucas() = default;
 
   /// @brief Constructs object
   /// @param[in] pc Critical pressure
@@ -141,6 +145,32 @@ class Lucas {
       : pc_{pc}, tc_{tc}, vc_{vc}, zc_{zc}, mw_{mw}, dm_{dm}, q_{q} {}
 
   // Member functions
+
+  void set_critical_pressure(const Eigen::Ref<const Vector>& pc) noexcept {
+    pc_ = pc;
+  }
+
+  void set_critical_temperature(const Eigen::Ref<const Vector>& tc) noexcept {
+    tc_ = tc;
+  }
+
+  void set_critical_volume(const Eigen::Ref<const Vector>& vc) noexcept {
+    vc_ = vc;
+  }
+
+  void set_critical_zfactor(const Eigen::Ref<const Vector>& zc) noexcept {
+    zc_ = zc;
+  }
+
+  void set_molecular_weight(const Eigen::Ref<const Vector>& mw) noexcept {
+    mw_ = mw;
+  }
+
+  void set_dipole_moment(const Eigen::Ref<const Vector>& dm) noexcept {
+    dm_ = dm;
+  }
+
+  void set_quantum_param(const Eigen::Ref<const Vector>& q) noexcept { q_ = q; }
 
   /// @brief Computes reduced pressure
   /// @param[in] p Pressure [Pa]
@@ -167,6 +197,9 @@ class Lucas {
   Vector polarity_factor(const Eigen::MatrixBase<Derived1>& dmr,
                          const Eigen::MatrixBase<Derived2>& tr) const noexcept {
     Vector fp0;
+    if constexpr (N == dynamic_extent) {
+      fp0.resize(dmr.size());
+    }
     for (Eigen::Index i = 0; i < dmr.size(); ++i) {
       fp0[i] = low_pressure::polarity_factor(dmr[i], zc_[i], tr[i]);
     }
@@ -182,7 +215,10 @@ class Lucas {
   /// q = 1.38 (He), q = 0.76 (H2), q = 0.52 (D2).
   template <typename Derived>
   Vector quantum_factor(const Eigen::MatrixBase<Derived>& tr) const noexcept {
-    Vector fq0 = Vector::Ones();
+    Vector fq0;
+    if constexpr (N == dynamic_extent) {
+      fq0.resize(tr.size());
+    }
     for (Eigen::Index i = 0; i < q_.size(); ++i) {
       fq0[i] = low_pressure::quantum_factor(q_[i], tr[i], mw_[i]);
       assert(!std::isnan(fq0[i]));
@@ -246,6 +282,8 @@ class Lucas {
 template <typename T>
 class Lucas<T, 1> {
  public:
+  Lucas() = default;
+
   /// @brief Constructs object
   /// @param[in] pc Critical pressure [Pa]
   /// @param[in] tc Critical temprature [K]
@@ -258,6 +296,13 @@ class Lucas<T, 1> {
       : pc_{pc}, tc_{tc}, zc_{zc}, mw_{mw}, dm_{dm}, q_{q} {}
 
   // Member functions
+
+  void set_critical_pressure(const T& pc) { pc_ = pc; }
+  void set_critical_temperature(const T& tc) { tc_ = tc; }
+  void set_critical_zfactor(const T& zc) { zc_ = zc; }
+  void set_molecular_weight(const T& mw) { mw_ = mw; }
+  void set_dipole_moment(const T& dm) { dm_ = dm; }
+  void set_quantum_param(const T& q) { q_ = q; }
 
   /// @brief Computes reduced pressure
   /// @param[in] p Pressure
@@ -386,6 +431,8 @@ class Lucas : public low_pressure::Lucas<T, N> {
   /// Vector type
   using Vector = typename Base::Vector;
 
+  Lucas() = default;
+
   /// @brief Constructs object
   /// @param[in] pc Critical pressure
   /// @param[in] tc Critical temprature
@@ -438,6 +485,8 @@ template <typename T>
 class Lucas<T, 1> : public low_pressure::Lucas<T, 1> {
  public:
   using Base = low_pressure::Lucas<T, 1>;
+
+  Lucas() = default;
 
   /// @brief Constructs object
   /// @param[in] pc Critical pressure [Pa]
