@@ -39,7 +39,7 @@ namespace lucas {
 /// @param[in] mw Molecular weight [kg/kmol]
 /// @return Inverse viscosity [1/(Pa-s)]
 template <typename T>
-T inverse_viscosity(const T& pc, const T& tc, const T& mw) noexcept {
+inline T inverse_viscosity(const T& pc, const T& tc, const T& mw) noexcept {
   using std::pow;
   const auto pc_bar = pc * 1e-5;
   const auto pc2 = pc_bar * pc_bar;
@@ -52,7 +52,7 @@ T inverse_viscosity(const T& pc, const T& tc, const T& mw) noexcept {
 /// @param[in] tc Critical temperature
 /// @param[in] pc Critical pressure
 template <typename T>
-T reduced_dipole_moment(const T& dm, const T& tc, const T& pc) noexcept {
+inline T reduced_dipole_moment(const T& dm, const T& tc, const T& pc) noexcept {
   return 52.46e-5 * dm * dm / (tc * tc) * pc;
 }
 
@@ -64,7 +64,7 @@ namespace low_pressure {
 /// @param[in] fp0 Polarity factor at low pressure
 /// @param[in] fq0 Quantum factor at low pressure
 template <typename T>
-T reduced_viscosity(const T& tr, const T& fp0, const T& fq0) noexcept {
+inline T reduced_viscosity(const T& tr, const T& fp0, const T& fq0) noexcept {
   using std::exp;
   using std::pow;
   const auto z1 = (0.807 * pow(tr, 0.618) - 0.357 * exp(-0.449 * tr) +
@@ -128,6 +128,19 @@ class Lucas {
                                            Eigen::Matrix<T, Eigen::Dynamic, 1>,
                                            Eigen::Matrix<T, N, 1>>::type;
 
+  /// @brief Computes reduced dipole moment
+  /// @param[in] dm Dipole moment
+  /// @param[in] tc Critical temperature
+  /// @param[in] pc Critical pressure
+  template <typename Derived1, typename Derived2, typename Derived3>
+  static Vector reduced_dipole_moment(
+      const Eigen::MatrixBase<Derived1>& dm,
+      const Eigen::MatrixBase<Derived2>& tc,
+      const Eigen::MatrixBase<Derived3>& pc) noexcept {
+    return 52.46e-5 *
+           ((dm.array() / tc.array()).square() * pc.array()).matrix();
+  }
+
   Lucas() = default;
 
   /// @brief Constructs object
@@ -142,7 +155,14 @@ class Lucas {
         const Eigen::Ref<const Vector>& vc, const Eigen::Ref<const Vector>& zc,
         const Eigen::Ref<const Vector>& mw, const Eigen::Ref<const Vector>& dm,
         const Eigen::Ref<const Vector>& q)
-      : pc_{pc}, tc_{tc}, vc_{vc}, zc_{zc}, mw_{mw}, dm_{dm}, q_{q} {}
+      : pc_{pc},
+        tc_{tc},
+        vc_{vc},
+        zc_{zc},
+        mw_{mw},
+        dm_{dm},
+        dmr_{this->reduced_dipole_moment(dm, tc, pc)},
+        q_{q} {}
 
   // Member functions
 
@@ -184,24 +204,16 @@ class Lucas {
     return (t / tc_.array()).matrix();
   }
 
-  /// @brief Computes reduced dipole moment
-  Vector reduced_dipole_moment() const noexcept {
-    return 52.46e-5 *
-           ((dm_.array() / tc_.array()).square() * pc_.array()).matrix();
-  }
-
   /// @brief Computes polarity factor at low pressure
-  /// @param[in] dmr Reduced dipole moment
   /// @param[in] tr Reduced temperature
-  template <typename Derived1, typename Derived2>
-  Vector polarity_factor(const Eigen::MatrixBase<Derived1>& dmr,
-                         const Eigen::MatrixBase<Derived2>& tr) const noexcept {
+  template <typename Derived>
+  Vector polarity_factor(const Eigen::MatrixBase<Derived>& tr) const noexcept {
     Vector fp0;
     if constexpr (N == dynamic_extent) {
-      fp0.resize(dmr.size());
+      fp0.resize(dmr_.size());
     }
-    for (Eigen::Index i = 0; i < dmr.size(); ++i) {
-      fp0[i] = low_pressure::polarity_factor(dmr[i], zc_[i], tr[i]);
+    for (Eigen::Index i = 0; i < dmr_.size(); ++i) {
+      fp0[i] = low_pressure::polarity_factor(dmr_[i], zc_[i], tr[i]);
     }
     return fp0;
   }
@@ -247,8 +259,7 @@ class Lucas {
   /// @param[in] x Composition
   T viscosity(const T& t, const Eigen::Ref<const Vector>& x) const noexcept {
     const auto tr = this->reduced_temperature(t);
-    const auto dmr = this->reduced_dipole_moment();
-    const auto fp0 = this->polarity_factor(dmr, tr);
+    const auto fp0 = this->polarity_factor(tr);
     const auto fq0 = this->quantum_factor(tr);
 
     const auto [tcm, mwm, zcm, vcm, fp0m, fq0m] =
@@ -268,13 +279,14 @@ class Lucas {
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(requires_aligned_alloc)
 
  protected:
-  Vector pc_;  /// Critical pressure
-  Vector tc_;  /// Critical temperature
-  Vector vc_;  /// Critical volume
-  Vector zc_;  /// Critical Z-factor
-  Vector mw_;  /// Molecular weight
-  Vector dm_;  /// Dipole moment
-  Vector q_;   /// Quantum parameter
+  Vector pc_;   /// Critical pressure
+  Vector tc_;   /// Critical temperature
+  Vector vc_;   /// Critical volume
+  Vector zc_;   /// Critical Z-factor
+  Vector mw_;   /// Molecular weight
+  Vector dm_;   /// Dipole moment
+  Vector dmr_;  /// Reduced dipole moment
+  Vector q_;    /// Quantum parameter
 };
 
 /// @brief Partial specialization of Lucas for pure components.
@@ -293,7 +305,13 @@ class Lucas<T, 1> {
   /// @param[in] q Quantum parameter
   Lucas(const T& pc, const T& tc, const T& zc, const T& mw, const T& dm,
         const T& q)
-      : pc_{pc}, tc_{tc}, zc_{zc}, mw_{mw}, dm_{dm}, q_{q} {}
+      : pc_{pc},
+        tc_{tc},
+        zc_{zc},
+        mw_{mw},
+        dm_{dm},
+        dmr_{lucas::reduced_dipole_moment(dm, tc, pc)},
+        q_{q} {}
 
   // Member functions
 
@@ -312,17 +330,10 @@ class Lucas<T, 1> {
   /// @param[in] t Temperature
   T reduced_temperature(const T& t) const noexcept { return t / tc_; }
 
-  /// @brief Computes reduced dipole moment
-  T reduced_dipole_moment() const noexcept {
-    const auto tmp = dm_ / tc_;
-    return 52.46e-5 * tmp * tmp * pc_;
-  }
-
   /// @brief Computes polarity factor at low pressure.
-  /// @param[in] dmr Reduced dipole moment
   /// @param[in] tr Reduced temperature
-  T polarity_factor(const T& dmr, const T& tr) const noexcept {
-    return low_pressure::polarity_factor(dmr, zc_, tr);
+  T polarity_factor(const T& tr) const noexcept {
+    return low_pressure::polarity_factor(dmr_, zc_, tr);
   }
 
   /// @brief Computes quantum factor at low pressure.
@@ -346,8 +357,7 @@ class Lucas<T, 1> {
   /// @return Viscosity [Pa-s]
   T viscosity(const T& t) const noexcept {
     const auto tr = this->reduced_temperature(t);
-    const auto dmr = this->reduced_dipole_moment();
-    const auto fp0 = this->polarity_factor(dmr, tr);
+    const auto fp0 = this->polarity_factor(tr);
     const auto fq0 = this->quantum_factor(tr);
     const auto z1 = low_pressure::reduced_viscosity(tr, fp0, fq0);
     const auto xi = this->inverse_viscosity();
@@ -355,12 +365,13 @@ class Lucas<T, 1> {
   }
 
  private:
-  T pc_;  /// Critical pressure [Pa]
-  T tc_;  /// Critical temperature [K]
-  T zc_;  /// Critical Z-factor
-  T mw_;  /// Molecular weight [kg/kmol]
-  T dm_;  /// Dipole moment [Debyes]
-  T q_;   /// Quantum parameter for H2, He, D2
+  T pc_;   /// Critical pressure [Pa]
+  T tc_;   /// Critical temperature [K]
+  T zc_;   /// Critical Z-factor
+  T mw_;   /// Molecular weight [kg/kmol]
+  T dm_;   /// Dipole moment [Debyes]
+  T dmr_;  /// Reduced dipole moment
+  T q_;    /// Quantum parameter for H2, He, D2
 };
 
 }  // namespace low_pressure
@@ -401,7 +412,7 @@ T reduced_viscosity(const T& z1, const T& pr, const T& tr) noexcept {
 /// @param[in] z1 Reduced viscosity at low pressure
 /// @param[in] z2 Reduced viscosity at high pressure
 template <typename T>
-T polarity_factor(const T& fp0, const T& z1, const T& z2) noexcept {
+inline T polarity_factor(const T& fp0, const T& z1, const T& z2) noexcept {
   const auto y = z2 / z1;
   return (1.0 + (fp0 - 1.0) / (y * y * y)) / fp0;
 }
@@ -412,7 +423,7 @@ T polarity_factor(const T& fp0, const T& z1, const T& z2) noexcept {
 /// @param[in] z1 Reduced viscosity at low pressure
 /// @param[in] z2 Reduced viscosity at high pressure
 template <typename T>
-T quantum_factor(const T& fq0, const T& z1, const T& z2) noexcept {
+inline T quantum_factor(const T& fq0, const T& z1, const T& z2) noexcept {
   const auto y = z2 / z1;
   using std::log;
   const auto tmp = log(y);
@@ -454,8 +465,7 @@ class Lucas : public low_pressure::Lucas<T, N> {
   T viscosity(const T& p, const T& t, const Eigen::Ref<const Vector>& x) const
       noexcept {
     const auto tr = this->reduced_temperature(t);
-    const auto dmr = this->reduced_dipole_moment();
-    const auto fp0 = this->polarity_factor(dmr, tr);
+    const auto fp0 = this->polarity_factor(tr);
     const auto fq0 = this->quantum_factor(tr);
 
     const auto [tcm, mwm, zcm, vcm, fp0m, fq0m] =
@@ -508,8 +518,7 @@ class Lucas<T, 1> : public low_pressure::Lucas<T, 1> {
   T viscosity(const T& p, const T& t) const noexcept {
     const auto pr = this->reduced_pressure(p);
     const auto tr = this->reduced_temperature(t);
-    const auto dmr = this->reduced_dipole_moment();
-    const auto fp0 = this->Base::polarity_factor(dmr, tr);
+    const auto fp0 = this->Base::polarity_factor(tr);
     const auto fq0 = this->Base::quantum_factor(tr);
 
     const auto z1 = low_pressure::reduced_viscosity(tr, fp0, fq0);
