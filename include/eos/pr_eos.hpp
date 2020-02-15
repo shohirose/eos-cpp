@@ -22,25 +22,28 @@
 
 #pragma once
 
-#include <array>  // std::array
-#include <cmath>  // std::sqrt, std::exp, std::log
+#include <array>                               // std::array
+#include <boost/math/constants/constants.hpp>  // boost::math::constants::root_two
+#include <cmath>                               // std::sqrt, std::exp, std::log
 
-#include "eos/corrector.hpp"  // eos::pengRobinsonCorrector
-#include "eos/cubic_eos.hpp"  // eos::CubicEos
+#include "eos/cubic_eos.hpp"  // eos::cubic_eos_base
 
 namespace eos {
 
-/// @brief Peng-Robinson EoS policy for CubicEos.
+template <typename T>
+class peng_robinson_eos;
+
+/// @brief Policy class for Peng-Robinson EoS.
 /// @tparam T Value type
 template <typename T>
-class PengRobinson {
- public:
-  /// Constant for attraction parameter
+struct peng_robinson_eos_policy {
+  using derived_type = peng_robinson_eos<T>;
+  using value_type = T;
+
   static constexpr double omega_a = 0.45724;
-  /// Constant for repulsion parameter
   static constexpr double omega_b = 0.07780;
-  /// Square root of 2 (two).
-  static constexpr double sqrt2 = 1.4142135623730950488;
+
+  static constexpr double sqrt2 = boost::math::constants::root_two<double>();
   static constexpr double delta1 = 1 + sqrt2;
   static constexpr double delta2 = 1 - sqrt2;
 
@@ -72,8 +75,7 @@ class PengRobinson {
   static T fugacity_coeff(const T &z, const T &a, const T &b) noexcept {
     using std::exp;
     using std::log;
-    return exp(z - 1 - log(z - b) -
-               a / (2 * sqrt2 * b) * log((z + delta1 * b) / (z + delta2 * b)));
+    return exp(z - 1 - log(z - b) - q(z, a, b));
   }
 
   /// @brief Computes residual enthalpy
@@ -85,40 +87,119 @@ class PengRobinson {
   static T residual_enthalpy(const T &z, const T &t, const T &a, const T &b,
                              const T &beta) noexcept {
     using std::log;
-    return gas_constant * t * (z - 1 -
-                               a / (2 * sqrt2 * b) * (1 - beta) *
-                                   log((z + delta1 * b) / (z + delta2 * b)));
+    return gas_constant * t * (z - 1 - (1 - beta) * q(z, a, b));
   }
 
   /// @brief Computes residual entropy
   /// @param[in] z Z-factor
   /// @param[in] a Reduced attraction parameter
   /// @param[in] b Reduced repulsion parameter
+  /// @param[in] beta Temperature correction factor
   static T residual_entropy(const T &z, const T &a, const T &b,
                             const T &beta) noexcept {
     using std::log;
-    return gas_constant * (log(z - b) +
-                           a / (2 * sqrt2 * b) * beta *
-                               log((z + delta1 * b) / (z + delta2 * b)));
+    return gas_constant * (log(z - b) + beta * q(z, a, b));
   }
 
+  /*
   /// @brief Computes residual molar specific heat at constant volume
   /// @param[in] z Z-factor
   /// @param[in] a Reduced attraction parameter
   /// @param[in] b Reduced repulsion parameter
   /// @param[in] gamma Temperature correction factor
-  static T residual_specific_heat_v(const T &z, const T &a, const T &b,
-                                    const T &gamma) noexcept {
+  static T residual_specific_heat_at_const_volume(const T &z, const T &a,
+                                                  const T &b,
+                                                  const T &gamma) noexcept {
     using std::log;
     return gas_constant * gamma * a / (2 * sqrt2 * b) *
            log((z + delta1 * b) / (z + delta2 * b));
   }
+  */
+
+ private:
+  /// @param[in] z Z-factor
+  /// @param[in] a Reduced attraction parameter
+  /// @param[in] b Reduced repulsion parameter
+  static T q(const T &z, const T &a, const T &b) noexcept {
+    return a / (2 * sqrt2 * b) * log((z + delta1 * b) / (z + delta2 * b));
+  }
 };
 
-/// @brief Peng-Robinson equation of state.
+/// @brief Peng-Robinson EoS.
 /// @tparam T Value type
 template <typename T>
-using PengRobinsonEos = CubicEos<T, PengRobinson<T>, PengRobinsonCorrector<T>>;
+class peng_robinson_eos : public cubic_eos_base<peng_robinson_eos_policy<T>> {
+ public:
+  using base_type = cubic_eos_base<peng_robinson_eos_policy<T>>;
+
+  // Constructors
+
+  peng_robinson_eos() = default;
+
+  /// @brief Constructs Peng-Robinson EoS
+  /// @param[in] pc Critical pressrue
+  /// @param[in] tc Critical temperature
+  /// @param[in] omega Acentric factor
+  peng_robinson_eos(const T &pc, const T &tc, const T &omega)
+      : base_type{pc, tc}, omega_{omega}, m_{m(omega)} {}
+
+  // Member functions
+
+  /// @brief Set parameters
+  /// @param[in] pc Critical pressrue
+  /// @param[in] tc Critical temperature
+  /// @param[in] omega Acentric factor
+  void set_params(const T &pc, const T &tc, const T &omega) noexcept {
+    this->base_type::set_params(pc, tc);
+    omega_ = omega;
+    m_ = m(omega);
+  }
+
+  /// @brief Computes the correction factor for attraction parameter
+  /// @param[in] tr Reduced temperature
+  T alpha(const T &tr) const noexcept {
+    using std::sqrt;
+    const auto a = 1 + m_ * (1 - sqrt(tr));
+    return a * a;
+  }
+
+  /// @brief Computes \f$ \beta = \frac{\mathrm{d} \ln \alpha}{\mathrm{d} \ln T}
+  /// \f$
+  /// @param[in] tr Reduced temperature
+  T beta(const T &tr) const noexcept {
+    using std::sqrt;
+    const auto sqrt_tr = sqrt(tr);
+    const auto a = 1 + m_ * (1 - sqrt_tr);
+    return -m_ * sqrt_tr / a;
+  }
+
+  /*
+  /// @brief Computes  \f[ \gamma = \frac{T_r^2}{\alpha} \cdot
+  /// \frac{\mathrm{d}^2 \alpha}{\mathrm{d} T_r^2} \f]
+  /// @param[in] tr Reduced temperature
+  T gamma(const T &tr) const noexcept {
+    using std::sqrt;
+    const auto sqrt_tr = sqrt(tr);
+    const auto a = 1 + m_ * (1 - sqrt_tr);
+    const auto alpha = a * a;
+    return m_ / (2 * alpha) * (m_ * tr + a * sqrt_tr);
+  }
+  */
+
+ private:
+  // Static functions
+
+  /// @brief Computes parameter \f$ m \f$ from acentric factor
+  /// @param[in] omega Acentric factor
+  static T m(const T &omega) noexcept {
+    return 0.3796 + omega * (1.485 - omega * (0.1644 - 0.01667 * omega));
+  }
+
+  /// Acentric factor
+  T omega_;
+  /// \f$ m = 0.3796 + 1.485 \omega - 0.1644 \omega^2 + 0.01667 \omega^3 \f$
+  T m_;
+};
 
 /// @brief Makes Peng-Robinson EoS
 /// @tparam T Value type
@@ -126,9 +207,9 @@ using PengRobinsonEos = CubicEos<T, PengRobinson<T>, PengRobinsonCorrector<T>>;
 /// @param[in] tc Critical temperature
 /// @param[in] omega Acentric factor
 template <typename T>
-inline PengRobinsonEos<T> make_pr_eos(const T &pc, const T &tc,
-                                      const T &omega) {
-  return {pc, tc, PengRobinsonCorrector<T>{omega}};
+inline peng_robinson_eos<T> make_pr_eos(const T &pc, const T &tc,
+                                        const T &omega) {
+  return {pc, tc, omega};
 }
 
 }  // namespace eos

@@ -89,7 +89,7 @@ class Flash {
 
     while (eps > tol_ && iter < max_iter_) {
       const auto state = eos_.state(p, t);
-      const auto z = state.zfactor();
+      const auto z = eos_.zfactor(state);
 
       if (z.size() < 2) {
         std::cerr << "Multiple roots not found in z-factor." << std::endl;
@@ -98,8 +98,8 @@ class Flash {
 
       const auto z_vap = *std::max_element(z.begin(), z.end());
       const auto z_liq = *std::min_element(z.begin(), z.end());
-      const auto phi_vap = state.fugacity_coeff(z_vap);
-      const auto phi_liq = state.fugacity_coeff(z_liq);
+      const auto phi_vap = eos_.fugacity_coeff(z_vap, state);
+      const auto phi_liq = eos_.fugacity_coeff(z_liq, state);
 
       eps = fabs(1 - phi_liq / phi_vap);
 

@@ -25,19 +25,21 @@
 #include <array>  // std::array
 #include <cmath>  // std::exp, std::log
 
-#include "eos/corrector.hpp"  // eos::DefaultCorrector
-#include "eos/cubic_eos.hpp"  // eos::CubicEos
+#include "eos/cubic_eos.hpp"  // eos::cubic_eos_base
 
 namespace eos {
 
+template <typename T>
+class van_der_waals_eos;
+
 /// @brief Van der Waals EoS policy for CubicEos.
 /// @tparam T Value type
-/// @tparam F Function to compute alpha.
 template <typename T>
-struct VanDerWaals {
-  /// Constant for attraction parameter
+struct van_der_waals_eos_policy {
+  using derived_type = van_der_waals_eos<T>;
+  using value_type = T;
+
   static constexpr double omega_a = 0.421875;
-  /// Constant for respulsion parameter
   static constexpr double omega_b = 0.125;
 
   // Static Functions
@@ -93,30 +95,46 @@ struct VanDerWaals {
     return gas_constant * (log(z - b) + a * beta / z);
   }
 
+  /*
   /// @brief Computes residual molar specific heat at constant volume
   /// @param[in] z Z-factor
   /// @param[in] a Reduced attraction parameter
   /// @param[in] b Reduced repulsion parameter
   /// @param[in] gamma Temperature correction factor
-  static T residual_specific_heat_v(const T &z, const T &a,
-                                    [[maybe_unused]] const T &b,
-                                    const T &gamma) noexcept {
+  static T residual_specific_heat_at_const_volume(const T &z, const T &a,
+                                                  [[maybe_unused]] const T &b,
+                                                  const T &gamma) noexcept {
     return gas_constant * gamma * a / z;
   }
+  */
 };
 
-/// @brief Van der Waals equation of state.
-/// @tparam T Value type
 template <typename T>
-using VanDerWaalsEos = CubicEos<T, VanDerWaals<T>, DefaultCorrector<T>>;
+class van_der_waals_eos : public cubic_eos_base<van_der_waals_eos_policy<T>> {
+ public:
+  using base_type = cubic_eos_base<van_der_waals_eos_policy<T>>;
+
+  van_der_waals_eos() = default;
+
+  van_der_waals_eos(const T &pc, const T &tc) noexcept : base_type{pc, tc} {}
+
+  void set_params(const T &pc, const T &tc) noexcept {
+    this->base_type::set_params(pc, tc);
+  }
+
+  T alpha(const T &) const noexcept { return 1.0; }
+
+  T beta(const T &) const noexcept { return 0.0; }
+
+  // T gamma(const T &) const noexcept { return 0.0; }
+};
 
 /// @brief Makes van der Waals EoS
 /// @tparam T Value type
 /// @param[in] pc Critical pressure
 /// @param[in] tc Critical temperature
-/// @param[in] omega Acentric factor
 template <typename T>
-inline VanDerWaalsEos<T> make_vdw_eos(const T &pc, const T &tc) {
+inline van_der_waals_eos<T> make_vdw_eos(const T &pc, const T &tc) {
   return {pc, tc};
 }
 

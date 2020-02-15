@@ -29,55 +29,36 @@
 
 namespace eos {
 
-/// @brief Base class of two-parameter cubic EoS
-/// @tparam T Value type
-/// @tparam Eos EoS policy
-///
-/// Eos must define constants, `omega_a` and `omega_b`.
-template <typename T, typename Eos>
-class CubicEosBase {
- public:
-  // Static functions
+template <typename T>
+struct isothermal_state {
+  T t;   /// Temperature
+  T tr;  /// Reduced temperature
+  T a;   /// Attraction parameter
+  T b;   /// Repulsion parameter
+};
 
-  /// @brief Computes attraction parameter
-  /// @param[in] pc Critical pressure
-  /// @param[in] tc Critical temperature
-  /// @returns Attraction parameter at critical condition
-  static T attraction_param(const T &pc, const T &tc) noexcept {
-    return (Eos::omega_a * gas_constant * gas_constant) * tc * tc / pc;
-  }
-
-  /// @brief Computes repulsion parameter
-  /// @param[in] pc Critical pressure
-  /// @param[in] tc Critical temperature
-  /// @returns Repulsion parameter at critical condition
-  static T repulsion_param(const T &pc, const T &tc) noexcept {
-    return (Eos::omega_b * gas_constant) * tc / pc;
-  }
-
-  /// @brief Computes reduced attraction parameter
-  /// @param[in] pr Reduced pressure
-  /// @param[in] tr Reduced temperature
-  /// @returns Reduced attraction parameter
-  static T reduced_attraction_param(const T &pr, const T &tr) noexcept {
-    return Eos::omega_a * pr / (tr * tr);
-  }
-
-  /// @brief Computes reduced repulsion parameter
-  /// @param[in] pr Reduced pressure
-  /// @param[in] tr Reduced temperature
-  /// @returns Reduced repulsion parameter
-  static T reduced_repulsion_param(const T &pr, const T &tr) noexcept {
-    return Eos::omega_b * pr / tr;
-  }
+template <typename T>
+struct isobaric_isothermal_state {
+  T p;   /// Pressure
+  T t;   /// Temperature
+  T pr;  /// Reduced pressure
+  T tr;  /// Reduced temperature
+  T ar;  /// Reduced attraction parameter
+  T br;  /// Reduced repulsion parameter
 };
 
 /// @brief Two-parameter cubic equation of state (EoS)
-/// @tparam T Value type
-/// @tparam Eos EoS policy
-/// @tparam Corrector Temperature corrector for attraction parameter
+/// @tparam Policy EoS policy
 ///
-/// Eos must have the following static functions:
+/// Policy must have the following types:
+///    - derived_type: Derived EoS type
+///    - value_type: Scalar type
+///
+/// Policy must have the following constants:
+///    - omega_a: Constant for attraction parameter
+///    - omega_b: Constant for repulsion parameter
+///
+/// Policy must have the following static functions:
 ///    - pressure(t, v, a, b)
 ///    - cubic_eq(ar, br)
 ///    - fugacity_coeff(z, ar, br)
@@ -87,323 +68,173 @@ class CubicEosBase {
 /// repulsion parameter, ar is reduced attraction parameter, br is reduced
 /// repulsion parameter, z is z-factor, and beta is a temperature correction
 /// factor.
-///
-/// Corrector except DefaultCorrector must have the following member functions:
-///    - alpha(tr): temperature correction factor for attraction parameter
-///    - beta(tr): \f$ \beta = \frac{T_r}{\alpha} \frac{\mathrm{d}
-///    \alpha}{\mathrm{d} T_r} \f$
-///    - gamma(tr): \f$ \gamma = \frac{T_r^2}{\alpha} \frac{\mathrm{d}^2
-///    \alpha}{\mathrm{d} T_r^2} \f$
-/// where tr is reduced temperature.
-template <typename T, typename Eos, typename Corrector>
-class CubicEos : public CubicEosBase<T, Eos> {
+template <typename Policy>
+class cubic_eos_base {
  public:
+  using derived_type = typename Policy::derived_type;
+  using value_type = typename Policy::value_type;
+
+  static constexpr auto omega_a = Policy::omega_a;
+  static constexpr auto omega_b = Policy::omega_b;
+
   // Constructors
 
-  /// @brief Constructs EoS.
+  cubic_eos_base() = default;
+
+  /// @brief Constructs cubic EoS
   /// @param[in] pc Critical pressure
   /// @param[in] tc Critical temperature
-  /// @param[in] corrector Temperature corrector for attraction parameter
-  CubicEos(const T &pc, const T &tc, const Corrector &corrector)
+  cubic_eos_base(const value_type &pc, const value_type &tc) noexcept
       : pc_{pc},
         tc_{tc},
-        ac_{this->attraction_param(pc, tc)},
-        bc_{this->repulsion_param(pc, tc)},
-        corrector_{corrector} {}
+        ac_{critical_attraction_param(pc, tc)},
+        bc_{critical_repulsion_param(pc, tc)} {}
 
-  /// @brief Constructs EoS.
+  // Member functions
+
+  /// @brief Set parameters
   /// @param[in] pc Critical pressure
   /// @param[in] tc Critical temperature
-  /// @param[in] corrector Temperature corrector for attraction parameter
-  CubicEos(const T &pc, const T &tc, Corrector &&corrector)
-      : pc_{pc},
-        tc_{tc},
-        ac_{this->attraction_param(pc, tc)},
-        bc_{this->repulsion_param(pc, tc)},
-        corrector_{std::move(corrector)} {}
-
-  /// @brief Computes pressure at given temperature and volume.
-  /// @param[in] t Temperature
-  /// @param[in] v Volume
-  /// @returns Pressure
-  T pressure(const T &t, const T &v) noexcept {
-    const auto tr = t / tc_;
-    const auto a = corrector_.alpha(tr) * ac_;
-    const auto b = bc_;
-    return Eos::pressure(t, v, a, b);
+  void set_params(const value_type &pc, const value_type &tc) noexcept {
+    pc_ = pc;
+    tc_ = tc;
+    ac_ = critical_attraction_param(pc, tc);
+    bc_ = critical_repulsion_param(pc, tc);
   }
-
-  /// @brief Isothermal state of a cubic EoS
-  class IsothermalState {
-   public:
-    /// @brief Constructs isothermal state
-    /// @param[in] t Temperature
-    /// @param[in] a Attraction parameter
-    /// @param[in] b Repulsion parameter
-    IsothermalState(const T &t, const T &a, const T &b) : t_{t}, a_{a}, b_{b} {}
-
-    /// @brief Computes pressure at given volume along this isothermal line
-    /// @param[in] v Volume
-    /// @return Pressure
-    T pressure(const T &v) const noexcept {
-      return Eos::pressure(t_, v, a_, b_);
-    }
-
-   private:
-    T t_;  /// Temperature
-    T a_;  /// Attraction parameter
-    T b_;  /// Repulsion parameter
-  };
 
   /// @brief Creates isothermal state
   /// @param[in] t Temperature
-  /// @return Isothermal state
-  IsothermalState state(const T &t) const noexcept {
+  isothermal_state<value_type> state(const value_type &t) const noexcept {
     const auto tr = t / tc_;
-    const auto a = corrector_.alpha(tr) * ac_;
+    const auto a = this->derived().alpha(tr) * ac_;
     const auto b = bc_;
-    return {t, a, b};
+    return {t, tr, a, b};
   }
 
-  /// @brief Computes pressure at given temperature and pressure
-  /// @param[in] t Temperature
-  /// @param[in] v Volume
-  /// @return Pressure
-  T pressure(const T &t, const T &v) const noexcept {
-    const auto tr = t / tc_;
-    const auto a = corrector_.alpha(tr) * ac_;
-    const auto b = bc_;
-    return Eos::pressure(t, v, a, b);
-  }
-
-  /// @brief A state at given pressure and temperature expressed by this
-  /// equation of state
-  class IsobaricIsothermalState {
-   public:
-    /// @brief Constructs a state
-    /// @param[in] p Pressure
-    /// @param[in] t Temperature
-    /// @param[in] ar Reduced attration parameter
-    /// @param[in] br Reduced repulsion parameter
-    /// @param[in] beta Temperature correction factor
-    /// @param[in] gamma Temperature correction factor
-    IsobaricIsothermalState(const T &p, const T &t, const T &ar, const T &br,
-                            const T &beta, const T &gamma)
-        : p_{p}, t_{t}, ar_{ar}, br_{br}, beta_{beta}, gamma_{gamma} {}
-
-    /// @brief Computes z-factor
-    /// @return An array of z-factors
-    std::vector<T> zfactor() const noexcept {
-      const auto p = Eos::cubic_eq(ar_, br_);
-      return real_roots(p);
-    }
-
-    /// @brief Computes fugacity coefficient
-    /// @param[in] z Z-factor
-    /// @return Fugacity coefficient
-    T fugacity_coeff(const T &z) const noexcept {
-      return Eos::fugacity_coeff(z, ar_, br_);
-    }
-
-    /// @brief Computes residual enthalpy
-    /// @param[in] z Z-factor
-    /// @return Residual enthalpy
-    T residual_enthalpy(const T &z) const noexcept {
-      return Eos::residual_enthalpy(z, t_, ar_, br_, beta_);
-    }
-
-    /// @brief Computes residual entropy
-    /// @param[in] z Z-factor
-    /// @return Residual entropy
-    T residual_entropy(const T &z) const noexcept {
-      return Eos::residual_entropy(z, ar_, br_, beta_);
-    }
-
-    /// @brief Computes residual molar specifiec heat at constant volume
-    /// @param[in] z Z-factor
-    T residual_specific_heat_v(const T &z) const noexcept {
-      return Eos::residual_specific_heat_v(z, ar_, br_, gamma_);
-    }
-
-   private:
-    /// Pressure
-    T p_;
-    /// Temperature
-    T t_;
-    /// Reduced attraction parameter
-    T ar_;
-    /// Reduced repulsion parameter
-    T br_;
-    /// Temperature correction factor
-    T beta_;
-    /// Temperature correction factor
-    T gamma_;
-  };
-
-  /// @brief Creates a state of given pressure and temperature
+  /// @brief Creates isobaric-isothermal state
   /// @param[in] p Pressure
   /// @param[in] t Temperature
-  /// @returns State
-  IsobaricIsothermalState state(const T &p, const T &t) const noexcept {
+  isobaric_isothermal_state<value_type> state(const value_type &p,
+                                              const value_type &t) const
+      noexcept {
     const auto pr = p / pc_;
     const auto tr = t / tc_;
     const auto ar =
-        corrector_.alpha(tr) * this->reduced_attraction_param(pr, tr);
-    const auto br = this->reduced_repulsion_param(pr, tr);
-    const auto beta = corrector_.beta(tr);
-    const auto gamma = corrector_.gamma(tr);
-    return {p, t, ar, br, beta, gamma};
+        this->derived().alpha(tr) * reduced_attraction_param(pr, tr);
+    const auto br = reduced_repulsion_param(pr, tr);
+    return {p, t, pr, tr, ar, br};
   }
 
- private:
-  /// Critical pressure
-  T pc_;
-  /// Critical temperature
-  T tc_;
-  /// Attraction parameter at critical condition
-  T ac_;
-  /// Repulsion parameter at critical condition
-  T bc_;
-  /// Temperature correction policy for attraction parameter
-  Corrector corrector_;
-};
-
-/// @brief Partial specialization of CubicEos for DefaultCorrector.
-template <typename T, typename Eos>
-class CubicEos<T, Eos, DefaultCorrector<T>> : public CubicEosBase<T, Eos> {
- public:
-  // Constructors
-
-  /// @brief Constructs EoS.
-  /// @param[in] pc Critical pressure
-  /// @param[in] tc Critical temperature
-  CubicEos(const T &pc, const T &tc)
-      : pc_{pc},
-        tc_{tc},
-        ac_{this->attraction_param(pc, tc)},
-        bc_{this->repulsion_param(pc, tc)} {}
-
-  /// @brief Computes pressure at given temperature and volume.
+  /// @brief Computes pressure at given temperature and volume
   /// @param[in] t Temperature
   /// @param[in] v Volume
-  /// @returns Pressure
-  T pressure(const T &t, const T &v) noexcept {
-    return Eos::pressure(t, v, ac_, bc_);
+  value_type pressure(const value_type &t, const value_type &v) const noexcept {
+    const auto s = this->state(t);
+    return this->pressure(v, s);
   }
 
-  /// @brief Isothermal state of a cubic EoS
-  class IsothermalState {
-   public:
-    /// @brief Constructs isothermal state
-    /// @param[in] t Temperature
-    /// @param[in] a Attraction parameter
-    /// @param[in] b Repulsion parameter
-    IsothermalState(const T &t, const T &a, const T &b) : t_{t}, a_{a}, b_{b} {}
-
-    /// @brief Computes pressure at given volume along this isothermal line
-    /// @param[in] v Volume
-    /// @return Pressure
-    T pressure(const T &v) const noexcept {
-      return Eos::pressure(t_, v, a_, b_);
-    }
-
-   private:
-    T t_;  /// Temperature
-    T a_;  /// Attraction parameter
-    T b_;  /// Repulsion parameter
-  };
-
-  /// @brief Creates isothermal state
-  /// @param[in] t Temperature
-  /// @return Isothermal state
-  IsothermalState state(const T &t) const noexcept { return {t, ac_, bc_}; }
-
-  /// @brief Computes pressure at given temperature and pressure
-  /// @param[in] t Temperature
+  /// @brief Computes pressure at given temperature and volume
   /// @param[in] v Volume
-  /// @return Pressure
-  T pressure(const T &t, const T &v) const noexcept {
-    return Eos::pressure(t, v, ac_, bc_);
+  /// @param[in] s Isothermal state
+  value_type pressure(const value_type &v,
+                      const isothermal_state<value_type> &s) const noexcept {
+    return Policy::pressure(s.t, v, s.a, s.b);
   }
 
-  /// @brief A state at given pressure and temperature expressed by this
-  /// equation of state
-  class IsobaricIsothermalState {
-   public:
-    /// @brief Constructs a state
-    /// @param[in] p Pressure
-    /// @param[in] t Temperature
-    /// @param[in] ar Reduced attration parameter
-    /// @param[in] br Reduced repulsion parameter
-    IsobaricIsothermalState(const T &p, const T &t, const T &ar, const T &br)
-        : p_{p}, t_{t}, ar_{ar}, br_{br} {}
-
-    /// @brief Computes z-factor
-    /// @return An array of z-factors
-    std::vector<T> zfactor() const noexcept {
-      const auto p = Eos::cubic_eq(ar_, br_);
-      return real_roots(p);
-    }
-
-    /// @brief Computes fugacity coefficient
-    /// @param[in] z Z-factor
-    /// @return Fugacity coefficient
-    T fugacity_coeff(const T &z) const noexcept {
-      return Eos::fugacity_coeff(z, ar_, br_);
-    }
-
-    /// @brief Computes residual enthalpy
-    /// @param[in] z Z-factor
-    /// @return Residual enthalpy
-    T residual_enthalpy(const T &z) const noexcept {
-      return Eos::residual_enthalpy(z, t_, ar_, br_, 0.0);
-    }
-
-    /// @brief Computes residual entropy
-    /// @param[in] z Z-factor
-    /// @return Residual entropy
-    T residual_entropy(const T &z) const noexcept {
-      return Eos::residual_entropy(z, ar_, br_, 0.0);
-    }
-
-    /// @brief Computes residual molar specifiec heat at constant volume
-    /// @param[in] z Z-factor
-    T residual_specific_heat_v(const T &z) const noexcept {
-      return Eos::residual_specific_heat_v(z, ar_, br_, 0.0);
-    }
-
-   private:
-    /// Pressure
-    T p_;
-    /// Temperature
-    T t_;
-    /// Reduced attraction parameter
-    T ar_;
-    /// Reduced repulsion parameter
-    T br_;
-  };
-
-  /// @brief Creates a state of given pressure and temperature
+  /// @brief Computes Z-factor at given pressure and temperature
   /// @param[in] p Pressure
   /// @param[in] t Temperature
-  /// @returns State
-  IsobaricIsothermalState state(const T &p, const T &t) const noexcept {
-    const auto pr = p / pc_;
-    const auto tr = t / tc_;
-    const auto ar = this->reduced_attraction_param(pr, tr);
-    const auto br = this->reduced_repulsion_param(pr, tr);
-    return {p, t, ar, br};
+  /// @return A list of Z-factors
+  std::vector<value_type> zfactor(const value_type &p,
+                                  const value_type &t) const noexcept {
+    const auto s = this->state(p, t);
+    return this->zfactor(s);
+  }
+
+  /// @brief Computes Z-factor at given pressure and temperature
+  /// @param[in] s Isobaric-isothermal state
+  /// @return A list of Z-factors
+  std::vector<value_type> zfactor(
+      const isobaric_isothermal_state<value_type> &s) const noexcept {
+    return real_roots(Policy::cubic_eq(s.ar, s.br));
+  }
+
+  /// @brief Computes fugacity coefficient
+  /// @param[in] z Z-factor
+  /// @param[in] s Isobaric-isothermal state
+  value_type fugacity_coeff(
+      const value_type &z, const isobaric_isothermal_state<value_type> &s) const
+      noexcept {
+    return Policy::fugacity_coeff(z, s.ar, s.br);
+  }
+
+  /// @brief Computes residual enthalpy
+  /// @param[in] z Z-factor
+  /// @param[in] s Isobaric-isothermal state
+  value_type residual_enthalpy(
+      const value_type &z, const isobaric_isothermal_state<value_type> &s) const
+      noexcept {
+    const auto beta = this->derived().beta(s.tr);
+    return Policy::residual_enthalpy(z, s.ar, s.br, beta);
+  }
+
+  /// @brief Computes residual entropy
+  /// @param[in] z Z-factor
+  /// @param[in] s Isobaric-isothermal state
+  value_type residual_entropy(
+      const value_type &z, const isobaric_isothermal_state<value_type> &s) const
+      noexcept {
+    const auto beta = this->derived().beta(s.tr);
+    return Policy::residual_entropy(z, s.ar, s.br, beta);
   }
 
  private:
-  /// Critical pressure
-  T pc_;
-  /// Critical temperature
-  T tc_;
-  /// Attraction parameter at critical condition
-  T ac_;
-  /// Repulsion parameter at critical condition
-  T bc_;
+  // Static functions
+
+  /// @param[in] pc Critical pressure
+  /// @param[in] tc Critical temperature
+  static value_type critical_attraction_param(const value_type &pc,
+                                              const value_type &tc) noexcept {
+    return (omega_a * gas_constant * gas_constant) * tc * tc / pc;
+  }
+
+  /// @param[in] pc Critical pressure
+  /// @param[in] tc Critical temperature
+  static value_type critical_repulsion_param(const value_type &pc,
+                                             const value_type &tc) noexcept {
+    return (omega_b * gas_constant) * tc / pc;
+  }
+
+  /// @param[in] pr Reduced pressure
+  /// @param[in] tr Reduced temperature
+  static value_type reduced_attraction_param(const value_type &pr,
+                                             const value_type &tr) noexcept {
+    return omega_a * pr / (tr * tr);
+  }
+
+  /// @param[in] pr Reduced pressure
+  /// @param[in] tr Reduced temperature
+  static value_type reduced_repulsion_param(const value_type &pr,
+                                            const value_type &tr) noexcept {
+    return omega_b * pr / tr;
+  }
+
+  // Member functions
+
+  /// @brief Get reference to derived class object
+  derived_type &derived() noexcept {
+    return static_cast<derived_type &>(*this);
+  }
+
+  /// @brief Get const reference to derived class object
+  const derived_type &derived() const noexcept {
+    return static_cast<const derived_type &>(*this);
+  }
+
+  value_type pc_;  /// Critical pressure
+  value_type tc_;  /// Critical temperature
+  value_type ac_;  /// Critical attraction parameter
+  value_type bc_;  /// Critical repulsion parameter
 };
 
 }  // namespace eos
