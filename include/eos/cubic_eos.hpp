@@ -157,8 +157,8 @@ class cubic_eos_base {
   /// @param[in] t Temperature
   isothermal_state state(const value_type &t) const noexcept {
     const auto tr = t / tc_;
-    const auto a = this->derived().alpha(tr) * ac_;
-    const auto b = bc_;
+    const auto a = this->attraction_param(tr);
+    const auto b = this->repulsion_param();
     return {t, tr, a, b};
   }
 
@@ -169,10 +169,9 @@ class cubic_eos_base {
                                   const value_type &t) const noexcept {
     const auto pr = p / pc_;
     const auto tr = t / tc_;
-    const auto &self = this->derived();
-    const auto ar = self.alpha(tr) * reduced_attraction_param(pr, tr);
-    const auto br = reduced_repulsion_param(pr, tr);
-    const auto beta = self.beta(tr);
+    const auto ar = this->reduced_attraction_param(pr, tr);
+    const auto br = this->reduced_repulsion_param(pr, tr);
+    const auto beta = this->derived().beta(tr);
     return {p, t, pr, tr, ar, br, beta};
   }
 
@@ -209,17 +208,32 @@ class cubic_eos_base {
     return (omega_b * gas_constant) * tc / pc;
   }
 
-  /// @param[in] pr Reduced pressure
+  // Member functions
+
+  /// @brief Returns attraction parameter at a given temperature.
   /// @param[in] tr Reduced temperature
-  static value_type reduced_attraction_param(const value_type &pr,
-                                             const value_type &tr) noexcept {
-    return omega_a * pr / (tr * tr);
+  value_type attraction_param(const value_type &tr) const noexcept {
+    return this->derived().alpha(tr) * ac_;
   }
 
+  /// @brief Returns repulsion parameter.
+  value_type repulsion_param() const noexcept { return bc_; }
+
+  /// @brief Returns reduced attraction parameter at a given pressure and
+  /// temperature.
   /// @param[in] pr Reduced pressure
   /// @param[in] tr Reduced temperature
-  static value_type reduced_repulsion_param(const value_type &pr,
-                                            const value_type &tr) noexcept {
+  value_type reduced_attraction_param(const value_type &pr,
+                                      const value_type &tr) const noexcept {
+    return this->derived().alpha(tr) * omega_a * pr / (tr * tr);
+  }
+
+  /// @brief Returns reduced repulsion parameter at a given pressure and
+  /// temperature.
+  /// @param[in] pr Reduced pressure
+  /// @param[in] tr Reduced temperature
+  value_type reduced_repulsion_param(const value_type &pr,
+                                     const value_type &tr) const noexcept {
     return omega_b * pr / tr;
   }
 
