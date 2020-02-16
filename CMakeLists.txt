@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.13)
 project(eoscpp CXX)
 
 find_package(Eigen3 REQUIRED)
+find_package(Boost REQUIRED)
 
 add_library(eos INTERFACE)
 target_compile_features(eos
@@ -21,6 +22,7 @@ target_include_directories(eos
 target_link_libraries(eos
   INTERFACE
     Eigen3::Eigen
+    Boost::headers
   )
 
 enable_testing()
