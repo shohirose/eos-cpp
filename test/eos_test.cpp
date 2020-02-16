@@ -36,22 +36,28 @@ TEST(EosTest, VanDerWaalsEosTest) {
   auto eos = make_vdw_eos(pc, tc);
   const double p = 3e6;    // Pressure [Pa]
   const double t = 180.0;  // Temperature [K]
-  const auto state = eos.state(p, t);
-  const auto z = eos.zfactor(state);
 
-  ASSERT_EQ(z.size(), 3);
+  {
+    const auto state = eos.state(p, t);
+    const auto z = state.zfactor();
 
-  EXPECT_NEAR(z[0], 0.616434, 1e-6);
-  EXPECT_NEAR(z[1], 0.207498, 1e-6);
-  EXPECT_NEAR(z[2], 0.275339, 1e-6);
+    ASSERT_EQ(z.size(), 3);
 
-  EXPECT_NEAR(eos.fugacity_coeff(z[0], state), 0.741050, 1e-6);
-  EXPECT_NEAR(eos.fugacity_coeff(z[1], state), 0.756747, 1e-6);
-  EXPECT_NEAR(eos.fugacity_coeff(z[2], state), 0.758617, 1e-6);
+    EXPECT_NEAR(z[0], 0.616434, 1e-6);
+    EXPECT_NEAR(z[1], 0.207498, 1e-6);
+    EXPECT_NEAR(z[2], 0.275339, 1e-6);
 
-  EXPECT_NEAR(eos.pressure(t, 0.001), 1.309708e6, 1.0);
-  EXPECT_NEAR(eos.pressure(t, 0.01), 1.477564e5, 0.1);
-  EXPECT_NEAR(eos.pressure(t, 0.1), 1.494696e4, 0.01);
+    EXPECT_NEAR(state.fugacity_coeff(z[0]), 0.741050, 1e-6);
+    EXPECT_NEAR(state.fugacity_coeff(z[1]), 0.756747, 1e-6);
+    EXPECT_NEAR(state.fugacity_coeff(z[2]), 0.758617, 1e-6);
+  }
+
+  {
+    const auto state = eos.state(t);
+    EXPECT_NEAR(state.pressure(0.001), 1.309708e6, 1.0);
+    EXPECT_NEAR(state.pressure(0.01), 1.477564e5, 0.1);
+    EXPECT_NEAR(state.pressure(0.1), 1.494696e4, 0.01);
+  }
 }
 
 TEST(EosTest, SoaveRedlichKwongEosTest) {
@@ -64,22 +70,28 @@ TEST(EosTest, SoaveRedlichKwongEosTest) {
 
   const double p = 3e6;    // Pressure [Pa]
   const double t = 180.0;  // Temperature [K]
-  const auto state = eos.state(p, t);
-  const auto z = eos.zfactor(state);
 
-  ASSERT_EQ(z.size(), 3);
+  {
+    const auto state = eos.state(p, t);
+    const auto z = state.zfactor();
 
-  EXPECT_NEAR(z[0], 0.536884, 1e-6);
-  EXPECT_NEAR(z[1], 0.152443, 1e-6);
-  EXPECT_NEAR(z[2], 0.310673, 1e-6);
+    ASSERT_EQ(z.size(), 3);
 
-  EXPECT_NEAR(eos.fugacity_coeff(z[0], state), 0.70353, 1e-5);
-  EXPECT_NEAR(eos.fugacity_coeff(z[1], state), 0.69289, 1e-5);
-  EXPECT_NEAR(eos.fugacity_coeff(z[2], state), 0.70862, 1e-5);
+    EXPECT_NEAR(z[0], 0.536884, 1e-6);
+    EXPECT_NEAR(z[1], 0.152443, 1e-6);
+    EXPECT_NEAR(z[2], 0.310673, 1e-6);
 
-  EXPECT_NEAR(eos.pressure(t, 0.001), 1.283055e6, 1.0);
-  EXPECT_NEAR(eos.pressure(t, 0.01), 1.474262e5, 0.1);
-  EXPECT_NEAR(eos.pressure(t, 0.1), 1.494359e4, 0.01);
+    EXPECT_NEAR(state.fugacity_coeff(z[0]), 0.70353, 1e-5);
+    EXPECT_NEAR(state.fugacity_coeff(z[1]), 0.69289, 1e-5);
+    EXPECT_NEAR(state.fugacity_coeff(z[2]), 0.70862, 1e-5);
+  }
+
+  {
+    const auto state = eos.state(t);
+    EXPECT_NEAR(state.pressure(0.001), 1.283055e6, 1.0);
+    EXPECT_NEAR(state.pressure(0.01), 1.474262e5, 0.1);
+    EXPECT_NEAR(state.pressure(0.1), 1.494359e4, 0.01);
+  }
 }
 
 TEST(EosTest, PengRobinsonEosTest) {
@@ -91,22 +103,28 @@ TEST(EosTest, PengRobinsonEosTest) {
   auto eos = make_pr_eos(pc, tc, omega);
   const double p = 3e6;    // Pressure [Pa]
   const double t = 180.0;  // Temperature [K]
-  const auto state = eos.state(p, t);
-  const auto z = eos.zfactor(state);
 
-  ASSERT_EQ(z.size(), 3);
+  {
+    const auto state = eos.state(p, t);
+    const auto z = state.zfactor();
 
-  EXPECT_NEAR(z[0], 0.510231, 1e-6);
-  EXPECT_NEAR(z[1], 0.135628, 1e-6);
-  EXPECT_NEAR(z[2], 0.292355, 1e-6);
+    ASSERT_EQ(z.size(), 3);
 
-  EXPECT_NEAR(eos.fugacity_coeff(z[0], state), 0.68362, 1e-5);
-  EXPECT_NEAR(eos.fugacity_coeff(z[1], state), 0.67210, 1e-5);
-  EXPECT_NEAR(eos.fugacity_coeff(z[2], state), 0.68819, 1e-5);
+    EXPECT_NEAR(z[0], 0.510231, 1e-6);
+    EXPECT_NEAR(z[1], 0.135628, 1e-6);
+    EXPECT_NEAR(z[2], 0.292355, 1e-6);
 
-  EXPECT_NEAR(eos.pressure(t, 0.001), 1.267541e6, 1.0);
-  EXPECT_NEAR(eos.pressure(t, 0.01), 1.472064e5, 0.1);
-  EXPECT_NEAR(eos.pressure(t, 0.1), 1.494132e4, 0.01);
+    EXPECT_NEAR(state.fugacity_coeff(z[0]), 0.68362, 1e-5);
+    EXPECT_NEAR(state.fugacity_coeff(z[1]), 0.67210, 1e-5);
+    EXPECT_NEAR(state.fugacity_coeff(z[2]), 0.68819, 1e-5);
+  }
+
+  {
+    const auto state = eos.state(t);
+    EXPECT_NEAR(state.pressure(0.001), 1.267541e6, 1.0);
+    EXPECT_NEAR(state.pressure(0.01), 1.472064e5, 0.1);
+    EXPECT_NEAR(state.pressure(0.1), 1.494132e4, 0.01);
+  }
 }
 
 TEST(FlashTest, VaporPressureTest) {

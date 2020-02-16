@@ -29,24 +29,6 @@
 
 namespace eos {
 
-template <typename T>
-struct isothermal_state {
-  T t;   /// Temperature
-  T tr;  /// Reduced temperature
-  T a;   /// Attraction parameter
-  T b;   /// Repulsion parameter
-};
-
-template <typename T>
-struct isobaric_isothermal_state {
-  T p;   /// Pressure
-  T t;   /// Temperature
-  T pr;  /// Reduced pressure
-  T tr;  /// Reduced temperature
-  T ar;  /// Reduced attraction parameter
-  T br;  /// Reduced repulsion parameter
-};
-
 /// @brief Two-parameter cubic equation of state (EoS)
 /// @tparam Policy EoS policy
 ///
@@ -102,9 +84,78 @@ class cubic_eos_base {
     bc_ = critical_repulsion_param(pc, tc);
   }
 
+  class isothermal_state {
+   public:
+    /// @param[in] t Temperature
+    /// @param[in] tr Reduced temperature
+    /// @param[in] a Attraction parameter
+    /// @param[in] b Repulsion parameter
+    isothermal_state(const value_type &t, const value_type &tr,
+                     const value_type &a, const value_type &b) noexcept
+        : t_{t}, tr_{tr}, a_{a}, b_{b} {}
+
+    /// @brief Computes pressure at given temperature and volume
+    /// @param[in] v Volume
+    value_type pressure(const value_type &v) const noexcept {
+      return Policy::pressure(t_, v, a_, b_);
+    }
+
+   private:
+    value_type t_;   /// Temperature
+    value_type tr_;  /// Reduced temperature
+    value_type a_;   /// Attraction parameter
+    value_type b_;   /// Repulsion parameter
+  };
+
+  class isobaric_isothermal_state {
+   public:
+    isobaric_isothermal_state(const value_type &p, const value_type &t,
+                              const value_type &pr, const value_type &tr,
+                              const value_type &ar, const value_type &br,
+                              const value_type &beta) noexcept
+        : p_{p}, t_{t}, pr_{pr}, tr_{tr}, ar_{ar}, br_{br}, beta_{beta} {}
+
+    /// @brief Computes Z-factor at given pressure and temperature
+    /// @param[in] s Isobaric-isothermal state
+    /// @return A list of Z-factors
+    std::vector<value_type> zfactor() const noexcept {
+      return real_roots(Policy::cubic_eq(ar_, br_));
+    }
+
+    /// @brief Computes fugacity coefficient
+    /// @param[in] z Z-factor
+    /// @param[in] s Isobaric-isothermal state
+    value_type fugacity_coeff(const value_type &z) const noexcept {
+      return Policy::fugacity_coeff(z, ar_, br_);
+    }
+
+    /// @brief Computes residual enthalpy
+    /// @param[in] z Z-factor
+    /// @param[in] s Isobaric-isothermal state
+    value_type residual_enthalpy(const value_type &z) const noexcept {
+      return Policy::residual_enthalpy(z, ar_, br_, beta_);
+    }
+
+    /// @brief Computes residual entropy
+    /// @param[in] z Z-factor
+    /// @param[in] s Isobaric-isothermal state
+    value_type residual_entropy(const value_type &z) const noexcept {
+      return Policy::residual_entropy(z, ar_, br_, beta_);
+    }
+
+   private:
+    value_type p_;   /// Pressure
+    value_type t_;   /// Temperature
+    value_type pr_;  /// Reduced pressure
+    value_type tr_;  /// Reduced temperature
+    value_type ar_;  /// Reduced attraction parameter
+    value_type br_;  /// Reduced repulsion parameter
+    value_type beta_;
+  };
+
   /// @brief Creates isothermal state
   /// @param[in] t Temperature
-  isothermal_state<value_type> state(const value_type &t) const noexcept {
+  isothermal_state state(const value_type &t) const noexcept {
     const auto tr = t / tc_;
     const auto a = this->derived().alpha(tr) * ac_;
     const auto b = bc_;
@@ -114,31 +165,22 @@ class cubic_eos_base {
   /// @brief Creates isobaric-isothermal state
   /// @param[in] p Pressure
   /// @param[in] t Temperature
-  isobaric_isothermal_state<value_type> state(const value_type &p,
-                                              const value_type &t) const
-      noexcept {
+  isobaric_isothermal_state state(const value_type &p,
+                                  const value_type &t) const noexcept {
     const auto pr = p / pc_;
     const auto tr = t / tc_;
-    const auto ar =
-        this->derived().alpha(tr) * reduced_attraction_param(pr, tr);
+    const auto &self = this->derived();
+    const auto ar = self.alpha(tr) * reduced_attraction_param(pr, tr);
     const auto br = reduced_repulsion_param(pr, tr);
-    return {p, t, pr, tr, ar, br};
+    const auto beta = self.beta(tr);
+    return {p, t, pr, tr, ar, br, beta};
   }
 
   /// @brief Computes pressure at given temperature and volume
   /// @param[in] t Temperature
   /// @param[in] v Volume
   value_type pressure(const value_type &t, const value_type &v) const noexcept {
-    const auto s = this->state(t);
-    return this->pressure(v, s);
-  }
-
-  /// @brief Computes pressure at given temperature and volume
-  /// @param[in] v Volume
-  /// @param[in] s Isothermal state
-  value_type pressure(const value_type &v,
-                      const isothermal_state<value_type> &s) const noexcept {
-    return Policy::pressure(s.t, v, s.a, s.b);
+    return this->state(t).pressure(v);
   }
 
   /// @brief Computes Z-factor at given pressure and temperature
@@ -147,45 +189,7 @@ class cubic_eos_base {
   /// @return A list of Z-factors
   std::vector<value_type> zfactor(const value_type &p,
                                   const value_type &t) const noexcept {
-    const auto s = this->state(p, t);
-    return this->zfactor(s);
-  }
-
-  /// @brief Computes Z-factor at given pressure and temperature
-  /// @param[in] s Isobaric-isothermal state
-  /// @return A list of Z-factors
-  std::vector<value_type> zfactor(
-      const isobaric_isothermal_state<value_type> &s) const noexcept {
-    return real_roots(Policy::cubic_eq(s.ar, s.br));
-  }
-
-  /// @brief Computes fugacity coefficient
-  /// @param[in] z Z-factor
-  /// @param[in] s Isobaric-isothermal state
-  value_type fugacity_coeff(
-      const value_type &z, const isobaric_isothermal_state<value_type> &s) const
-      noexcept {
-    return Policy::fugacity_coeff(z, s.ar, s.br);
-  }
-
-  /// @brief Computes residual enthalpy
-  /// @param[in] z Z-factor
-  /// @param[in] s Isobaric-isothermal state
-  value_type residual_enthalpy(
-      const value_type &z, const isobaric_isothermal_state<value_type> &s) const
-      noexcept {
-    const auto beta = this->derived().beta(s.tr);
-    return Policy::residual_enthalpy(z, s.ar, s.br, beta);
-  }
-
-  /// @brief Computes residual entropy
-  /// @param[in] z Z-factor
-  /// @param[in] s Isobaric-isothermal state
-  value_type residual_entropy(
-      const value_type &z, const isobaric_isothermal_state<value_type> &s) const
-      noexcept {
-    const auto beta = this->derived().beta(s.tr);
-    return Policy::residual_entropy(z, s.ar, s.br, beta);
+    return this->state(p, t).zfactor();
   }
 
  private:
