@@ -155,6 +155,11 @@ class peng_robinson_eos : public cubic_eos_base<peng_robinson_eos_policy<T>> {
     m_ = m(omega);
   }
 
+ private:
+  friend base_type;
+
+  // Member functions
+
   /// @brief Computes the correction factor for attraction parameter
   /// @param[in] tr Reduced temperature
   T alpha(const T &tr) const noexcept {
@@ -186,7 +191,6 @@ class peng_robinson_eos : public cubic_eos_base<peng_robinson_eos_policy<T>> {
   }
   */
 
- private:
   // Static functions
 
   /// @brief Computes parameter \f$ m \f$ from acentric factor
