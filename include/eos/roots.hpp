@@ -4,6 +4,7 @@
 #include <cmath>    // std::sqrt, std::pow, std::fabs
 #include <complex>  // std::complex
 #include <vector>   // std::vector
+#include <boost/math/constants/constants.hpp>
 
 namespace eos {
 
@@ -24,15 +25,16 @@ auto roots(const std::array<T, 3>& a) noexcept    -> std::array<std::complex<T>,
 
   using std::pow;
   using std::sqrt;
+  using std::complex;
 
-  const auto s = sqrt(std::complex<T>(disc, 0));
+  const auto s = sqrt(complex<T>(disc, 0));
   const auto u1 = pow(-q + s, 1.0 / 3.0);
   const auto u2 = pow(-q - s, 1.0 / 3.0);
 
-  constexpr double sqrt3 = 1.7320508075688772935;
+  constexpr auto sqrt3 = boost::math::constants::root_three<T>();
   // The primitive cube root of unity
-  const auto w1 = std::complex<T>(-0.5, sqrt3 / 2);
-  const auto w2 = std::complex<T>(-0.5, -sqrt3 / 2);
+  const auto w1 = complex<T>(-0.5, sqrt3 / 2);
+  const auto w2 = complex<T>(-0.5, -sqrt3 / 2);
 
   // Roots based on Cardano's formula
   const auto x1 = u1 + u2 - a[0] / 3;
