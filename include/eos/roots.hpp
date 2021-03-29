@@ -1,10 +1,12 @@
 #pragma once
 
-#include <array>   // std::array
-#include <cmath>   // std::sqrt, std::pow, std::fabs
-#include <complex> // std::complex
-#include <vector>  // std::vector
+#include <array>     // std::array
+#include <cmath>     // std::sqrt, std::pow, std::fabs
+#include <complex>   // std::complex
+#include <vector>    // std::vector
+#include <algorithm> // std::sort
 #include <boost/math/constants/constants.hpp>
+#include <gsl/gsl_poly.h>
 
 namespace eos
 {
@@ -64,7 +66,23 @@ namespace eos
         xreal.push_back(xi.real());
       }
     }
+    // Sort in ascending order to align with gsl_poly_solve_cubic
+    std::sort(xreal.begin(), xreal.end());
     return xreal;
   }
+
+  namespace gsl
+  {
+
+    template <typename T>
+    std::vector<T> real_roots(const std::array<T, 3> &a) noexcept
+    {
+      std::vector<double> x(3);
+      const auto num_roots = gsl_poly_solve_cubic(a[0], a[1], a[2], &x[0], &x[1], &x[2]);
+      x.resize(num_roots);
+      return x;
+    }
+
+  } // namespace gsl
 
 } // namespace eos

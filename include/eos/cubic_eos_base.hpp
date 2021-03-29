@@ -57,7 +57,7 @@ namespace eos
     /// @return A list of Z-factors
     std::vector<scalar_type> zfactor() const noexcept
     {
-      return real_roots(Eos::zfactor_cubic_eq_impl(ar_, br_));
+      return gsl::real_roots(Eos::zfactor_cubic_eq_impl(ar_, br_));
     }
 
     /// @brief Computes fugacity coefficient

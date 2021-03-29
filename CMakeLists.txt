@@ -9,6 +9,7 @@ project(eoscpp CXX)
 
 #find_package(Eigen3 REQUIRED)
 find_package(Boost REQUIRED)
+find_package(GSL REQUIRED)
 
 add_library(eos INTERFACE)
 target_compile_features(eos
@@ -29,6 +30,7 @@ target_link_libraries(eos
   INTERFACE
     #Eigen3::Eigen
     Boost::headers
+    GSL::gsl
   )
 target_compile_definitions(eos
   INTERFACE
