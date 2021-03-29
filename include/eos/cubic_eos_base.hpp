@@ -62,7 +62,6 @@ namespace eos
 
     /// @brief Computes fugacity coefficient
     /// @param[in] z Z-factor
-    /// @param[in] s Isobaric-isothermal state
     scalar_type fugacity_coeff(const scalar_type &z) const noexcept
     {
       return Eos::fugacity_coeff_impl(z, ar_, br_);
@@ -70,7 +69,6 @@ namespace eos
 
     /// @brief Computes residual enthalpy
     /// @param[in] z Z-factor
-    /// @param[in] s Isobaric-isothermal state
     scalar_type residual_enthalpy(const scalar_type &z) const noexcept
     {
       return Eos::residual_enthalpy_impl(z, ar_, br_, beta_);
@@ -78,7 +76,6 @@ namespace eos
 
     /// @brief Computes residual entropy
     /// @param[in] z Z-factor
-    /// @param[in] s Isobaric-isothermal state
     scalar_type residual_entropy(const scalar_type &z) const noexcept
     {
       return Eos::residual_entropy_impl(z, ar_, br_, beta_);
@@ -87,7 +84,7 @@ namespace eos
   private:
     scalar_type ar_; /// Reduced attraction parameter
     scalar_type br_; /// Reduced repulsion parameter
-    scalar_type beta_;
+    scalar_type beta_; /// The derivative of temperature correction factor for attraction parameter
   };
 
   /// @brief Two-parameter cubic equation of state (EoS)
