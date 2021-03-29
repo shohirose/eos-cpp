@@ -28,13 +28,6 @@ namespace eos
 
   } // namespace detail
 
-  enum class FlashErrorCode
-  {
-    Success,               /// Calculation succeeded
-    MaxIterReached,        /// Maximum iteration reached
-    MultipleRootsNotFound, /// Multiple roots not found in z-factor
-  };
-
   /// @brief vapor_liquid_flash calculation class
   template <typename Eos>
   class vapor_liquid_flash
