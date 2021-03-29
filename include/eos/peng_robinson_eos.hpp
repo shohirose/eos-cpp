@@ -52,7 +52,7 @@ namespace eos
     /// @param[in] a Reduced attraction parameter
     /// @param[in] b Reduced repulsion parameter
     /// @returns Coefficients of the cubic equation of z-factor.
-    static std::array<scalar_type, 3> cubic_eq_impl(const scalar_type &a, const scalar_type &b) noexcept
+    static std::array<scalar_type, 3> zfactor_cubic_eq_impl(const scalar_type &a, const scalar_type &b) noexcept
     {
       return {b - 1, a - (3 * b + 2) * b, (-a + b + b * b) * b};
     }

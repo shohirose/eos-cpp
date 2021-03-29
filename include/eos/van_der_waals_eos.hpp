@@ -45,11 +45,11 @@ namespace eos
       return gas_constant<scalar_type>() * t / (v - b) - a / (v * v);
     }
 
-    /// @brief Computes coefficients of cubic equation
+    /// @brief Computes coefficients of the cubic equation of Z-factor
     /// @param[in] a Reduced attraction parameter
     /// @param[in] b Reduced repulsion parameter
     /// @returns Coefficients of the cubic equation of z-factor
-    static std::array<scalar_type, 3> cubic_eq_impl(const scalar_type &a, const scalar_type &b) noexcept
+    static std::array<scalar_type, 3> zfactor_cubic_eq_impl(const scalar_type &a, const scalar_type &b) noexcept
     {
       return {-b - 1, a, -a * b};
     }

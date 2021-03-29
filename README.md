@@ -12,7 +12,7 @@ In addition, you can customize and create a new cubic EoS by deriving from `cubi
 
 - Defines the following static functions:
     - `pressure_impl`
-    - `cubic_eq_impl`
+    - `zfactor_cubic_eq_impl`
     - `fugacity_coeff_impl`
     - `residual_enthalpy_impl`
     - `residual_entropy_impl`
@@ -29,7 +29,7 @@ class my_cubic_eos : public cubic_eos_base<my_cubic_eos<T>> {
    using base_type = cubic_eos_base<my_cubic_eos<T>>;
 
   static T pressure_impl(const T& a, const T& b) noexcept;
-  static std::array<T, 3> cubic_eq_impl(cosnt T& a, const T& b) noexcept;
+  static std::array<T, 3> zfactor_cubic_eq_impl(cosnt T& a, const T& b) noexcept;
   static T fugacity_coeff_impl(const T &z, const T &a, const T &b) noexcept;
   static T residual_enthalpy_impl(const T &z, const T &t, const T &a, const T &b, const T &beta) noexcept;
   static T residual_entropy_impl(const T &z, const T &a, const T &b, const T&beta) noexcept;

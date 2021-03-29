@@ -57,7 +57,7 @@ namespace eos
     /// @return A list of Z-factors
     std::vector<scalar_type> zfactor() const noexcept
     {
-      return real_roots(Eos::cubic_eq_impl(ar_, br_));
+      return real_roots(Eos::zfactor_cubic_eq_impl(ar_, br_));
     }
 
     /// @brief Computes fugacity coefficient
@@ -95,7 +95,7 @@ namespace eos
   ///
   /// Derived EoS classes must have the following static functions:
   ///    - pressure_impl(t, v, a, b)
-  ///    - cubic_eq_impl(ar, br)
+  ///    - zfactor_cubic_eq_impl(ar, br)
   ///    - fugacity_coeff_impl(z, ar, br)
   ///    - residual_enthalpy_impl(z, t, ar, br, beta)
   ///    - residual_entropy_impl(z, ar, br, beta)
