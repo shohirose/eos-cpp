@@ -44,26 +44,6 @@ auto roots(const std::array<T, 3>& a) noexcept    -> std::array<std::complex<T>,
   return {x1, x2, x3};
 }
 
-template <typename T>
-int num_real_roots(const std::array<T, 3>& a) noexcept {
-  // Depressed cubic equation:
-  // x^3 + 3px + 2q = 0
-  const auto p = (3 * a[1] - a[0] * a[0]) / 9;
-  const auto q = (27 * a[2] + a[0] * (2 * a[0] * a[0] - 9 * a[1])) / 54;
-  const auto det = p * p * p + q * q;
-
-  if (det == 0) {
-    if (p == 0)
-      return 1;
-    else
-      return 2;
-  } else if (det > 0) {
-    return 3;
-  } else {
-    return 1;
-  }
-}
-
 /// @brief Computes real roots of a cubic equation
 /// @param[in] a Coefficients of a cubic equation
 /// @return An array of real roots of a cubic equation
