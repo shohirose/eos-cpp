@@ -73,9 +73,12 @@ std::vector<T> real_roots(const std::array<T, 3>& a) noexcept {
   std::vector<T> xreal;
   xreal.reserve(3);
   using std::fabs;
-  constexpr double eps = 1e-10;
-  for (auto&& xi : x)
-    if (fabs(xi.imag()) < eps) xreal.push_back(xi.real());
+  constexpr auto eps = static_cast<T>(1e-10);
+  for (auto&& xi : x) {
+    if (fabs(xi.imag()) < eps) {
+      xreal.push_back(xi.real());
+    }
+  }
   return xreal;
 }
 
