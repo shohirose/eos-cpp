@@ -206,7 +206,7 @@ namespace eos
       }
       else
       {
-        const auto tmp = tr - 12.0;
+        const auto tmp = tr - 12;
         if (fabs(tmp) < tolerance)
         {
           return 1.22 * pow(q_, 0.15);
