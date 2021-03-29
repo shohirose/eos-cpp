@@ -3,7 +3,7 @@
 #include <array> // std::array
 #include <cmath> // std::exp, std::log
 
-#include "eos/cubic_eos_base.hpp" // eos::cutic_eos_base
+#include "eos/cubic_eos_base.hpp" // eos::cubic_eos_base
 
 namespace eos
 {
@@ -26,11 +26,11 @@ namespace eos
 
   /// @brief Van der Waals Equations of State
   template <typename T>
-  class van_der_waals_eos : public cutic_eos_base<van_der_waals_eos<T>>
+  class van_der_waals_eos : public cubic_eos_base<van_der_waals_eos<T>>
   {
   public:
     using scalar_type = T;
-    using base_type = cutic_eos_base<van_der_waals_eos<T>>;
+    using base_type = cubic_eos_base<van_der_waals_eos<T>>;
 
     // Static Functions
 

@@ -3,7 +3,7 @@
 #include <array> // std::array
 #include <cmath> // std::sqrt, std::exp, std::log
 
-#include "eos/cubic_eos_base.hpp" // eos::cutic_eos_base
+#include "eos/cubic_eos_base.hpp" // eos::cubic_eos_base
 
 namespace eos
 {
@@ -27,11 +27,11 @@ namespace eos
   /// @brief Soave-Redlich-Kwong EoS.
   /// @tparam scalar_type Value type
   template <typename T>
-  class soave_redlich_kwong_eos : public cutic_eos_base<soave_redlich_kwong_eos<T>>
+  class soave_redlich_kwong_eos : public cubic_eos_base<soave_redlich_kwong_eos<T>>
   {
   public:
     using scalar_type = T;
-    using base_type = cutic_eos_base<soave_redlich_kwong_eos<T>>;
+    using base_type = cubic_eos_base<soave_redlich_kwong_eos<T>>;
 
     // Static functions
 

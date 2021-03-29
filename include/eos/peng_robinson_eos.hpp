@@ -4,7 +4,7 @@
 #include <boost/math/constants/constants.hpp> // boost::math::constants::root_two
 #include <cmath>                              // std::sqrt, std::exp, std::log
 
-#include "eos/cubic_eos_base.hpp" // eos::cutic_eos_base
+#include "eos/cubic_eos_base.hpp" // eos::cubic_eos_base
 
 namespace eos
 {
@@ -28,11 +28,11 @@ namespace eos
   /// @brief Peng-Robinson EoS.
   /// @tparam T Value type
   template <typename T>
-  class peng_robinson_eos : public cutic_eos_base<peng_robinson_eos<T>>
+  class peng_robinson_eos : public cubic_eos_base<peng_robinson_eos<T>>
   {
   public:
     using scalar_type = T;
-    using base_type = cutic_eos_base<peng_robinson_eos<T>>;
+    using base_type = cubic_eos_base<peng_robinson_eos<T>>;
 
     // Static functions
 

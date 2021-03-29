@@ -114,7 +114,7 @@ namespace eos
   ///    - omega_b: Constant for repulsion parameter
   ///
   template <typename Derived>
-  class cutic_eos_base
+  class cubic_eos_base
   {
   public:
     using scalar_type = typename detail::cubic_eos_traits<Derived>::scalar_type;
@@ -124,12 +124,12 @@ namespace eos
 
     // Constructors
 
-    cutic_eos_base() = default;
+    cubic_eos_base() = default;
 
     /// @brief Constructs cubic EoS
     /// @param[in] pc Critical pressure
     /// @param[in] tc Critical temperature
-    cutic_eos_base(const scalar_type &pc, const scalar_type &tc) noexcept
+    cubic_eos_base(const scalar_type &pc, const scalar_type &tc) noexcept
         : pc_{pc},
           tc_{tc},
           ac_{this->critical_attraction_param(pc, tc)},
