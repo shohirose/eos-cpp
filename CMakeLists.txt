@@ -7,7 +7,7 @@ endif()
 
 project(eoscpp CXX)
 
-find_package(Eigen3 REQUIRED)
+#find_package(Eigen3 REQUIRED)
 find_package(Boost REQUIRED)
 
 add_library(eos INTERFACE)
@@ -17,9 +17,9 @@ target_compile_features(eos
   )
 target_compile_options(eos
   INTERFACE
-    -Wall
-    -Wextra
-    -Wpedantic
+    $<$<CXX_COMPILER_ID:MSVC>:/W4>
+    $<$<CXX_COMPILER_ID:GNU>:-Wall -Wextra -Wpedantic>
+    $<$<CXX_COMPILER_ID:Clang>:-Wall -Wextra -Wpedantic>
   )
 target_include_directories(eos
   INTERFACE
@@ -27,8 +27,12 @@ target_include_directories(eos
   )
 target_link_libraries(eos
   INTERFACE
-    Eigen3::Eigen
+    #Eigen3::Eigen
     Boost::headers
+  )
+target_compile_definitions(eos
+  INTERFACE
+    $<$<CXX_COMPILER_ID:MSVC>:NOMINMAX _USE_MATH_DEFINES>
   )
 
 enable_testing()

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "eos/flash.hpp"
-#include "eos/lucas.hpp"
-#include "eos/pr_eos.hpp"
-#include "eos/srk_eos.hpp"
-#include "eos/vdw_eos.hpp"
+#include "eos/peng_robinson_eos.hpp"
+#include "eos/soave_redlich_kwong_eos.hpp"
+#include "eos/van_der_waals_eos.hpp"
+#include "eos/vapor_liquid_flash.hpp"
+#include "eos/lucas_method.hpp"

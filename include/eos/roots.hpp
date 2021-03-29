@@ -16,8 +16,7 @@ namespace eos {
 ///   x^3 + a[0] x^2 + a[1] x + a[2] = 0.
 /// \f]
 template <typename T>
-auto roots(const std::array<T, 3>& a) noexcept
-    -> std::array<std::complex<T>, 3> {
+auto roots(const std::array<T, 3>& a) noexcept    -> std::array<std::complex<T>, 3> {
   const auto p = (3 * a[1] - a[0] * a[0]) / 9;
   const auto q = (27 * a[2] + a[0] * (2 * a[0] * a[0] - 9 * a[1])) / 54;
   // Discriminant of the cubic equation
@@ -44,7 +43,7 @@ auto roots(const std::array<T, 3>& a) noexcept
 }
 
 template <typename T>
-int num_of_real_roots(const std::array<T, 3>& a) noexcept {
+int num_real_roots(const std::array<T, 3>& a) noexcept {
   // Depressed cubic equation:
   // x^3 + 3px + 2q = 0
   const auto p = (3 * a[1] - a[0] * a[0]) / 9;
