@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <type_traits>
+#include <limits>
 
 namespace eos
 {
@@ -46,7 +47,7 @@ namespace eos
   /// @name Other constants
 
   /// Size of vectors
-  static constexpr std::size_t dynamic_extent = SIZE_MAX;
+  static constexpr auto dynamic_extent = std::numeric_limits<std::size_t>::max();
 
   /// @}
 
