@@ -204,17 +204,14 @@ namespace eos
       {
         return 1.0;
       }
+      else if (fabs(tr - 12) < tolerance)
+      {
+        return 1.22 * pow(q_, 0.15);
+      }
       else
       {
         const auto tmp = tr - 12;
-        if (fabs(tmp) < tolerance)
-        {
-          return 1.22 * pow(q_, 0.15);
-        }
-        else
-        {
-          return 1.22 * pow(q_, 0.15) * (1.0 + copysign(0.00385 * pow(tmp * tmp, 1.0 / mw_), tmp));
-        }
+        return 1.22 * pow(q_, 0.15) * (1.0 + copysign(0.00385 * pow(tmp * tmp, 1.0 / mw_), tmp));
       }
     }
 
