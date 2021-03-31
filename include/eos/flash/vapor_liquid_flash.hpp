@@ -4,6 +4,9 @@
 #include <cassert>
 #include <cmath>
 #include <utility>
+#include <type_traits>
+
+#include "eos/cubic_eos/cubic_eos_base.hpp"
 
 namespace eos
 {
@@ -31,10 +34,12 @@ namespace eos
   };
 
   /// @brief vapor_liquid_flash calculation class
-  template <typename Eos>
+  template <typename CubicEos>
   class vapor_liquid_flash
   {
   public:
+    static_assert(std::is_base_of_v<cubic_eos_base<CubicEos>, CubicEos>, "CubicEos must be derived from eos::cubic_eos_base");
+
     vapor_liquid_flash() = default;
     vapor_liquid_flash(const vapor_liquid_flash &) = default;
     vapor_liquid_flash(vapor_liquid_flash &&) = default;
@@ -44,13 +49,13 @@ namespace eos
     ///
     /// The default values of tolerance and maxixum iteration are 1e-6 and 100,
     /// respectively.
-    vapor_liquid_flash(const Eos &eos) : eos_{eos}, tol_{1e-6}, maxiter_{100} {}
+    vapor_liquid_flash(const CubicEos &eos) : eos_{eos}, tol_{1e-6}, maxiter_{100} {}
 
     /// @brief Constructs flash object
     /// @param[in] eos EoS
     /// @param[in] tol Tolerance for vapor_liquid_flash calculation convergence
     /// @param[in] maxiter Maximum iteration
-    vapor_liquid_flash(const Eos &eos, double tol, int maxiter)
+    vapor_liquid_flash(const CubicEos &eos, double tol, int maxiter)
         : eos_{eos}, tol_{tol}, maxiter_{maxiter} {}
 
     vapor_liquid_flash &operator=(const vapor_liquid_flash &) = default;
@@ -109,13 +114,13 @@ namespace eos
     }
 
   private:
-    Eos eos_;
+    CubicEos eos_;
     double tol_;
     int maxiter_;
   };
 
-  template <typename Eos>
-  inline vapor_liquid_flash<Eos> make_vapor_liquid_flash(const Eos &eos)
+  template <typename CubicEos>
+  inline vapor_liquid_flash<CubicEos> make_vapor_liquid_flash(const CubicEos &eos)
   {
     return {eos};
   }
