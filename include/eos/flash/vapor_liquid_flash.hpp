@@ -18,6 +18,20 @@ namespace eos
     return pc * std::pow(10, 7.0 / 3.0 * (1 + omega) * (1 - tc / t));
   }
 
+  enum class flash_iteration_error
+  {
+    success,
+    not_converged,
+    multiple_roots_not_found,
+  };
+
+  struct flash_iteration_result
+  {
+    double rsd;                  /// Relative residual
+    int iter;                    /// Iteration count
+    flash_iteration_error error; /// Error code
+  };
+
   /// @brief vapor_liquid_flash calculation class
   template <typename Eos>
   class vapor_liquid_flash
@@ -44,25 +58,11 @@ namespace eos
     vapor_liquid_flash &operator=(const vapor_liquid_flash &) = default;
     vapor_liquid_flash &operator=(vapor_liquid_flash &&) = default;
 
-    enum class error_code
-    {
-      success,
-      not_converged,
-      multiple_roots_not_found,
-    };
-
-    struct result
-    {
-      double rsd;       /// Relative residual
-      int iter;         /// Iteration count
-      error_code error; /// Error code
-    };
-
     /// @brief Computes vapor pressure
     /// @param[in] p_init Initial pressure
     /// @param[in] t Temperature
     /// @return A pair of vapor pressure and iteration report
-    std::pair<double, result> vapor_pressure(double p_init, double t) const noexcept
+    std::pair<double, flash_iteration_result> vapor_pressure(double p_init, double t) const noexcept
     {
       auto p = p_init;
       double eps = 1.0;
@@ -75,7 +75,7 @@ namespace eos
 
         if (z.size() < 2)
         {
-          return {0.0, {eps, iter, error_code::multiple_roots_not_found}};
+          return {0.0, {eps, iter, flash_iteration_error::multiple_roots_not_found}};
         }
 
         const auto zv = *std::max_element(z.begin(), z.end());
@@ -93,10 +93,10 @@ namespace eos
 
       if (iter >= maxiter_)
       {
-        return {0.0, {eps, iter, error_code::not_converged}};
+        return {0.0, {eps, iter, flash_iteration_error::not_converged}};
       }
 
-      return {p, {eps, iter, error_code::success}};
+      return {p, {eps, iter, flash_iteration_error::success}};
     }
 
     double tolerance() const noexcept { return tol_; }

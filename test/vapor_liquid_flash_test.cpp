@@ -22,5 +22,5 @@ TEST(VaporLiquidFlashTest, VaporPressureTest)
   auto [pvap, result] = flash.vapor_pressure(p0, t);
 
   EXPECT_NEAR(pvap, 2.87515e6, 10);
-  EXPECT_EQ(result.error, decltype(flash)::error_code::success);
+  EXPECT_EQ(result.error, flash_iteration_error::success);
 }
