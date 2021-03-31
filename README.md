@@ -23,33 +23,29 @@ In addition, you can customize and create a new cubic EoS by deriving from `cubi
 An example of defining a custom EoS class:
 
 ```cpp
-template <typename T>
-class my_cubic_eos : public cubic_eos_base<my_cubic_eos<T>> {
+class my_cubic_eos : public cubic_eos_base<my_cubic_eos {
  public:
-   using base_type = cubic_eos_base<my_cubic_eos<T>>;
+   using base_type = cubic_eos_base<my_cubic_eos>;
 
-  static T pressure_impl(const T& a, const T& b) noexcept;
-  static std::array<T, 3> zfactor_cubic_eq_impl(cosnt T& a, const T& b) noexcept;
-  static T fugacity_coeff_impl(const T &z, const T &a, const T &b) noexcept;
-  static T residual_enthalpy_impl(const T &z, const T &t, const T &a, const T &b, const T &beta) noexcept;
-  static T residual_entropy_impl(const T &z, const T &a, const T &b, const T&beta) noexcept;
+  static double pressure_impl(double a, double b) noexcept;
+  static std::array<double, 3> zfactor_cubic_eq_impl(double a, double b) noexcept;
+  static double fugacity_coeff_impl(double z, double a, double b) noexcept;
+  static double residual_enthalpy_impl(double z, double t, double a, double b, double beta) noexcept;
+  static double residual_entropy_impl(double z, double a, double b, double beta) noexcept;
 
   my_cubic_eos() = default;
-  my_cubic_eos(const T& pc, const T& tc, /* ... */) noexcept;
-  void set_params(const T& pc, const T& tc, /* ... */) noexcept;
-  T alpha(const T& tr) const noexcept;
-  T beta(const T& tr) const noexcept;
+  my_cubic_eos(double pc, double tc, /* ... */) noexcept;
+  void set_params(double pc, double tc, /* ... */) noexcept;
+  double alpha(double tr) const noexcept;
+  double beta(double tr) const noexcept;
 };
 
 ```
 
-In addition to the custom eos class, a custom eos traits class must be defined. Eos traits classes must define the following types and constants:
+In addition to the custom eos class, a custom eos traits class must be defined. Eos traits classes must define the following constants:
 
-- Declares the following types:
-    - `scalar_type`
-- Defines the following constants:
-    - `omega_a`
-    - `omega_b`
+- `omega_a`
+- `omega_b`
 
 Helper functions are defined for each EoS to easily create EoS objects:
 
