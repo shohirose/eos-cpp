@@ -12,29 +12,17 @@ namespace eos
 
   /// @brief Estimates vapor pressure of a pure component by using Wilson
   /// equation.
-  template <typename T>
-  T estimate_vapor_pressure(const T &t, const T &pc, const T &tc, const T &omega) noexcept
+  inline double estimate_vapor_pressure(double t, double pc, double tc, double omega) noexcept
   {
     assert(t <= tc);
-    using std::pow;
-    return pc * pow(10, 7.0 / 3.0 * (1 + omega) * (1 - tc / t));
+    return pc * std::pow(10, 7.0 / 3.0 * (1 + omega) * (1 - tc / t));
   }
-
-  namespace detail
-  {
-
-    template <typename Eos>
-    struct cubic_eos_traits;
-
-  } // namespace detail
 
   /// @brief vapor_liquid_flash calculation class
   template <typename Eos>
   class vapor_liquid_flash
   {
   public:
-    using scalar_type = typename detail::cubic_eos_traits<Eos>::scalar_type;
-
     vapor_liquid_flash() = default;
     vapor_liquid_flash(const vapor_liquid_flash &) = default;
     vapor_liquid_flash(vapor_liquid_flash &&) = default;
@@ -50,7 +38,7 @@ namespace eos
     /// @param[in] eos EoS
     /// @param[in] tol Tolerance for vapor_liquid_flash calculation convergence
     /// @param[in] maxiter Maximum iteration
-    vapor_liquid_flash(const Eos &eos, const scalar_type &tol, int maxiter)
+    vapor_liquid_flash(const Eos &eos, double tol, int maxiter)
         : eos_{eos}, tol_{tol}, maxiter_{maxiter} {}
 
     vapor_liquid_flash &operator=(const vapor_liquid_flash &) = default;
@@ -65,7 +53,7 @@ namespace eos
 
     struct result
     {
-      scalar_type rsd;  /// Relative residual
+      double rsd;       /// Relative residual
       int iter;         /// Iteration count
       error_code error; /// Error code
     };
@@ -74,13 +62,11 @@ namespace eos
     /// @param[in] p_init Initial pressure
     /// @param[in] t Temperature
     /// @return A pair of vapor pressure and iteration report
-    std::pair<scalar_type, result> vapor_pressure(const scalar_type &p_init, const scalar_type &t) const noexcept
+    std::pair<double, result> vapor_pressure(double p_init, double t) const noexcept
     {
       auto p = p_init;
-      scalar_type eps = 1;
+      double eps = 1.0;
       int iter = 0;
-
-      using std::fabs;
 
       while (eps > tol_ && iter < maxiter_)
       {
@@ -89,7 +75,7 @@ namespace eos
 
         if (z.size() < 2)
         {
-          return {0, {eps, iter, error_code::multiple_roots_not_found}};
+          return {0.0, {eps, iter, error_code::multiple_roots_not_found}};
         }
 
         const auto zv = *std::max_element(z.begin(), z.end());
@@ -97,7 +83,7 @@ namespace eos
         const auto phiv = state.fugacity_coeff(zv);
         const auto phil = state.fugacity_coeff(zl);
 
-        eps = fabs(1 - phil / phiv);
+        eps = std::fabs(1.0 - phil / phiv);
 
         // Update vapor pressure by successive substitution
         p *= phil / phiv;
@@ -107,16 +93,16 @@ namespace eos
 
       if (iter >= maxiter_)
       {
-        return {0, {eps, iter, error_code::not_converged}};
+        return {0.0, {eps, iter, error_code::not_converged}};
       }
 
       return {p, {eps, iter, error_code::success}};
     }
 
-    scalar_type tolerance() const noexcept { return tol_; }
+    double tolerance() const noexcept { return tol_; }
     int maxIter() const noexcept { return maxiter_; }
 
-    void set_params(const scalar_type &tol, int maxiter)
+    void set_params(double tol, int maxiter)
     {
       tol_ = tol;
       maxiter_ = maxiter;
@@ -124,7 +110,7 @@ namespace eos
 
   private:
     Eos eos_;
-    scalar_type tol_;
+    double tol_;
     int maxiter_;
   };
 

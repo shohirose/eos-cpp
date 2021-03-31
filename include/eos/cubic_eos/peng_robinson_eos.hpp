@@ -1,38 +1,32 @@
 #pragma once
 
-#include <array>                              // std::array
-#include <boost/math/constants/constants.hpp> // boost::math::constants::root_two
-#include <cmath>                              // std::sqrt, std::exp, std::log
+#include <array> // std::array
+#include <cmath> // std::sqrt, std::exp, std::log
 
-#include "eos/cubic_eos_base.hpp" // eos::cubic_eos_base
+#include "eos/cubic_eos/cubic_eos_base.hpp" // eos::cubic_eos_base
 
 namespace eos
 {
 
-  template <typename scalar_type>
   class peng_robinson_eos;
 
   namespace detail
   {
 
-    template <typename T>
-    struct cubic_eos_traits<peng_robinson_eos<T>>
+    template <>
+    struct cubic_eos_traits<peng_robinson_eos>
     {
-      using scalar_type = T;
-      static constexpr auto omega_a = static_cast<scalar_type>(0.45724);
-      static constexpr auto omega_b = static_cast<scalar_type>(0.07780);
+      static constexpr auto omega_a = 0.45724;
+      static constexpr auto omega_b = 0.07780;
     };
 
   } // namespace detail
 
   /// @brief Peng-Robinson EoS.
-  /// @tparam T Value type
-  template <typename T>
-  class peng_robinson_eos : public cubic_eos_base<peng_robinson_eos<T>>
+  class peng_robinson_eos : public cubic_eos_base<peng_robinson_eos>
   {
   public:
-    using scalar_type = T;
-    using base_type = cubic_eos_base<peng_robinson_eos<T>>;
+    using base_type = cubic_eos_base<peng_robinson_eos>;
 
     // Static functions
 
@@ -42,9 +36,9 @@ namespace eos
     /// @param[in] a Attraction parameter
     /// @param[in] b Repulsion parameter
     /// @returns Pressure
-    static scalar_type pressure_impl(const scalar_type &t, const scalar_type &v, const scalar_type &a, const scalar_type &b) noexcept
+    static double pressure_impl(double t, double v, double a, double b) noexcept
     {
-      constexpr auto R = gas_constant<scalar_type>();
+      constexpr auto R = gas_constant<double>();
       return R * t / (v - b) - a / (v * (v + b) + b * (v - b));
     }
 
@@ -52,7 +46,7 @@ namespace eos
     /// @param[in] a Reduced attraction parameter
     /// @param[in] b Reduced repulsion parameter
     /// @returns Coefficients of the cubic equation of z-factor.
-    static std::array<scalar_type, 3> zfactor_cubic_eq_impl(const scalar_type &a, const scalar_type &b) noexcept
+    static std::array<double, 3> zfactor_cubic_eq_impl(double a, double b) noexcept
     {
       return {b - 1, a - (3 * b + 2) * b, (-a + b + b * b) * b};
     }
@@ -62,11 +56,9 @@ namespace eos
     /// @param[in] a Reduced attraction parameter
     /// @param[in] b Reduced repulsion parameter
     /// @returns Fugacity coefficient
-    static scalar_type fugacity_coeff_impl(const scalar_type &z, const scalar_type &a, const scalar_type &b) noexcept
+    static double fugacity_coeff_impl(double z, double a, double b) noexcept
     {
-      using std::exp;
-      using std::log;
-      return exp(z - 1 - log(z - b) - q(z, a, b));
+      return std::exp(z - 1 - std::log(z - b) - q(z, a, b));
     }
 
     /// @brief Computes residual enthalpy
@@ -75,10 +67,9 @@ namespace eos
     /// @param[in] a Reduced attraction parameter
     /// @param[in] b Reduced repulsion parameter
     /// @param[in] beta Temperature correction factor
-    static scalar_type residual_enthalpy_impl(const scalar_type &z, const scalar_type &t, const scalar_type &a, const scalar_type &b, const scalar_type &beta) noexcept
+    static double residual_enthalpy_impl(double z, double t, double a, double b, double beta) noexcept
     {
-      using std::log;
-      constexpr auto R = gas_constant<scalar_type>();
+      constexpr auto R = gas_constant<double>();
       return R * t * (z - 1 - (1 - beta) * q(z, a, b));
     }
 
@@ -87,11 +78,10 @@ namespace eos
     /// @param[in] a Reduced attraction parameter
     /// @param[in] b Reduced repulsion parameter
     /// @param[in] beta Temperature correction factor
-    static scalar_type residual_entropy_impl(const scalar_type &z, const scalar_type &a, const scalar_type &b, const scalar_type &beta) noexcept
+    static double residual_entropy_impl(double z, double a, double b, double beta) noexcept
     {
-      using std::log;
-      constexpr auto R = gas_constant<scalar_type>();
-      return R * (log(z - b) + beta * q(z, a, b));
+      constexpr auto R = gas_constant<double>();
+      return R * (std::log(z - b) + beta * q(z, a, b));
     }
 
     // Constructors
@@ -102,7 +92,7 @@ namespace eos
     /// @param[in] pc Critical pressrue
     /// @param[in] tc Critical temperature
     /// @param[in] omega Acentric factor
-    peng_robinson_eos(const scalar_type &pc, const scalar_type &tc, const scalar_type &omega)
+    peng_robinson_eos(double pc, double tc, double omega)
         : base_type{pc, tc}, omega_{omega}, m_{m(omega)} {}
 
     // Member functions
@@ -111,7 +101,7 @@ namespace eos
     /// @param[in] pc Critical pressrue
     /// @param[in] tc Critical temperature
     /// @param[in] omega Acentric factor
-    void set_params(const scalar_type &pc, const scalar_type &tc, const scalar_type &omega) noexcept
+    void set_params(double pc, double tc, double omega) noexcept
     {
       this->base_type::set_params(pc, tc);
       omega_ = omega;
@@ -122,20 +112,18 @@ namespace eos
 
     /// @brief Computes the correction factor for attraction parameter
     /// @param[in] tr Reduced temperature
-    scalar_type alpha(const scalar_type &tr) const noexcept
+    double alpha(double tr) const noexcept
     {
-      using std::sqrt;
-      const auto a = 1 + m_ * (1 - sqrt(tr));
+      const auto a = 1 + m_ * (1 - std::sqrt(tr));
       return a * a;
     }
 
     /// @brief Computes \f$ \beta = \frac{\mathrm{d} \ln \alpha}{\mathrm{d} \ln
-    /// scalar_type} \f$
+    /// double } \f$
     /// @param[in] tr Reduced temperature
-    scalar_type beta(const scalar_type &tr) const noexcept
+    double beta(double tr) const noexcept
     {
-      using std::sqrt;
-      const auto sqrt_tr = sqrt(tr);
+      const auto sqrt_tr = std::sqrt(tr);
       const auto a = 1 + m_ * (1 - sqrt_tr);
       return -m_ * sqrt_tr / a;
     }
@@ -143,7 +131,7 @@ namespace eos
   private:
     /// @brief Computes parameter \f$ m \f$ from acentric factor
     /// @param[in] omega Acentric factor
-    static scalar_type m(const scalar_type &omega) noexcept
+    static double m(double omega) noexcept
     {
       return 0.3796 + omega * (1.485 - omega * (0.1644 - 0.01667 * omega));
     }
@@ -153,20 +141,19 @@ namespace eos
     /// @param[in] z Z-factor
     /// @param[in] a Reduced attraction parameter
     /// @param[in] b Reduced repulsion parameter
-    static scalar_type q(const scalar_type &z, const scalar_type &a, const scalar_type &b) noexcept
+    static double q(double z, double a, double b) noexcept
     {
-      constexpr auto sqrt2 = boost::math::constants::root_two<scalar_type>();
-      constexpr auto delta1 = 1 + sqrt2;
-      constexpr auto delta2 = 1 - sqrt2;
-      using std::log;
-      return a / (2 * sqrt2 * b) * log((z + delta1 * b) / (z + delta2 * b));
+      static const auto sqrt2 = std::sqrt(2.0);
+      static const auto delta1 = 1 + sqrt2;
+      static const auto delta2 = 1 - sqrt2;
+      return a / (2 * sqrt2 * b) * std::log((z + delta1 * b) / (z + delta2 * b));
     }
 
     /*
     /// @brief Computes  \f[ \gamma = \frac{T_r^2}{\alpha} \cdot
     /// \frac{\mathrm{d}^2 \alpha}{\mathrm{d} T_r^2} \f]
     /// @param[in] tr Reduced temperature
-    scalar_type gamma(const scalar_type &tr) const noexcept {
+    double  gamma(double tr) const noexcept {
       using std::sqrt;
       const auto sqrt_tr = sqrt(tr);
       const auto a = 1 + m_ * (1 - sqrt_tr);
@@ -176,9 +163,9 @@ namespace eos
     */
 
     /// Acentric factor
-    scalar_type omega_;
+    double omega_;
     /// \f$ m = 0.3796 + 1.485 \omega - 0.1644 \omega^2 + 0.01667 \omega^3 \f$
-    scalar_type m_;
+    double m_;
   };
 
   /// @brief Makes Peng-Robinson EoS
@@ -186,8 +173,7 @@ namespace eos
   /// @param[in] pc Critical pressure
   /// @param[in] tc Critical temperature
   /// @param[in] omega Acentric factor
-  template <typename T>
-  inline peng_robinson_eos<T> make_peng_robinson_eos(const T &pc, const T &tc, const T &omega)
+  inline peng_robinson_eos make_peng_robinson_eos(double pc, double tc, double omega)
   {
     return {pc, tc, omega};
   }

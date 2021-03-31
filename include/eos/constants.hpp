@@ -1,8 +1,8 @@
 #pragma once
 
-#include <cstddef>
-#include <type_traits>
-#include <limits>
+#include <cstddef>     // std::size_t
+#include <type_traits> // std::enable_if_t
+#include <limits>      // std::numeric_limits
 
 namespace eos
 {

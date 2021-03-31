@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "eos/lucas_method.hpp"
+#include "eos/viscosity/lucas_method.hpp"
 
 // The following unit tests are taken from examples in:
 // Poling et al. 2001. "The Properties of Gases and Liquids", fifth edition,

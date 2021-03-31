@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
-#include "eos/vapor_liquid_flash.hpp"
-#include "eos/peng_robinson_eos.hpp"
+#include "eos/flash/vapor_liquid_flash.hpp"
+#include "eos/cubic_eos/peng_robinson_eos.hpp"
 
 TEST(VaporLiquidFlashTest, VaporPressureTest)
 {

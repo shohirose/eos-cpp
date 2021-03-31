@@ -1,9 +1,9 @@
 #include <gtest/gtest.h>
 #include <iostream>
 
-#include "eos/peng_robinson_eos.hpp"
-#include "eos/van_der_waals_eos.hpp"
-#include "eos/soave_redlich_kwong_eos.hpp"
+#include "eos/cubic_eos/peng_robinson_eos.hpp"
+#include "eos/cubic_eos/van_der_waals_eos.hpp"
+#include "eos/cubic_eos/soave_redlich_kwong_eos.hpp"
 
 TEST(CubicEosTest, VanDerWaalsEosTest)
 {
