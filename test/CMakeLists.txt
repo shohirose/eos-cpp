@@ -1,14 +1,11 @@
-find_package(GTest REQUIRED)
-
 function(add_unit_test name)
   add_executable(${name}
     ${name}.cpp
     )
   target_link_libraries(${name}
-    PUBLIC
+    PRIVATE
       eos
-      GTest::GTest
-      GTest::Main
+      gtest_main
     )
   add_test(
     NAME ${name}

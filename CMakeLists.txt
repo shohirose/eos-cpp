@@ -11,5 +11,16 @@ find_package(GSL REQUIRED)
 
 add_subdirectory(src)
 
+option(BUILD_GMOCK "Build gmock" OFF)
+option(INSTALL_GTEST "Install gtest" OFF)
+
+# Prevent overriding the parent project's compiler/linker
+# settings on Windows
+if (WIN32)
+ set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+endif()
+
+add_subdirectory(third-party/googletest)
+
 enable_testing()
 add_subdirectory(test)
