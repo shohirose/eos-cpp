@@ -17,31 +17,14 @@ namespace eos
     /// @param[in] mw Molecular weight [kg/kmol]
     /// @param[in] dm Dipole moment [Debyes]
     /// @param[in] q Quantum parameter
-    lucas_method(double pc, double tc, double zc,
-                 double mw, double dm, double q)
-        : pc_{pc},
-          tc_{tc},
-          zc_{zc},
-          mw_{mw},
-          dm_{dm},
+    lucas_method(double pc, double tc, double zc, double mw, double dm, double q)
+        : pc_{pc}, tc_{tc}, zc_{zc}, mw_{mw}, dm_{dm}, q_{q},
           dmr_{reduced_dipole_moment(dm, tc, pc)},
-          q_{q},
           xi_{inverse_viscosity(pc, tc, mw)} {}
 
     // Member functions
 
-    void set_params(double pc, double tc, double zc,
-                    double mw, double dm, double q) noexcept
-    {
-      pc_ = pc;
-      tc_ = tc;
-      zc_ = zc;
-      mw_ = mw;
-      dm_ = dm;
-      dmr_ = reduced_dipole_moment(dm, tc, pc);
-      q_ = q;
-      xi_ = inverse_viscosity(pc, tc, mw);
-    }
+    void set_params(double pc, double tc, double zc, double mw, double dm, double q) noexcept;
 
     /// @brief Computes gas viscosity at low pressure
     /// @param[in] t Temperature [K]
@@ -70,9 +53,7 @@ namespace eos
     /// @param[in] fq Quantum factor at low pressure
     static double reduced_viscosity_at_low_pressure(double tr, double fp, double fq) noexcept
     {
-      using std::exp;
-      using std::pow;
-      const auto z1 = (0.807 * pow(tr, 0.618) - 0.357 * exp(-0.449 * tr) + 0.340 * exp(-4.058 * tr) + 0.018);
+      const auto z1 = (0.807 * std::pow(tr, 0.618) - 0.357 * std::exp(-0.449 * tr) + 0.340 * std::exp(-4.058 * tr) + 0.018);
       return z1 * fp * fq;
     }
 
@@ -82,10 +63,9 @@ namespace eos
     /// @param[in] mw Molecular weight
     static double inverse_viscosity(double pc, double tc, double mw) noexcept
     {
-      using std::pow;
       const auto pc_bar = pc * 1e-5;
       const auto pc2 = pc_bar * pc_bar;
-      return (1.0e7 * 0.176) * pow(tc / (mw * mw * mw * pc2 * pc2), 1.0 / 6.0);
+      return (1.0e7 * 0.176) * std::pow(tc / (mw * mw * mw * pc2 * pc2), 1.0 / 6.0);
     }
 
     /// @brief Computes reduced viscosity at high pressure
@@ -112,8 +92,7 @@ namespace eos
     static double quantum_factor_at_high_pressure(double fq0, double z1, double z2) noexcept
     {
       const auto y = z2 / z1;
-      using std::log;
-      const auto tmp = log(y);
+      const auto tmp = std::log(y);
       const auto tmp2 = tmp * tmp;
       return (1.0 + (fq0 - 1.0) * (1.0 / y - 0.007 * tmp2 * tmp2)) / fq0;
     }
@@ -139,14 +118,9 @@ namespace eos
     double zc_;  /// Critical Z-factor
     double mw_;  /// Molecular weight [kg/kmol]
     double dm_;  /// Dipole moment [Debyes]
+    double q_;   /// Quantum parameter for H2, He, and D2
     double dmr_; /// Reduced dipole moment
-
-    /// @brief Quantum parameter
-    ///
-    /// Quantum factor is required only for quantum gases: H2, He, and D2.
-    /// q = 1.38 (He), q = 0.76 (H2), and q = 0.52 (D2).
-    double q_;
-    double xi_; /// Inverse viscosity
+    double xi_;  /// Inverse viscosity
   };
 
   inline lucas_method make_lucas_method(double pc, double tc, double zc, double mw, double dm, double q)

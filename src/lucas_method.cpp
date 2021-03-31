@@ -4,6 +4,18 @@
 namespace eos
 {
 
+    void lucas_method::set_params(double pc, double tc, double zc, double mw, double dm, double q) noexcept
+    {
+        pc_ = pc;
+        tc_ = tc;
+        zc_ = zc;
+        mw_ = mw;
+        dm_ = dm;
+        q_ = q;
+        dmr_ = reduced_dipole_moment(dm, tc, pc);
+        xi_ = inverse_viscosity(pc, tc, mw);
+    }
+
     double lucas_method::viscosity_at_low_pressure(double t) const noexcept
     {
         const auto tr = this->reduced_temperature(t);
