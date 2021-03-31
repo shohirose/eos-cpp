@@ -1,11 +1,9 @@
 #pragma once
 
-#include <algorithm> // std::max_element
-#include <cassert>   // assert
-#include <cmath>     // std::pow
-#include <iostream>  // std::cerr
-#include <type_traits>
-#include <utility> // std::pair, std::forward
+#include <algorithm>
+#include <cassert>
+#include <cmath>
+#include <utility>
 
 namespace eos
 {
@@ -95,8 +93,10 @@ namespace eos
       {
         return {0.0, {eps, iter, flash_iteration_error::not_converged}};
       }
-
-      return {p, {eps, iter, flash_iteration_error::success}};
+      else
+      {
+        return {p, {eps, iter, flash_iteration_error::success}};
+      }
     }
 
     double tolerance() const noexcept { return tol_; }
