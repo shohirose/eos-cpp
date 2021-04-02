@@ -18,14 +18,14 @@ namespace eos
   
 
   template <typename Eos>
-  class isothermal_state
+  class isothermal_line
   {
   public:
 
     /// @param[in] t Temperature
     /// @param[in] a Attraction parameter
     /// @param[in] b Repulsion parameter
-    isothermal_state(double t, double a, double b) noexcept
+    isothermal_line(double t, double a, double b) noexcept
         : t_{t}, a_{a}, b_{b} {}
 
     /// @brief Computes pressure at given temperature and volume
@@ -144,7 +144,7 @@ namespace eos
 
     /// @brief Creates isothermal state
     /// @param[in] t Temperature
-    isothermal_state<Derived> create_isothermal_state(double t) const noexcept
+    isothermal_line<Derived> create_isothermal_state(double t) const noexcept
     {
       const auto tr = this->reduced_temperature(t);
       const auto a = this->attraction_param(tr);
