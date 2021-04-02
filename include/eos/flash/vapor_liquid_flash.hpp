@@ -44,6 +44,9 @@ namespace eos
     vapor_liquid_flash(const vapor_liquid_flash &) = default;
     vapor_liquid_flash(vapor_liquid_flash &&) = default;
 
+    vapor_liquid_flash &operator=(const vapor_liquid_flash &) = default;
+    vapor_liquid_flash &operator=(vapor_liquid_flash &&) = default;
+
     /// @brief Constructs flash object
     /// @param[in] eos EoS
     ///

@@ -95,6 +95,12 @@ namespace eos
     peng_robinson_eos(double pc, double tc, double omega)
         : base_type{pc, tc}, omega_{omega}, m_{m(omega)} {}
 
+    peng_robinson_eos(const peng_robinson_eos&) = default;
+    peng_robinson_eos(peng_robinson_eos&&) = default;
+    
+    peng_robinson_eos& operator=(const peng_robinson_eos&) = default;
+    peng_robinson_eos& operator=(peng_robinson_eos&&) = default;
+
     // Member functions
 
     /// @brief Set parameters

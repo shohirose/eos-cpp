@@ -105,6 +105,12 @@ namespace eos
     /// @param[in] omega Acentric factor
     soave_redlich_kwong_eos(double pc, double tc, double omega)
         : base_type{pc, tc}, omega_{omega}, m_{m(omega)} {}
+      
+    soave_redlich_kwong_eos(const soave_redlich_kwong_eos&) = default;
+    soave_redlich_kwong_eos(soave_redlich_kwong_eos&&) = default;
+    
+    soave_redlich_kwong_eos& operator=(const soave_redlich_kwong_eos&) = default;
+    soave_redlich_kwong_eos& operator=(soave_redlich_kwong_eos&&) = default;
 
     // Member functions
 

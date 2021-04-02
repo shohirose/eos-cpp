@@ -12,21 +12,28 @@ namespace eos
   {
 
     template <typename Eos>
-    struct cubic_eos_traits {};
-    
+    struct cubic_eos_traits
+    {
+    };
+
   } // namespace detail
-  
 
   template <typename Eos>
   class isothermal_line
   {
   public:
-
     /// @param[in] t Temperature
     /// @param[in] a Attraction parameter
     /// @param[in] b Repulsion parameter
     isothermal_line(double t, double a, double b) noexcept
         : t_{t}, a_{a}, b_{b} {}
+
+    isothermal_line() = default;
+    isothermal_line(const isothermal_line &) = default;
+    isothermal_line(isothermal_line &&) = default;
+
+    isothermal_line &operator=(const isothermal_line &) = default;
+    isothermal_line &operator=(isothermal_line &&) = default;
 
     /// @brief Computes pressure at given temperature and volume
     /// @param[in] v Volume
@@ -45,9 +52,15 @@ namespace eos
   class isobaric_isothermal_state
   {
   public:
-
     isobaric_isothermal_state(double ar, double br, double beta) noexcept
         : ar_{ar}, br_{br}, beta_{beta} {}
+
+    isobaric_isothermal_state() = default;
+    isobaric_isothermal_state(const isobaric_isothermal_state &) = default;
+    isobaric_isothermal_state(isobaric_isothermal_state &&) = default;
+
+    isobaric_isothermal_state &operator=(const isobaric_isothermal_state &) = default;
+    isobaric_isothermal_state &operator=(isobaric_isothermal_state &&) = default;
 
     /// @brief Computes Z-factor at given pressure and temperature
     /// @param[in] s Isobaric-isothermal state
@@ -112,7 +125,6 @@ namespace eos
   class cubic_eos_base
   {
   public:
-
     static constexpr auto omega_a = detail::cubic_eos_traits<Derived>::omega_a;
     static constexpr auto omega_b = detail::cubic_eos_traits<Derived>::omega_b;
 
@@ -128,6 +140,12 @@ namespace eos
           tc_{tc},
           ac_{this->critical_attraction_param(pc, tc)},
           bc_{this->critical_repulsion_param(pc, tc)} {}
+
+    cubic_eos_base(const cubic_eos_base &) = default;
+    cubic_eos_base(cubic_eos_base &&) = default;
+
+    cubic_eos_base &operator=(const cubic_eos_base &) = default;
+    cubic_eos_base &operator=(cubic_eos_base &&) = default;
 
     // Member functions
 
@@ -247,8 +265,6 @@ namespace eos
     {
       return omega_b * pr / tr;
     }
-
-    // Member functions
 
     /// @brief Get reference to derived class object
     Derived &derived() noexcept { return static_cast<Derived &>(*this); }

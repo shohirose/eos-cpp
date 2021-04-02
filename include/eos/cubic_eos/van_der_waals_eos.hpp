@@ -99,6 +99,12 @@ namespace eos
     van_der_waals_eos(double pc, double tc) noexcept
         : base_type{pc, tc} {}
 
+    van_der_waals_eos(const van_der_waals_eos &) = default;
+    van_der_waals_eos(van_der_waals_eos &&) = default;
+
+    van_der_waals_eos &operator=(const van_der_waals_eos &) = default;
+    van_der_waals_eos &operator=(van_der_waals_eos &&) = default;
+
     void set_params(double pc, double tc) noexcept
     {
       this->base_type::set_params(pc, tc);
