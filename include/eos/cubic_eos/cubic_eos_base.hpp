@@ -54,7 +54,8 @@ namespace eos
     /// @return A list of Z-factors
     std::vector<double> zfactor() const noexcept
     {
-      return real_roots(Eos::zfactor_cubic_eq_impl(ar_, br_));
+      const auto a = Eos::zfactor_cubic_eq_impl(ar_, br_);
+      return real_roots(a[0], a[1], a[2]);
     }
 
     /// @brief Computes fugacity coefficient
