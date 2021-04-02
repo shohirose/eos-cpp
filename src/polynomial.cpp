@@ -22,7 +22,8 @@ namespace eos
         gsl_poly_complex_solve(a.data(), N, w, z.data());
         gsl_poly_complex_workspace_free(w);
 
-        std::vector<double> x(N - 1);
+        std::vector<double> x;
+        x.reserve(N - 1);
         constexpr auto tolerance = 1e-8;
         for (int i = 0; i < N - 1; ++i)
         {
