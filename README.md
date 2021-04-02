@@ -55,7 +55,7 @@ Helper functions are defined for each EoS to easily create EoS objects:
 
 ## Dependencies
 
-This library depends on the [GNU Scientific Library](https://www.gnu.org/software/gsl/). The [Googletest] is used for unit testing but it is included as a git submodule under the `third-party` directory. Please make sure to run `git submodule update`.
+This library depends on the [GNU Scientific Library](https://www.gnu.org/software/gsl/). The [Googletest](https://github.com/google/googletest) is used for unit testing but it is included as a git submodule under the `third-party` directory. Please make sure to run `git submodule update`.
 
 ## Example of Usage
 
