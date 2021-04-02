@@ -53,6 +53,10 @@ Helper functions are defined for each EoS to easily create EoS objects:
 - `eos::make_soave_redlich_kwong_eos`
 - `eos::make_peng_robinson_eos`
 
+## Dependencies
+
+This library depends on the [GNU Scientificy Library](https://www.gnu.org/software/gsl/). The [Googletest] is used for unit testing but it is included as a git submodule under the `third-party` directory. Please make sure to run `git submodule update`.
+
 ## Example of Usage
 
 First, let's create an EoS:
