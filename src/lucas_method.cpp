@@ -45,7 +45,7 @@ namespace eos
         using std::exp;
         using std::pow;
 
-        if (tr <= static_cast<double>(1.0))
+        if (tr <= 1.0)
         {
             const auto alpha = 3.262 + 14.98 * pow(pr, 5.508);
             const auto beta = 1.390 + 5.746 * pr;
@@ -68,11 +68,11 @@ namespace eos
         using std::fabs;
         using std::pow;
         assert(dmr_ >= 0);
-        if (dmr_ < static_cast<double>(0.022))
+        if (dmr_ < 0.022)
         {
             return 1.0;
         }
-        else if (dmr_ < static_cast<double>(0.075))
+        else if (dmr_ < 0.075)
         {
             return 1.0 + 30.55 * pow(0.292 - zc_, 1.72);
         }
@@ -87,7 +87,7 @@ namespace eos
         using std::copysign;
         using std::fabs;
         using std::pow;
-        constexpr auto tolerance = static_cast<double>(1e-10);
+        constexpr auto tolerance = 1e-10;
         assert(q_ >= 0);
         if (fabs(q_) < tolerance)
         {
