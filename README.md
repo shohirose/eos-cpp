@@ -23,9 +23,9 @@ In addition, you can customize and create a new cubic EoS by deriving from `cubi
 An example of defining a custom EoS class:
 
 ```cpp
-class my_cubic_eos : public cubic_eos_base<my_cubic_eos {
+class my_cubic_eos : public cubic_eos_base<my_cubic_eos> {
  public:
-   using base_type = cubic_eos_base<my_cubic_eos>;
+  using base_type = cubic_eos_base<my_cubic_eos>;
 
   static double pressure_impl(double a, double b) noexcept;
   static std::array<double, 3> zfactor_cubic_eq_impl(double a, double b) noexcept;
@@ -42,7 +42,7 @@ class my_cubic_eos : public cubic_eos_base<my_cubic_eos {
 
 ```
 
-In addition to the custom eos class, a custom eos traits class must be defined. Eos traits classes must define the following constants:
+In addition to the custom eos class, a custom `cubic_eos_traits` class must be defined. The trait class must define the following constants:
 
 - `omega_a`
 - `omega_b`
