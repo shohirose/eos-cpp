@@ -24,6 +24,11 @@ namespace eos
           dmr_{reduced_dipole_moment(dm, tc, pc)},
           xi_{inverse_viscosity(pc, tc, mw)} {}
 
+    lucas_method(const lucas_method &) = default;
+    lucas_method(lucas_method &&) = default;
+    lucas_method &operator=(const lucas_method &) = default;
+    lucas_method &operator=(lucas_method &&) = default;
+
     // Member functions
 
     void set_params(double pc, double tc, double zc, double mw, double dm, double q) noexcept;
