@@ -1,5 +1,6 @@
 #include "eos/math/polynomial.hpp"
 #include <complex>
+#include <algorithm>
 #include <gsl/gsl_poly.h>
 
 namespace eos
@@ -30,7 +31,7 @@ namespace eos
                 x.push_back(z[2 * i]);
             }
         }
-
+        std::sort(x.begin(), x.end());
         return x;
     }
 
