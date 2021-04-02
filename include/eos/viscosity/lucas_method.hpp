@@ -8,6 +8,8 @@ namespace eos
   class lucas_method
   {
   public:
+    // Constructors
+
     lucas_method() = default;
 
     /// @brief Constructs object
@@ -38,6 +40,8 @@ namespace eos
     double viscosity_at_high_pressure(double p, double t) const noexcept;
 
   private:
+    // Static functions
+
     /// @brief Computes reduced dipole moment
     /// @param[in] pc Critical pressure
     /// @param[in] tc Critical temperature
@@ -96,6 +100,8 @@ namespace eos
       const auto tmp2 = tmp * tmp;
       return (1.0 + (fq0 - 1.0) * (1.0 / y - 0.007 * tmp2 * tmp2)) / fq0;
     }
+
+    // Member functions
 
     /// @brief Computes reduced pressure
     /// @param[in] p Pressure
