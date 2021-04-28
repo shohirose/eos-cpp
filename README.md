@@ -104,12 +104,11 @@ const double t = 180.0; // Temperature [K]
 const auto line = eos.create_isothermal_line(t);
 
 const std::size_t n = 100; // Number of samples
-std::vector<double> v(n); // Array of volume [m3]
-std::vector<double> p(n); // Array of pressure [Pa]
+std::vector<double> v(n); // Array of volumes [m3]
+// Initialize the volume array ...
 
-// Initialize arrays ...
-
-// Computes presure along an isothermal line
+// Computes pressure along an isothermal line
+std::vector<double> p(n); // Array of pressures [Pa]
 std::transform(begin(v), end(v), begin(p),
                [&line](auto vi) { return line.pressure(vi); });
 ```
