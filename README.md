@@ -101,7 +101,7 @@ Pressure along a given temperature can be computed from an isothermal state:
 ```cpp
 const double t = 180.0; // Temperature [K]
 
-const auto state = eos.create_isothermal_line(t);
+const auto line = eos.create_isothermal_line(t);
 
 const std::size_t n = 100; // Number of samples
 std::vector<double> v(n); // Array of volume [m3]
@@ -110,9 +110,8 @@ std::vector<double> p(n); // Array of pressure [Pa]
 // Initialize arrays ...
 
 // Computes presure along an isothermal line
-for (std::size_t i = 0; i < n; ++i) {
-  p[i] = state.pressure(v[i]);
-}
+std::transform(begin(v), end(v), begin(p),
+               [&line](auto vi) { return line.pressure(vi); });
 ```
 
 Vapor pressure can be computed by flash calculation:
