@@ -151,7 +151,7 @@ class cubic_eos_base {
 
   /// @brief Creates isothermal state
   /// @param[in] t Temperature
-  isothermal_line<Derived> create_isothermal_state(double t) const noexcept {
+  isothermal_line<Derived> create_isothermal_line(double t) const noexcept {
     const auto tr = this->reduced_temperature(t);
     const auto a = this->attraction_param(tr);
     const auto b = this->repulsion_param();

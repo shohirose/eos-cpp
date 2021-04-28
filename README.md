@@ -101,7 +101,7 @@ Pressure along a given temperature can be computed from an isothermal state:
 ```cpp
 const double t = 180.0; // Temperature [K]
 
-const auto state = eos.create_isothermal_state(t);
+const auto state = eos.create_isothermal_line(t);
 
 const std::size_t n = 100; // Number of samples
 std::vector<double> v(n); // Array of volume [m3]
