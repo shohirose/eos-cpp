@@ -1,6 +1,6 @@
-#include <gtest/gtest.h>
-
 #include "eos/viscosity/lucas_method.hpp"
+
+#include <gtest/gtest.h>
 
 // The following unit tests are taken from examples in:
 // Poling et al. 2001. "The Properties of Gases and Liquids", fifth edition,
@@ -33,7 +33,7 @@ TEST(LucasMethodTest, HighPressureViscosityTest) {
   const double q = 0.0;            // Quantum parameter
   const double p = 300.0 * 1e5;    // Pressure [Pa]
   const double t = 420.0;          // Temperature [K]
-  
+
   const auto lucas = eos::make_lucas_method(pc, tc, zc, mw, dm, q);
   const auto visc = lucas.viscosity_at_high_pressure(p, t);
   EXPECT_NEAR(visc, 602.0 * 1e-6 * 0.1, 1e-7);

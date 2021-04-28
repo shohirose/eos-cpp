@@ -1,15 +1,15 @@
+#include "eos/flash/vapor_liquid_flash.hpp"
+
 #include <gtest/gtest.h>
 
-#include "eos/flash/vapor_liquid_flash.hpp"
 #include "eos/cubic_eos/peng_robinson_eos.hpp"
 
-TEST(VaporLiquidFlashTest, VaporPressureTest)
-{
+TEST(VaporLiquidFlashTest, VaporPressureTest) {
   using namespace eos;
   // Methane
-  const double pc = 4e6;      // Critical pressure [Pa]
-  const double tc = 190.6;    // Critical temperature [K]
-  const double omega = 0.008; // Acentric factor
+  const double pc = 4e6;       // Critical pressure [Pa]
+  const double tc = 190.6;     // Critical temperature [K]
+  const double omega = 0.008;  // Acentric factor
 
   // Temperature
   const double t = 180;

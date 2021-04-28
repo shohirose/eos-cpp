@@ -1,19 +1,19 @@
 #include <gtest/gtest.h>
+
 #include <iostream>
 
 #include "eos/cubic_eos/peng_robinson_eos.hpp"
-#include "eos/cubic_eos/van_der_waals_eos.hpp"
 #include "eos/cubic_eos/soave_redlich_kwong_eos.hpp"
+#include "eos/cubic_eos/van_der_waals_eos.hpp"
 
-TEST(CubicEosTest, VanDerWaalsEosTest)
-{
+TEST(CubicEosTest, VanDerWaalsEosTest) {
   // Methane
-  const double pc = 4e6;   // Critical pressure [Pa]
-  const double tc = 190.6; // Critical temperature [K]
+  const double pc = 4e6;    // Critical pressure [Pa]
+  const double tc = 190.6;  // Critical temperature [K]
 
   auto eos = eos::make_van_der_waals_eos(pc, tc);
-  const double p = 3e6;   // Pressure [Pa]
-  const double t = 180.0; // Temperature [K]
+  const double p = 3e6;    // Pressure [Pa]
+  const double t = 180.0;  // Temperature [K]
 
   {
     const auto state = eos.create_isobaric_isothermal_state(p, t);
@@ -38,17 +38,16 @@ TEST(CubicEosTest, VanDerWaalsEosTest)
   }
 }
 
-TEST(CubicEosTest, SoaveRedlichKwongEosTest)
-{
+TEST(CubicEosTest, SoaveRedlichKwongEosTest) {
   // Methane
-  const double pc = 4e6;      // Critical pressure [Pa]
-  const double tc = 190.6;    // Critical temperature [K]
-  const double omega = 0.008; // Acentric factor
+  const double pc = 4e6;       // Critical pressure [Pa]
+  const double tc = 190.6;     // Critical temperature [K]
+  const double omega = 0.008;  // Acentric factor
 
   auto eos = eos::make_soave_redlich_kwong_eos(pc, tc, omega);
 
-  const double p = 3e6;   // Pressure [Pa]
-  const double t = 180.0; // Temperature [K]
+  const double p = 3e6;    // Pressure [Pa]
+  const double t = 180.0;  // Temperature [K]
 
   {
     const auto state = eos.create_isobaric_isothermal_state(p, t);
@@ -73,16 +72,15 @@ TEST(CubicEosTest, SoaveRedlichKwongEosTest)
   }
 }
 
-TEST(CubicEosTest, PengRobinsonEosTest)
-{
+TEST(CubicEosTest, PengRobinsonEosTest) {
   // Methane
-  const double pc = 4e6;      // Critical pressure [Pa]
-  const double tc = 190.6;    // Critical temperature [K]
-  const double omega = 0.008; // Acentric factor
+  const double pc = 4e6;       // Critical pressure [Pa]
+  const double tc = 190.6;     // Critical temperature [K]
+  const double omega = 0.008;  // Acentric factor
 
   auto eos = eos::make_peng_robinson_eos(pc, tc, omega);
-  const double p = 3e6;   // Pressure [Pa]
-  const double t = 180.0; // Temperature [K]
+  const double p = 3e6;    // Pressure [Pa]
+  const double t = 180.0;  // Temperature [K]
 
   {
     const auto state = eos.create_isobaric_isothermal_state(p, t);
