@@ -32,7 +32,7 @@ class van_der_waals_eos : public cubic_eos_base<van_der_waals_eos> {
   /// @param[in] a Attraction parameter
   /// @param[in] b Repulsion parameter
   /// @returns Pressure
-  static double pressure_impl(double t, double v, double a, double b) noexcept {
+  static double pressure(double t, double v, double a, double b) noexcept {
     return gas_constant<double>() * t / (v - b) - a / (v * v);
   }
 
@@ -40,7 +40,7 @@ class van_der_waals_eos : public cubic_eos_base<van_der_waals_eos> {
   /// @param[in] a Reduced attraction parameter
   /// @param[in] b Reduced repulsion parameter
   /// @returns Coefficients of the cubic equation of z-factor
-  static std::array<double, 3> zfactor_cubic_eq_impl(double a,
+  static std::array<double, 3> zfactor_cubic_eq(double a,
                                                      double b) noexcept {
     return {-b - 1, a, -a * b};
   }
@@ -50,7 +50,7 @@ class van_der_waals_eos : public cubic_eos_base<van_der_waals_eos> {
   /// @param[in] a Reduced attraction parameter
   /// @param[in] b Reduced repulsion parameter
   /// @returns Fugacity coefficient
-  static double fugacity_coeff_impl(double z, double a, double b) noexcept {
+  static double fugacity_coeff(double z, double a, double b) noexcept {
     return std::exp(-std::log(z - b) - a / z + z - 1);
   }
 
@@ -60,7 +60,7 @@ class van_der_waals_eos : public cubic_eos_base<van_der_waals_eos> {
   /// @param[in] a Reduced attraction parameter
   /// @param[in] b Reduced repulsion parameter
   /// @param[in] beta Temperature correction factor
-  static double residual_enthalpy_impl(double z, double t, double a,
+  static double residual_enthalpy(double z, double t, double a,
                                        [[maybe_unused]] double b,
                                        double beta) noexcept {
     return gas_constant<double>() * t * (z - 1 - a * (1 - beta) / z);
@@ -71,7 +71,7 @@ class van_der_waals_eos : public cubic_eos_base<van_der_waals_eos> {
   /// @param[in] a Reduced attraction parameter
   /// @param[in] b Reduced repulsion parameter
   /// @param[in] beta Temperature correction factor
-  static double residual_entropy_impl(double z, double a, double b,
+  static double residual_entropy(double z, double a, double b,
                                       double beta) noexcept {
     return gas_constant<double>() * (std::log(z - b) + a * beta / z);
   }

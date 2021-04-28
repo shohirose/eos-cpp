@@ -32,7 +32,7 @@ class peng_robinson_eos : public cubic_eos_base<peng_robinson_eos> {
   /// @param[in] a Attraction parameter
   /// @param[in] b Repulsion parameter
   /// @returns Pressure
-  static double pressure_impl(double t, double v, double a, double b) noexcept {
+  static double pressure(double t, double v, double a, double b) noexcept {
     constexpr auto R = gas_constant<double>();
     return R * t / (v - b) - a / (v * (v + b) + b * (v - b));
   }
@@ -41,7 +41,7 @@ class peng_robinson_eos : public cubic_eos_base<peng_robinson_eos> {
   /// @param[in] a Reduced attraction parameter
   /// @param[in] b Reduced repulsion parameter
   /// @returns Coefficients of the cubic equation of z-factor.
-  static std::array<double, 3> zfactor_cubic_eq_impl(double a,
+  static std::array<double, 3> zfactor_cubic_eq(double a,
                                                      double b) noexcept {
     return {b - 1, a - (3 * b + 2) * b, (-a + b + b * b) * b};
   }
@@ -51,7 +51,7 @@ class peng_robinson_eos : public cubic_eos_base<peng_robinson_eos> {
   /// @param[in] a Reduced attraction parameter
   /// @param[in] b Reduced repulsion parameter
   /// @returns Fugacity coefficient
-  static double fugacity_coeff_impl(double z, double a, double b) noexcept {
+  static double fugacity_coeff(double z, double a, double b) noexcept {
     return std::exp(z - 1 - std::log(z - b) - q(z, a, b));
   }
 
@@ -61,7 +61,7 @@ class peng_robinson_eos : public cubic_eos_base<peng_robinson_eos> {
   /// @param[in] a Reduced attraction parameter
   /// @param[in] b Reduced repulsion parameter
   /// @param[in] beta Temperature correction factor
-  static double residual_enthalpy_impl(double z, double t, double a, double b,
+  static double residual_enthalpy(double z, double t, double a, double b,
                                        double beta) noexcept {
     constexpr auto R = gas_constant<double>();
     return R * t * (z - 1 - (1 - beta) * q(z, a, b));
@@ -72,7 +72,7 @@ class peng_robinson_eos : public cubic_eos_base<peng_robinson_eos> {
   /// @param[in] a Reduced attraction parameter
   /// @param[in] b Reduced repulsion parameter
   /// @param[in] beta Temperature correction factor
-  static double residual_entropy_impl(double z, double a, double b,
+  static double residual_entropy(double z, double a, double b,
                                       double beta) noexcept {
     constexpr auto R = gas_constant<double>();
     return R * (std::log(z - b) + beta * q(z, a, b));

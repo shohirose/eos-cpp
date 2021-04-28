@@ -33,7 +33,7 @@ class isothermal_line {
   /// @brief Computes pressure at given temperature and volume
   /// @param[in] v Volume
   double pressure(double v) const noexcept {
-    return Eos::pressure_impl(t_, v, a_, b_);
+    return Eos::pressure(t_, v, a_, b_);
   }
 
  private:
@@ -60,26 +60,26 @@ class isobaric_isothermal_state {
   /// @param[in] s Isobaric-isothermal state
   /// @return A list of Z-factors
   std::vector<double> zfactor() const noexcept {
-    const auto a = Eos::zfactor_cubic_eq_impl(ar_, br_);
+    const auto a = Eos::zfactor_cubic_eq(ar_, br_);
     return real_roots(a[0], a[1], a[2]);
   }
 
   /// @brief Computes fugacity coefficient
   /// @param[in] z Z-factor
   double fugacity_coeff(double z) const noexcept {
-    return Eos::fugacity_coeff_impl(z, ar_, br_);
+    return Eos::fugacity_coeff(z, ar_, br_);
   }
 
   /// @brief Computes residual enthalpy
   /// @param[in] z Z-factor
   double residual_enthalpy(double z) const noexcept {
-    return Eos::residual_enthalpy_impl(z, ar_, br_, beta_);
+    return Eos::residual_enthalpy(z, ar_, br_, beta_);
   }
 
   /// @brief Computes residual entropy
   /// @param[in] z Z-factor
   double residual_entropy(double z) const noexcept {
-    return Eos::residual_entropy_impl(z, ar_, br_, beta_);
+    return Eos::residual_entropy(z, ar_, br_, beta_);
   }
 
  private:
@@ -93,11 +93,11 @@ class isobaric_isothermal_state {
 /// @tparam Derived Concrete EoS class
 ///
 /// Derived EoS classes must have the following static functions:
-///    - pressure_impl(t, v, a, b)
-///    - zfactor_cubic_eq_impl(ar, br)
-///    - fugacity_coeff_impl(z, ar, br)
-///    - residual_enthalpy_impl(z, t, ar, br, beta)
-///    - residual_entropy_impl(z, ar, br, beta)
+///    - pressure(t, v, a, b)
+///    - zfactor_cubic_eq(ar, br)
+///    - fugacity_coeff(z, ar, br)
+///    - residual_enthalpy(z, t, ar, br, beta)
+///    - residual_entropy(z, ar, br, beta)
 ///    - alpha(tr)
 ///    - beta()
 /// where t is temperature, v is volume, a is attraction parameter, b is
@@ -178,7 +178,7 @@ class cubic_eos_base {
     const auto tr = this->reduced_temperature(t);
     const auto a = this->attraction_param(tr);
     const auto b = this->repulsion_param();
-    return Derived::pressure_impl(t, v, a, b);
+    return Derived::pressure(t, v, a, b);
   }
 
   /// @brief Computes Z-factor at given pressure and temperature

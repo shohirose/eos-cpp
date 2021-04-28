@@ -11,11 +11,11 @@ This module provides templated classes for three types of cubic EoS: van der Waa
 In addition, you can customize and create a new cubic EoS by deriving from `cubic_eos_base`. `cubic_eos_base` is a template class for general two-parameter cubic EoS. `cubic_eos_base` requires a derived class which satisfies the following conditions:
 
 - Defines the following static functions:
-    - `pressure_impl`
-    - `zfactor_cubic_eq_impl`
-    - `fugacity_coeff_impl`
-    - `residual_enthalpy_impl`
-    - `residual_entropy_impl`
+    - `pressure`
+    - `zfactor_cubic_eq`
+    - `fugacity_coeff`
+    - `residual_enthalpy`
+    - `residual_entropy`
 - Defines the following member functions
     - `alpha`
     - `beta`
@@ -27,11 +27,11 @@ class my_cubic_eos : public cubic_eos_base<my_cubic_eos> {
  public:
   using base_type = cubic_eos_base<my_cubic_eos>;
 
-  static double pressure_impl(double a, double b) noexcept;
-  static std::array<double, 3> zfactor_cubic_eq_impl(double a, double b) noexcept;
-  static double fugacity_coeff_impl(double z, double a, double b) noexcept;
-  static double residual_enthalpy_impl(double z, double t, double a, double b, double beta) noexcept;
-  static double residual_entropy_impl(double z, double a, double b, double beta) noexcept;
+  static double pressure(double a, double b) noexcept;
+  static std::array<double, 3> zfactor_cubic_eq(double a, double b) noexcept;
+  static double fugacity_coeff(double z, double a, double b) noexcept;
+  static double residual_enthalpy(double z, double t, double a, double b, double beta) noexcept;
+  static double residual_entropy(double z, double a, double b, double beta) noexcept;
 
   my_cubic_eos() = default;
   my_cubic_eos(double pc, double tc, /* ... */) noexcept;
