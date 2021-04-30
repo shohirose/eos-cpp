@@ -1,6 +1,7 @@
 #include "eos/math/polynomial.hpp"
 
 #include <gtest/gtest.h>
+#include <vector>
 
 TEST(RealRootsTest, CubicEquationTest) {
   // x^3 -x = (x - 1)(x + 1)x =0
@@ -30,7 +31,7 @@ TEST(RealRootsTest, CubicEquationTest) {
 TEST(RealRootsTest, GeneralPolynomialEquationTest) {
   // x^4 + 2x^3 - x^2 - 2x = (x + 2)(x - 1)(x + 1)x = 0
   {
-    std::array<double, 5> a;
+    std::vector<double> a(5);
     a[0] = 0.0;
     a[1] = -2.0;
     a[2] = -1.0;

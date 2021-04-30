@@ -1,6 +1,5 @@
 #pragma once
 
-#include <array>   // std::array
 #include <vector>  // std::vector
 
 namespace eos {
@@ -16,8 +15,7 @@ namespace eos {
 /// \f]
 std::vector<double> real_roots(double a, double b, double c) noexcept;
 
-/// @brief Computes real roots of a polynomial with N coefficients
-/// @tparam N The number of coefficients
+/// @brief Computes real roots of a polynomial equation
 /// @param[in] a The coefficients of the polynomial
 /// @returns Real roots in the ascending order
 ///
@@ -25,9 +23,6 @@ std::vector<double> real_roots(double a, double b, double c) noexcept;
 /// \f[
 ///  a[0] + a[1] x + a[2] x^2 + ... + a[N-1] x^{N-1} = 0
 /// \f]
-///
-/// N = 4, 5, and 6 are available.
-template <int N>
-std::vector<double> real_roots(const std::array<double, N>& a) noexcept;
+std::vector<double> real_roots(const std::vector<double>& a) noexcept;
 
 }  // namespace eos

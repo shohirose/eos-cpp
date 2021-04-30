@@ -3,6 +3,7 @@
 #include <gsl/gsl_poly.h>
 
 #include <algorithm>
+#include <cassert>
 #include <complex>
 
 namespace eos {
@@ -14,20 +15,21 @@ std::vector<double> real_roots(double a, double b, double c) noexcept {
   return x;
 }
 
-template <int N>
-std::vector<double> real_roots(const std::array<double, N> &a) noexcept {
+std::vector<double> real_roots(const std::vector<double> &a) noexcept {
+  assert(a.size() > 0);
+  std::vector<std::complex<double>> z(a.size() - 1);
+  auto *w = gsl_poly_complex_workspace_alloc(a.size());
   // Array-oriented access of the array of std::complex is guranteed.
   // Please refer to
   // https://en.cppreference.com/w/cpp/numeric/complex
-  std::array<std::complex<double>, N - 1> z;
-  auto *w = gsl_poly_complex_workspace_alloc(N);
-  gsl_poly_complex_solve(a.data(), N, w, reinterpret_cast<double *>(z.data()));
+  gsl_poly_complex_solve(a.data(), a.size(), w,
+                         reinterpret_cast<double *>(z.data()));
   gsl_poly_complex_workspace_free(w);
 
   std::vector<double> x;
-  x.reserve(N - 1);
+  x.reserve(a.size() - 1);
   constexpr double tolerance = 1e-8;
-  for (int i = 0; i < N - 1; ++i) {
+  for (size_t i = 0; i < a.size() - 1; ++i) {
     if (std::fabs(z[i].imag()) < tolerance) {
       x.push_back(z[i].real());
     }
@@ -35,12 +37,5 @@ std::vector<double> real_roots(const std::array<double, N> &a) noexcept {
   std::sort(x.begin(), x.end());
   return x;
 }
-
-template std::vector<double> real_roots<4>(
-    const std::array<double, 4> &a) noexcept;
-template std::vector<double> real_roots<5>(
-    const std::array<double, 5> &a) noexcept;
-template std::vector<double> real_roots<6>(
-    const std::array<double, 6> &a) noexcept;
 
 }  // namespace eos
