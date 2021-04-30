@@ -59,9 +59,6 @@ class vapor_liquid_flash {
   vapor_liquid_flash(const CubicEos &eos, double tol, int maxiter)
       : eos_{eos}, tol_{tol}, maxiter_{maxiter} {}
 
-  vapor_liquid_flash &operator=(const vapor_liquid_flash &) = default;
-  vapor_liquid_flash &operator=(vapor_liquid_flash &&) = default;
-
   /// @brief Computes vapor pressure
   /// @param[in] p_init Initial pressure
   /// @param[in] t Temperature
