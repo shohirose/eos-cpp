@@ -1,4 +1,4 @@
-#include "eos/flash/vapor_liquid_flash.hpp"
+#include "eos/cubic_eos/vapor_liquid_flash.hpp"
 
 #include <gtest/gtest.h>
 

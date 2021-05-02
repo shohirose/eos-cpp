@@ -6,8 +6,6 @@
 #include <type_traits>
 #include <utility>
 
-#include "eos/cubic_eos/cubic_eos_base.hpp"
-
 namespace eos {
 
 /// @brief Estimates vapor pressure of a pure component by using Wilson
@@ -34,9 +32,6 @@ struct flash_iteration_result {
 template <typename CubicEos>
 class vapor_liquid_flash {
  public:
-  static_assert(std::is_base_of_v<cubic_eos_base<CubicEos>, CubicEos>,
-                "CubicEos must be derived from eos::cubic_eos_base");
-
   vapor_liquid_flash() = default;
   vapor_liquid_flash(const vapor_liquid_flash &) = default;
   vapor_liquid_flash(vapor_liquid_flash &&) = default;
