@@ -2,6 +2,7 @@ add_library(eos
     lucas_method.cpp
     polynomial.cpp
     polynomial_solver.cpp
+    cubic_equation.cpp
   )
 target_compile_features(eos
   PUBLIC
