@@ -46,13 +46,22 @@ class soave_redlich_kwong_eos : public cubic_eos_base<soave_redlich_kwong_eos> {
     return {-1, a - b - b * b, -a * b};
   }
 
-  /// @brief Computes the fugacity coefficient
+  /// @brief Computes the natural logarithm of a fugacity coefficient
+  /// @param[in] z Z-factor
+  /// @param[in] a Reduced attraction parameter
+  /// @param[in] b Reduced repulsion parameter
+  /// @returns The natural logarithm of a fugacity coefficient
+  static double ln_fugacity_coeff(double z, double a, double b) noexcept {
+    return z - 1 - std::log(z - b) - a / b * std::log((z + b) / z);
+  }
+
+  /// @brief Computes a fugacity coefficient
   /// @param[in] z Z-factor
   /// @param[in] a Reduced attraction parameter
   /// @param[in] b Reduced repulsion parameter
   /// @returns Fugacity coefficient
   static double fugacity_coeff(double z, double a, double b) noexcept {
-    return std::exp(z - 1 - std::log(z - b) - a / b * std::log((z + b) / z));
+    return std::exp(ln_fugacity_coeff(z, a, b));
   }
 
   /// @brief Computes residual enthalpy

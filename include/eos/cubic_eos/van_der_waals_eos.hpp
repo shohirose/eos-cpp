@@ -45,13 +45,22 @@ class van_der_waals_eos : public cubic_eos_base<van_der_waals_eos> {
     return {-b - 1, a, -a * b};
   }
 
-  /// @brief Computes fugacity coefficient
+  /// @brief Computes the natural logarithm of a fugacity coefficient
+  /// @param[in] z Z-factor
+  /// @param[in] a Reduced attraction parameter
+  /// @param[in] b Reduced repulsion parameter
+  /// @returns The natural logarithm of a fugacity coefficient
+  static double ln_fugacity_coeff(double z, double a, double b) noexcept {
+    return -std::log(z - b) - a / z + z - 1;
+  }
+
+  /// @brief Computes a fugacity coefficient
   /// @param[in] z Z-factor
   /// @param[in] a Reduced attraction parameter
   /// @param[in] b Reduced repulsion parameter
   /// @returns Fugacity coefficient
   static double fugacity_coeff(double z, double a, double b) noexcept {
-    return std::exp(-std::log(z - b) - a / z + z - 1);
+    return std::exp(ln_fugacity_coeff(z, a, b));
   }
 
   /// @brief Computes residual enthalpy

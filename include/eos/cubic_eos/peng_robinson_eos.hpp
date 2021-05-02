@@ -45,13 +45,22 @@ class peng_robinson_eos : public cubic_eos_base<peng_robinson_eos> {
     return {b - 1, a - (3 * b + 2) * b, (-a + b + b * b) * b};
   }
 
-  /// @brief Computes fugacity coefficient
+  /// @brief Computes the natural logarithm of a fugacity coefficient
+  /// @param[in] z Z-factor
+  /// @param[in] a Reduced attraction parameter
+  /// @param[in] b Reduced repulsion parameter
+  /// @returns The natural logarithm of a fugacity coefficient
+  static double ln_fugacity_coeff(double z, double a, double b) noexcept {
+    return z - 1 - std::log(z - b) - q(z, a, b);
+  }
+
+  /// @brief Computes a fugacity coefficient
   /// @param[in] z Z-factor
   /// @param[in] a Reduced attraction parameter
   /// @param[in] b Reduced repulsion parameter
   /// @returns Fugacity coefficient
   static double fugacity_coeff(double z, double a, double b) noexcept {
-    return std::exp(z - 1 - std::log(z - b) - q(z, a, b));
+    return std::exp(ln_fugacity_coeff(z, a, b));
   }
 
   /// @brief Computes residual enthalpy
