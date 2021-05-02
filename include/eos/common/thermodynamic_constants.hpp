@@ -1,13 +1,13 @@
 #pragma once
 
-#include <type_traits>  // std::enable_if_t
+#include <type_traits>  // std::enable_if_t, is_floating_point_v
 
 namespace eos {
 
 /// @{
-/// @name Functions which return physical constants
+/// @name Thermodynamic constants
 ///
-/// The following definition is based on the International System of Units(SI)
+/// The following definitions are based on the International System of Units(SI)
 /// 9th edition 2019.
 
 /// @brief Gas constant [J/mol-K]
