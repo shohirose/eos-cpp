@@ -137,9 +137,12 @@ class peng_robinson_eos : public cubic_eos_base<peng_robinson_eos> {
   /// @param[in] a Reduced attraction parameter
   /// @param[in] b Reduced repulsion parameter
   static double q(double z, double a, double b) noexcept {
-    static const auto sqrt2 = std::sqrt(2.0);
-    static const auto delta1 = 1 + sqrt2;
-    static const auto delta2 = 1 - sqrt2;
+#ifndef M_SQRT2
+#error M_SQRT2 is not defined!
+#endif
+    constexpr double sqrt2 = M_SQRT2;
+    constexpr auto delta1 = 1 + sqrt2;
+    constexpr auto delta2 = 1 - sqrt2;
     return a / (2 * sqrt2 * b) * std::log((z + delta1 * b) / (z + delta2 * b));
   }
 
