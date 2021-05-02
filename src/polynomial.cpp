@@ -1,10 +1,12 @@
 #include "eos/math/polynomial.hpp"
 
+#include <gsl/gsl_errno.h>
 #include <gsl/gsl_poly.h>
 
 #include <algorithm>
 #include <cassert>
 #include <complex>
+#include <stdexcept>
 
 namespace eos {
 
@@ -18,20 +20,31 @@ std::vector<double> real_roots(double a, double b, double c) noexcept {
 std::vector<double> real_roots(gsl::span<const double> a) {
   assert(a.size() > 0);
   std::vector<std::complex<double>> z(a.size() - 1);
+
   auto *w = gsl_poly_complex_workspace_alloc(a.size());
+  if (!w) {
+    throw std::runtime_error("Error: gsl_poly_complex_workspace_alloc failed!");
+  }
+
+  auto *handler = gsl_set_error_handler_off();
   // Array-oriented access of the array of std::complex is guranteed.
   // Please refer to
   // https://en.cppreference.com/w/cpp/numeric/complex
-  gsl_poly_complex_solve(a.data(), a.size(), w,
-                         reinterpret_cast<double *>(z.data()));
+  const auto status = gsl_poly_complex_solve(
+      a.data(), a.size(), w, reinterpret_cast<double *>(z.data()));
   gsl_poly_complex_workspace_free(w);
+  gsl_set_error_handler(handler);
+
+  if (status == GSL_EFAILED) {
+    throw std::runtime_error("Error: gsl_poly_complex_solve failed!");
+  }
 
   std::vector<double> x;
-  x.reserve(a.size() - 1);
-  constexpr double tolerance = 1e-8;
-  for (size_t i = 0; i < a.size() - 1; ++i) {
-    if (std::fabs(z[i].imag()) < tolerance) {
-      x.push_back(z[i].real());
+  x.reserve(z.size());
+  constexpr double tol = 1e-8;
+  for (const auto &zi : z) {
+    if (std::fabs(zi.imag()) < tol) {
+      x.push_back(zi.real());
     }
   }
   std::sort(x.begin(), x.end());
