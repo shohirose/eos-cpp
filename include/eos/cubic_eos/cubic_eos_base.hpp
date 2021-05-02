@@ -60,8 +60,13 @@ class isobaric_isothermal_state {
   /// @param[in] s Isobaric-isothermal state
   /// @return A list of Z-factors
   std::vector<double> zfactor() const noexcept {
-    const auto a = Eos::zfactor_cubic_eq(ar_, br_);
-    return real_roots(a[0], a[1], a[2]);
+    return Eos::zfactor_cubic_eq(ar_, br_).real_roots();
+  }
+
+  /// @brief Computes the natural logarithm of a fugacity coefficient
+  /// @param[in] z Z-factor
+  double ln_fugacity_coeff(double z) const noexcept {
+    return Eos::ln_fugacity_coeff(z, ar_, br_);
   }
 
   /// @brief Computes fugacity coefficient
