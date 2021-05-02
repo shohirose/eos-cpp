@@ -40,8 +40,7 @@ class van_der_waals_eos : public cubic_eos_base<van_der_waals_eos> {
   /// @param[in] a Reduced attraction parameter
   /// @param[in] b Reduced repulsion parameter
   /// @returns Coefficients of the cubic equation of z-factor
-  static std::array<double, 3> zfactor_cubic_eq(double a,
-                                                     double b) noexcept {
+  static std::array<double, 3> zfactor_cubic_eq(double a, double b) noexcept {
     return {-b - 1, a, -a * b};
   }
 
@@ -70,8 +69,8 @@ class van_der_waals_eos : public cubic_eos_base<van_der_waals_eos> {
   /// @param[in] b Reduced repulsion parameter
   /// @param[in] beta Temperature correction factor
   static double residual_enthalpy(double z, double t, double a,
-                                       [[maybe_unused]] double b,
-                                       double beta) noexcept {
+                                  [[maybe_unused]] double b,
+                                  double beta) noexcept {
     return gas_constant<double>() * t * (z - 1 - a * (1 - beta) / z);
   }
 
@@ -81,7 +80,7 @@ class van_der_waals_eos : public cubic_eos_base<van_der_waals_eos> {
   /// @param[in] b Reduced repulsion parameter
   /// @param[in] beta Temperature correction factor
   static double residual_entropy(double z, double a, double b,
-                                      double beta) noexcept {
+                                 double beta) noexcept {
     return gas_constant<double>() * (std::log(z - b) + a * beta / z);
   }
 
