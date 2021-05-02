@@ -15,7 +15,7 @@ std::vector<double> real_roots(double a, double b, double c) noexcept {
   return x;
 }
 
-std::vector<double> real_roots(const std::vector<double> &a) noexcept {
+std::vector<double> real_roots(gsl::span<const double> a) {
   assert(a.size() > 0);
   std::vector<std::complex<double>> z(a.size() - 1);
   auto *w = gsl_poly_complex_workspace_alloc(a.size());

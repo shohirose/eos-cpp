@@ -9,6 +9,7 @@ endif()
 project(eoscpp CXX)
 
 find_package(GSL REQUIRED)
+find_package(Microsoft.GSL CONFIG REQUIRED)
 add_subdirectory(src)
 
 option(EOSCPP_BUILD_TEST "Build unit tests" ON)

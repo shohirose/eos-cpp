@@ -19,6 +19,8 @@ target_include_directories(eos
     ${PROJECT_SOURCE_DIR}/include
   )
 target_link_libraries(eos
+  PUBLIC
+    Microsoft.GSL::GSL
   PRIVATE
     GSL::gsl
   )
