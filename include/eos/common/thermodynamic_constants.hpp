@@ -40,12 +40,4 @@ inline constexpr auto planck_consant()
 
 /// @}
 
-/// @{
-/// @name Other constants
-
-/// Size of vectors
-static constexpr auto dynamic_extent = std::numeric_limits<std::size_t>::max();
-
-/// @}
-
 }  // namespace eos
