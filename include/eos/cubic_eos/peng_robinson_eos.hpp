@@ -4,6 +4,7 @@
 #include <cmath>  // std::sqrt, std::exp, std::log
 
 #include "eos/cubic_eos/cubic_eos_base.hpp"  // eos::cubic_eos_base
+#include "eos/math/constants.hpp"            // eos::sqrt_two
 
 namespace eos {
 
@@ -146,10 +147,7 @@ class peng_robinson_eos : public cubic_eos_base<peng_robinson_eos> {
   /// @param[in] a Reduced attraction parameter
   /// @param[in] b Reduced repulsion parameter
   static double q(double z, double a, double b) noexcept {
-#ifndef M_SQRT2
-#error M_SQRT2 is not defined!
-#endif
-    constexpr double sqrt2 = M_SQRT2;
+    constexpr auto sqrt2 = sqrt_two<double>();
     constexpr auto delta1 = 1 + sqrt2;
     constexpr auto delta2 = 1 - sqrt2;
     return a / (2 * sqrt2 * b) * std::log((z + delta1 * b) / (z + delta2 * b));
