@@ -9,86 +9,6 @@ namespace eos {
 template <typename Eos>
 struct cubic_eos_traits {};
 
-template <typename Eos>
-class isothermal_line {
- public:
-  /// @param[in] t Temperature
-  /// @param[in] a Attraction parameter
-  /// @param[in] b Repulsion parameter
-  isothermal_line(double t, double a, double b) noexcept
-      : t_{t}, a_{a}, b_{b} {}
-
-  isothermal_line() = default;
-  isothermal_line(const isothermal_line &) = default;
-  isothermal_line(isothermal_line &&) = default;
-
-  isothermal_line &operator=(const isothermal_line &) = default;
-  isothermal_line &operator=(isothermal_line &&) = default;
-
-  /// @brief Computes pressure at given temperature and volume
-  /// @param[in] v Volume
-  double pressure(double v) const noexcept {
-    return Eos::pressure(t_, v, a_, b_);
-  }
-
- private:
-  double t_;  /// Temperature
-  double a_;  /// Attraction parameter
-  double b_;  /// Repulsion parameter
-};
-
-template <typename Eos>
-class isobaric_isothermal_state {
- public:
-  isobaric_isothermal_state(double ar, double br, double beta) noexcept
-      : ar_{ar}, br_{br}, beta_{beta} {}
-
-  isobaric_isothermal_state() = default;
-  isobaric_isothermal_state(const isobaric_isothermal_state &) = default;
-  isobaric_isothermal_state(isobaric_isothermal_state &&) = default;
-
-  isobaric_isothermal_state &operator=(const isobaric_isothermal_state &) =
-      default;
-  isobaric_isothermal_state &operator=(isobaric_isothermal_state &&) = default;
-
-  /// @brief Computes Z-factor at given pressure and temperature
-  /// @param[in] s Isobaric-isothermal state
-  /// @return A list of Z-factors
-  std::vector<double> zfactor() const noexcept {
-    return Eos::zfactor_cubic_eq(ar_, br_).real_roots();
-  }
-
-  /// @brief Computes the natural logarithm of a fugacity coefficient
-  /// @param[in] z Z-factor
-  double ln_fugacity_coeff(double z) const noexcept {
-    return Eos::ln_fugacity_coeff(z, ar_, br_);
-  }
-
-  /// @brief Computes fugacity coefficient
-  /// @param[in] z Z-factor
-  double fugacity_coeff(double z) const noexcept {
-    return Eos::fugacity_coeff(z, ar_, br_);
-  }
-
-  /// @brief Computes residual enthalpy
-  /// @param[in] z Z-factor
-  double residual_enthalpy(double z) const noexcept {
-    return Eos::residual_enthalpy(z, ar_, br_, beta_);
-  }
-
-  /// @brief Computes residual entropy
-  /// @param[in] z Z-factor
-  double residual_entropy(double z) const noexcept {
-    return Eos::residual_entropy(z, ar_, br_, beta_);
-  }
-
- private:
-  double ar_;    /// Reduced attraction parameter
-  double br_;    /// Reduced repulsion parameter
-  double beta_;  /// The derivative of temperature correction factor for
-                 /// attraction parameter
-};
-
 /// @brief Two-parameter cubic equation of state (EoS)
 /// @tparam Derived Concrete EoS class
 ///
@@ -149,19 +69,98 @@ class cubic_eos_base {
     bc_ = this->critical_repulsion_param(pc, tc);
   }
 
+  class isothermal_line {
+   public:
+    /// @param[in] t Temperature
+    /// @param[in] a Attraction parameter
+    /// @param[in] b Repulsion parameter
+    isothermal_line(double t, double a, double b) noexcept
+        : t_{t}, a_{a}, b_{b} {}
+
+    isothermal_line() = default;
+    isothermal_line(const isothermal_line &) = default;
+    isothermal_line(isothermal_line &&) = default;
+
+    isothermal_line &operator=(const isothermal_line &) = default;
+    isothermal_line &operator=(isothermal_line &&) = default;
+
+    /// @brief Computes pressure at given temperature and volume
+    /// @param[in] v Volume
+    double pressure(double v) const noexcept {
+      return Derived::pressure(t_, v, a_, b_);
+    }
+
+   private:
+    double t_;  /// Temperature
+    double a_;  /// Attraction parameter
+    double b_;  /// Repulsion parameter
+  };
+
   /// @brief Creates isothermal state
   /// @param[in] t Temperature
-  isothermal_line<Derived> create_isothermal_line(double t) const noexcept {
+  isothermal_line create_isothermal_line(double t) const noexcept {
     const auto tr = this->reduced_temperature(t);
     const auto a = this->attraction_param(tr);
     const auto b = this->repulsion_param();
     return {t, a, b};
   }
 
+  class isobaric_isothermal_state {
+   public:
+    isobaric_isothermal_state(double ar, double br, double beta) noexcept
+        : ar_{ar}, br_{br}, beta_{beta} {}
+
+    isobaric_isothermal_state() = default;
+    isobaric_isothermal_state(const isobaric_isothermal_state &) = default;
+    isobaric_isothermal_state(isobaric_isothermal_state &&) = default;
+
+    isobaric_isothermal_state &operator=(const isobaric_isothermal_state &) =
+        default;
+    isobaric_isothermal_state &operator=(isobaric_isothermal_state &&) =
+        default;
+
+    /// @brief Computes Z-factor at given pressure and temperature
+    /// @param[in] s Isobaric-isothermal state
+    /// @return A list of Z-factors
+    std::vector<double> zfactor() const noexcept {
+      return Derived::zfactor_cubic_eq(ar_, br_).real_roots();
+    }
+
+    /// @brief Computes the natural logarithm of a fugacity coefficient
+    /// @param[in] z Z-factor
+    double ln_fugacity_coeff(double z) const noexcept {
+      return Derived::ln_fugacity_coeff(z, ar_, br_);
+    }
+
+    /// @brief Computes fugacity coefficient
+    /// @param[in] z Z-factor
+    double fugacity_coeff(double z) const noexcept {
+      return Derived::fugacity_coeff(z, ar_, br_);
+    }
+
+    /// @brief Computes residual enthalpy
+    /// @param[in] z Z-factor
+    double residual_enthalpy(double z) const noexcept {
+      return Derived::residual_enthalpy(z, ar_, br_, beta_);
+    }
+
+    /// @brief Computes residual entropy
+    /// @param[in] z Z-factor
+    double residual_entropy(double z) const noexcept {
+      return Derived::residual_entropy(z, ar_, br_, beta_);
+    }
+
+   private:
+    double ar_;    /// Reduced attraction parameter
+    double br_;    /// Reduced repulsion parameter
+    double beta_;  /// The derivative of temperature correction factor for
+                   /// attraction parameter
+  };
+
   /// @brief Creates isobaric-isothermal state
   /// @param[in] p Pressure
   /// @param[in] t Temperature
-  isobaric_isothermal_state<Derived> create_isobaric_isothermal_state(
+  isobaric_isothermal_state create_isobaric_isothermal_state(
       double p, double t) const noexcept {
     const auto pr = this->reduced_pressure(p);
     const auto tr = this->reduced_temperature(t);
