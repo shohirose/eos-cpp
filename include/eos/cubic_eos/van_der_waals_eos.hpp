@@ -10,15 +10,11 @@ namespace eos {
 
 class van_der_waals_eos;
 
-namespace detail {
-
 template <>
 struct cubic_eos_traits<van_der_waals_eos> {
-  static constexpr auto omega_a = 0.421875;
-  static constexpr auto omega_b = 0.125;
+  static constexpr double omega_a = 0.421875;
+  static constexpr double omega_b = 0.125;
 };
-
-}  // namespace detail
 
 /// @brief Van der Waals Equations of State
 class van_der_waals_eos : public cubic_eos_base<van_der_waals_eos> {

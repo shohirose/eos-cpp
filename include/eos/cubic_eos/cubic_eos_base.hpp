@@ -6,12 +6,8 @@
 
 namespace eos {
 
-namespace detail {
-
 template <typename Eos>
 struct cubic_eos_traits {};
-
-}  // namespace detail
 
 template <typename Eos>
 class isothermal_line {
@@ -119,8 +115,8 @@ class isobaric_isothermal_state {
 template <typename Derived>
 class cubic_eos_base {
  public:
-  static constexpr auto omega_a = detail::cubic_eos_traits<Derived>::omega_a;
-  static constexpr auto omega_b = detail::cubic_eos_traits<Derived>::omega_b;
+  static constexpr auto omega_a = cubic_eos_traits<Derived>::omega_a;
+  static constexpr auto omega_b = cubic_eos_traits<Derived>::omega_b;
 
   // Constructors
 

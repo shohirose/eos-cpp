@@ -11,15 +11,11 @@ namespace eos {
 
 class peng_robinson_eos;
 
-namespace detail {
-
 template <>
 struct cubic_eos_traits<peng_robinson_eos> {
-  static constexpr auto omega_a = 0.45724;
-  static constexpr auto omega_b = 0.07780;
+  static constexpr double omega_a = 0.45724;
+  static constexpr double omega_b = 0.07780;
 };
-
-}  // namespace detail
 
 /// @brief Peng-Robinson EoS.
 class peng_robinson_eos : public cubic_eos_base<peng_robinson_eos> {

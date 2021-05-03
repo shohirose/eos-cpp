@@ -10,15 +10,11 @@ namespace eos {
 
 class soave_redlich_kwong_eos;
 
-namespace detail {
-
 template <>
 struct cubic_eos_traits<soave_redlich_kwong_eos> {
-  static constexpr auto omega_a = 0.42748;
-  static constexpr auto omega_b = 0.08664;
+  static constexpr double omega_a = 0.42748;
+  static constexpr double omega_b = 0.08664;
 };
-
-}  // namespace detail
 
 /// @brief Soave-Redlich-Kwong EoS.
 class soave_redlich_kwong_eos : public cubic_eos_base<soave_redlich_kwong_eos> {
