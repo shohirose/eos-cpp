@@ -122,13 +122,11 @@ class peng_robinson_eos : public cubic_eos_base<peng_robinson_eos> {
     return a * a;
   }
 
-  /// @brief Computes \f$ \beta = \frac{\mathrm{d} \ln \alpha}{\mathrm{d} \ln
-  /// T_r } \f$
+  /// @brief Computes \f$ \beta = \frac{d \ln \alpha}{d \ln T } \f$
   /// @param[in] tr Reduced temperature
   double beta(double tr) const noexcept {
     const auto sqrt_tr = std::sqrt(tr);
-    const auto a = 1 + m_ * (1 - sqrt_tr);
-    return -m_ * sqrt_tr / a;
+    return -m_ * sqrt_tr * (1 + m_ * (1 - sqrt_tr));
   }
 
  private:
