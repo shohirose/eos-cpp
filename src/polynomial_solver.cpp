@@ -6,6 +6,7 @@
 #include "gsl_workspace_wrapper.hpp"
 
 namespace eos {
+
 class polynomial_solver::impl {
  public:
   impl(std::size_t n)

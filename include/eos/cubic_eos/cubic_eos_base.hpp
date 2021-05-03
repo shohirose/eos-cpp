@@ -3,7 +3,6 @@
 #include <vector>  // std::vector
 
 #include "eos/common/thermodynamic_constants.hpp"  // eos::gas_constant
-#include "eos/math/polynomial.hpp"                 // eos::real_roots
 
 namespace eos {
 
