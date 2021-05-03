@@ -72,7 +72,7 @@ class polynomial_solver::impl {
 
 polynomial_solver::polynomial_solver() : pimpl_{} {}
 
-polynomial_solver::polynomial_solver(size_t num_coeffs)
+polynomial_solver::polynomial_solver(std::size_t num_coeffs)
     : pimpl_{std::make_unique<impl>(num_coeffs)} {}
 
 polynomial_solver::polynomial_solver(const polynomial_solver &other)
@@ -100,7 +100,7 @@ polynomial_solver &polynomial_solver::operator=(polynomial_solver &&other) {
   return *this;
 }
 
-void polynomial_solver::reset(size_t num_coeffs) {
+void polynomial_solver::reset(std::size_t num_coeffs) {
   if (pimpl_) {
     pimpl_->reset(num_coeffs);
   } else {
