@@ -84,6 +84,17 @@ class peng_robinson_eos : public cubic_eos_base<peng_robinson_eos> {
     return R * (std::log(z - b) + beta * q(z, a, b));
   }
 
+  /// @brief Computes redisual Helmholtz energy
+  /// @param[in] z Z-factor
+  /// @param[in] t Temperature
+  /// @param[in] a Reduced attraction parameter
+  /// @param[in] b Reduced repulsion parameter
+  static double residual_helmholtz_energy(double z, double t, double a,
+                                          double b) noexcept {
+    constexpr auto R = gas_constant<double>();
+    return R * t * (std::log(z - b) + q(z, a, b));
+  }
+
   // Constructors
 
   peng_robinson_eos() = default;

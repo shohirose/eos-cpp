@@ -81,6 +81,17 @@ class van_der_waals_eos : public cubic_eos_base<van_der_waals_eos> {
     return gas_constant<double>() * (std::log(z - b) + a * beta / z);
   }
 
+  /// @brief Computes residual Helmholtz energy
+  /// @param[in] z Z-factor
+  /// @param[in] t Temperature
+  /// @param[in] a Reduced attraction parameter
+  /// @param[in] b Reduced repulsion parameter
+  static double residual_helmholtz_energy(double z, double t, double a,
+                                          double b) noexcept {
+    constexpr auto R = gas_constant<double>();
+    return R * t * (std::log(z - b) + a / z);
+  }
+
   /*
   /// @brief Computes residual molar specific heat at constant volume
   /// @param[in] z Z-factor

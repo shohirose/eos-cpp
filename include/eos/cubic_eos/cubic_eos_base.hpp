@@ -155,6 +155,12 @@ class cubic_eos_base {
       return Derived::residual_entropy(z, ar_, br_, beta_);
     }
 
+    /// @brief Computes residual Helmholtz energy
+    /// @param[in] z Z-factor
+    double residual_helmholtz_energy(double z) const noexcept {
+      return Derived::residual_helmholtz_energy(z, t_, ar_, br_);
+    }
+
    private:
     double t_;     /// Temperature
     double ar_;    /// Reduced attraction parameter
