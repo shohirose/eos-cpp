@@ -107,8 +107,8 @@ class cubic_eos_base {
 
   class isobaric_isothermal_state {
    public:
-    isobaric_isothermal_state(double ar, double br, double beta) noexcept
-        : ar_{ar}, br_{br}, beta_{beta} {}
+    isobaric_isothermal_state(double t, double ar, double br, double beta) noexcept
+        : t_{t}, ar_{ar}, br_{br}, beta_{beta} {}
 
     isobaric_isothermal_state() = default;
     isobaric_isothermal_state(const isobaric_isothermal_state &) = default;
@@ -141,7 +141,7 @@ class cubic_eos_base {
     /// @brief Computes residual enthalpy
     /// @param[in] z Z-factor
     double residual_enthalpy(double z) const noexcept {
-      return Derived::residual_enthalpy(z, ar_, br_, beta_);
+      return Derived::residual_enthalpy(z, t, ar_, br_, beta_);
     }
 
     /// @brief Computes residual entropy
@@ -151,6 +151,7 @@ class cubic_eos_base {
     }
 
    private:
+    double t_; /// Temperature
     double ar_;    /// Reduced attraction parameter
     double br_;    /// Reduced repulsion parameter
     double beta_;  /// The derivative of temperature correction factor for
@@ -167,7 +168,7 @@ class cubic_eos_base {
     const auto ar = this->reduced_attraction_param(pr, tr);
     const auto br = this->reduced_repulsion_param(pr, tr);
     const auto beta = this->derived().beta(tr);
-    return {ar, br, beta};
+    return {t, ar, br, beta};
   }
 
   /// @brief Computes pressure at given temperature and volume
