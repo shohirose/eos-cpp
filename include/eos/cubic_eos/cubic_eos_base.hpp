@@ -141,7 +141,7 @@ class cubic_eos_base {
     /// @brief Computes residual enthalpy
     /// @param[in] z Z-factor
     double residual_enthalpy(double z) const noexcept {
-      return Derived::residual_enthalpy(z, t, ar_, br_, beta_);
+      return Derived::residual_enthalpy(z, t_, ar_, br_, beta_);
     }
 
     /// @brief Computes residual entropy
