@@ -107,7 +107,12 @@ class cubic_eos_base {
 
   class isobaric_isothermal_state {
    public:
-    isobaric_isothermal_state(double t, double ar, double br, double beta) noexcept
+    /// @param[in] t Temperature
+    /// @param[in] ar Reduced attraction parameter
+    /// @param[in] br Reduced repulsion parameter
+    /// @param[in] beta The derivative of temperature correction factor
+    isobaric_isothermal_state(double t, double ar, double br,
+                              double beta) noexcept
         : t_{t}, ar_{ar}, br_{br}, beta_{beta} {}
 
     isobaric_isothermal_state() = default;
