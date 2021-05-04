@@ -156,7 +156,7 @@ class cubic_eos_base {
     }
 
    private:
-    double t_; /// Temperature
+    double t_;     /// Temperature
     double ar_;    /// Reduced attraction parameter
     double br_;    /// Reduced repulsion parameter
     double beta_;  /// The derivative of temperature correction factor for
