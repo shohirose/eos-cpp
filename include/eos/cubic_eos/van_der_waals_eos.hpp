@@ -17,9 +17,9 @@ struct cubic_eos_traits<van_der_waals_eos> {
 };
 
 /// @brief Van der Waals Equations of State
-class van_der_waals_eos : public cubic_eos_base<van_der_waals_eos> {
+class van_der_waals_eos : public cubic_eos_base<van_der_waals_eos, false> {
  public:
-  using base_type = cubic_eos_base<van_der_waals_eos>;
+  using base_type = cubic_eos_base<van_der_waals_eos, false>;
 
   // Static Functions
 
@@ -64,21 +64,17 @@ class van_der_waals_eos : public cubic_eos_base<van_der_waals_eos> {
   /// @param[in] t Temperature
   /// @param[in] a Reduced attraction parameter
   /// @param[in] b Reduced repulsion parameter
-  /// @param[in] beta Temperature correction factor
   static double residual_enthalpy(double z, double t, double a,
-                                  [[maybe_unused]] double b,
-                                  double beta) noexcept {
-    return gas_constant<double>() * t * (z - 1 - a * (1 - beta) / z);
+                                  double b) noexcept {
+    return gas_constant<double>() * t * (z - 1 - a / z);
   }
 
   /// @brief Computes residual entropy
   /// @param[in] z Z-factor
   /// @param[in] a Reduced attraction parameter
   /// @param[in] b Reduced repulsion parameter
-  /// @param[in] beta Temperature correction factor
-  static double residual_entropy(double z, double a, double b,
-                                 double beta) noexcept {
-    return gas_constant<double>() * (std::log(z - b) + a * beta / z);
+  static double residual_entropy(double z, double a, double b) noexcept {
+    return gas_constant<double>() * (std::log(z - b));
   }
 
   /// @brief Computes residual Helmholtz energy
@@ -91,19 +87,6 @@ class van_der_waals_eos : public cubic_eos_base<van_der_waals_eos> {
     constexpr auto R = gas_constant<double>();
     return R * t * (std::log(z - b) + a / z);
   }
-
-  /*
-  /// @brief Computes residual molar specific heat at constant volume
-  /// @param[in] z Z-factor
-  /// @param[in] a Reduced attraction parameter
-  /// @param[in] b Reduced repulsion parameter
-  /// @param[in] gamma Temperature correction factor
-  static double residual_specific_heat_at_const_volume(double z, const
-  double &a,
-                                                  [[maybe_unused]] const double
-  &b, double gamma) noexcept { return gas_constant * gamma * a / z;
-  }
-  */
 
   van_der_waals_eos() = default;
 
@@ -118,12 +101,6 @@ class van_der_waals_eos : public cubic_eos_base<van_der_waals_eos> {
   void set_params(double pc, double tc) noexcept {
     this->base_type::set_params(pc, tc);
   }
-
-  constexpr double alpha(double) const noexcept { return 1.0; }
-
-  constexpr double beta(double) const noexcept { return 0.0; }
-
-  // double gamma(double ) const noexcept { return 0.0; }
 };
 
 /// @brief Makes van der Waals EoS

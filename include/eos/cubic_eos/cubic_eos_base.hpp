@@ -3,11 +3,101 @@
 #include <vector>  // std::vector
 
 #include "eos/common/thermodynamic_constants.hpp"  // eos::gas_constant
+#include "eos/cubic_eos/isobaric_isothermal_state.hpp"
+#include "eos/cubic_eos/isothermal_line.hpp"
 
 namespace eos {
 
 template <typename Eos>
 struct cubic_eos_traits {};
+
+template <typename Derived>
+class cubic_eos_crtp_base {
+ public:
+  static constexpr auto omega_a = cubic_eos_traits<Derived>::omega_a;
+  static constexpr auto omega_b = cubic_eos_traits<Derived>::omega_b;
+
+  cubic_eos_crtp_base() = default;
+  cubic_eos_crtp_base(const cubic_eos_crtp_base &) = default;
+  cubic_eos_crtp_base(cubic_eos_crtp_base &&) = default;
+
+  /// @brief Constructs cubic EoS
+  /// @param[in] pc Critical pressure
+  /// @param[in] tc Critical temperature
+  cubic_eos_crtp_base(double pc, double tc) noexcept
+      : pc_{pc},
+        tc_{tc},
+        ac_{this->critical_attraction_param(pc, tc)},
+        bc_{this->critical_repulsion_param(pc, tc)} {}
+
+  cubic_eos_crtp_base &operator=(const cubic_eos_crtp_base &) = default;
+  cubic_eos_crtp_base &operator=(cubic_eos_crtp_base &&) = default;
+
+  // Static functions
+
+  /// @param[in] pc Critical pressure
+  /// @param[in] tc Critical temperature
+  static double critical_attraction_param(double pc, double tc) noexcept {
+    constexpr auto R = gas_constant<double>();
+    return (omega_a * R * R) * tc * tc / pc;
+  }
+
+  /// @param[in] pc Critical pressure
+  /// @param[in] tc Critical temperature
+  static double critical_repulsion_param(double pc, double tc) noexcept {
+    constexpr auto R = gas_constant<double>();
+    return (omega_b * R) * tc / pc;
+  }
+
+  /// @brief Returns reduced attraction parameter at a given pressure and
+  /// temperature without temperature correction.
+  /// @param[in] pr Reduced pressure
+  /// @param[in] tr Reduced temperature
+  static double reduced_attraction_param(double pr, double tr) noexcept {
+    return omega_a * pr / (tr * tr);
+  }
+
+  /// @brief Returns reduced repulsion parameter at a given pressure and
+  /// temperature.
+  /// @param[in] pr Reduced pressure
+  /// @param[in] tr Reduced temperature
+  static double reduced_repulsion_param(double pr, double tr) noexcept {
+    return omega_b * pr / tr;
+  }
+
+  // Member functions
+
+  /// @param[in] pc Critical pressure
+  /// @param[in] tc Critical temperature
+  void set_params(double pc, double tc) noexcept {
+    pc_ = pc;
+    tc_ = tc;
+    ac_ = critical_attraction_param(pc, tc);
+    bc_ = critical_repulsion_param(pc, tc);
+  }
+
+  /// @brief Computes reduced pressure
+  /// @param[in] p Pressure
+  double reduced_pressure(double p) const noexcept { return p / pc_; }
+
+  /// @brief Computes reduced temperature
+  /// @param[in] t Temperature
+  double reduced_temperature(double t) const noexcept { return t / tc_; }
+
+ protected:
+  /// @brief Get reference to derived class object
+  Derived &derived() noexcept { return static_cast<Derived &>(*this); }
+
+  /// @brief Get const reference to derived class object
+  const Derived &derived() const noexcept {
+    return static_cast<const Derived &>(*this);
+  }
+
+  double pc_;  /// Critical pressure
+  double tc_;  /// Critical temperature
+  double ac_;  /// Critical attraction parameter
+  double bc_;  /// Critical repulsion parameter
+};
 
 /// @brief Two-parameter cubic equation of state (EoS)
 /// @tparam Derived Concrete EoS class
@@ -32,11 +122,12 @@ struct cubic_eos_traits {};
 ///    - omega_a: Constant for attraction parameter
 ///    - omega_b: Constant for repulsion parameter
 ///
-template <typename Derived>
-class cubic_eos_base {
+template <typename Derived, bool UseTemperatureCorrectionFactor>
+class cubic_eos_base : public cubic_eos_crtp_base<Derived> {
  public:
-  static constexpr auto omega_a = cubic_eos_traits<Derived>::omega_a;
-  static constexpr auto omega_b = cubic_eos_traits<Derived>::omega_b;
+  using base_type = cubic_eos_crtp_base<Derived>;
+  static constexpr auto omega_a = base_type::omega_a;
+  static constexpr auto omega_b = base_type::omega_b;
 
   // Constructors
 
@@ -45,11 +136,7 @@ class cubic_eos_base {
   /// @brief Constructs cubic EoS
   /// @param[in] pc Critical pressure
   /// @param[in] tc Critical temperature
-  cubic_eos_base(double pc, double tc) noexcept
-      : pc_{pc},
-        tc_{tc},
-        ac_{this->critical_attraction_param(pc, tc)},
-        bc_{this->critical_repulsion_param(pc, tc)} {}
+  cubic_eos_base(double pc, double tc) noexcept : base_type{pc, tc} {}
 
   cubic_eos_base(const cubic_eos_base &) = default;
   cubic_eos_base(cubic_eos_base &&) = default;
@@ -59,124 +146,23 @@ class cubic_eos_base {
 
   // Member functions
 
-  /// @brief Set parameters
-  /// @param[in] pc Critical pressure
-  /// @param[in] tc Critical temperature
-  void set_params(double pc, double tc) noexcept {
-    pc_ = pc;
-    tc_ = tc;
-    ac_ = this->critical_attraction_param(pc, tc);
-    bc_ = this->critical_repulsion_param(pc, tc);
-  }
-
-  class isothermal_line {
-   public:
-    /// @param[in] t Temperature
-    /// @param[in] a Attraction parameter
-    /// @param[in] b Repulsion parameter
-    isothermal_line(double t, double a, double b) noexcept
-        : t_{t}, a_{a}, b_{b} {}
-
-    isothermal_line() = default;
-    isothermal_line(const isothermal_line &) = default;
-    isothermal_line(isothermal_line &&) = default;
-
-    isothermal_line &operator=(const isothermal_line &) = default;
-    isothermal_line &operator=(isothermal_line &&) = default;
-
-    /// @brief Computes pressure at given temperature and volume
-    /// @param[in] v Volume
-    double pressure(double v) const noexcept {
-      return Derived::pressure(t_, v, a_, b_);
-    }
-
-   private:
-    double t_;  /// Temperature
-    double a_;  /// Attraction parameter
-    double b_;  /// Repulsion parameter
-  };
-
   /// @brief Creates isothermal state
   /// @param[in] t Temperature
-  isothermal_line create_isothermal_line(double t) const noexcept {
+  isothermal_line<Derived> create_isothermal_line(double t) const noexcept {
     const auto tr = this->reduced_temperature(t);
-    const auto a = this->attraction_param(tr);
-    const auto b = this->repulsion_param();
-    return {t, a, b};
+    const auto alpha = this->derived().alpha(tr);
+    return {t, alpha * ac_, bc_};
   }
-
-  class isobaric_isothermal_state {
-   public:
-    /// @param[in] t Temperature
-    /// @param[in] ar Reduced attraction parameter
-    /// @param[in] br Reduced repulsion parameter
-    /// @param[in] beta The derivative of temperature correction factor
-    isobaric_isothermal_state(double t, double ar, double br,
-                              double beta) noexcept
-        : t_{t}, ar_{ar}, br_{br}, beta_{beta} {}
-
-    isobaric_isothermal_state() = default;
-    isobaric_isothermal_state(const isobaric_isothermal_state &) = default;
-    isobaric_isothermal_state(isobaric_isothermal_state &&) = default;
-
-    isobaric_isothermal_state &operator=(const isobaric_isothermal_state &) =
-        default;
-    isobaric_isothermal_state &operator=(isobaric_isothermal_state &&) =
-        default;
-
-    /// @brief Computes Z-factor at given pressure and temperature
-    /// @param[in] s Isobaric-isothermal state
-    /// @return A list of Z-factors
-    std::vector<double> zfactor() const noexcept {
-      return Derived::zfactor_cubic_eq(ar_, br_).real_roots();
-    }
-
-    /// @brief Computes the natural logarithm of a fugacity coefficient
-    /// @param[in] z Z-factor
-    double ln_fugacity_coeff(double z) const noexcept {
-      return Derived::ln_fugacity_coeff(z, ar_, br_);
-    }
-
-    /// @brief Computes fugacity coefficient
-    /// @param[in] z Z-factor
-    double fugacity_coeff(double z) const noexcept {
-      return Derived::fugacity_coeff(z, ar_, br_);
-    }
-
-    /// @brief Computes residual enthalpy
-    /// @param[in] z Z-factor
-    double residual_enthalpy(double z) const noexcept {
-      return Derived::residual_enthalpy(z, t_, ar_, br_, beta_);
-    }
-
-    /// @brief Computes residual entropy
-    /// @param[in] z Z-factor
-    double residual_entropy(double z) const noexcept {
-      return Derived::residual_entropy(z, ar_, br_, beta_);
-    }
-
-    /// @brief Computes residual Helmholtz energy
-    /// @param[in] z Z-factor
-    double residual_helmholtz_energy(double z) const noexcept {
-      return Derived::residual_helmholtz_energy(z, t_, ar_, br_);
-    }
-
-   private:
-    double t_;     /// Temperature
-    double ar_;    /// Reduced attraction parameter
-    double br_;    /// Reduced repulsion parameter
-    double beta_;  /// The derivative of temperature correction factor for
-                   /// attraction parameter
-  };
 
   /// @brief Creates isobaric-isothermal state
   /// @param[in] p Pressure
   /// @param[in] t Temperature
-  isobaric_isothermal_state create_isobaric_isothermal_state(
-      double p, double t) const noexcept {
+  isobaric_isothermal_state<Derived, UseTemperatureCorrectionFactor>
+  create_isobaric_isothermal_state(double p, double t) const noexcept {
     const auto pr = this->reduced_pressure(p);
     const auto tr = this->reduced_temperature(t);
-    const auto ar = this->reduced_attraction_param(pr, tr);
+    const auto ar =
+        this->derived().alpha(tr) * this->reduced_attraction_param(pr, tr);
     const auto br = this->reduced_repulsion_param(pr, tr);
     const auto beta = this->derived().beta(tr);
     return {t, ar, br, beta};
@@ -187,7 +173,7 @@ class cubic_eos_base {
   /// @param[in] v Volume
   double pressure(double t, double v) const noexcept {
     const auto tr = this->reduced_temperature(t);
-    const auto a = this->attraction_param(tr);
+    const auto a = this->derived().alpha(tr) * this->attraction_param();
     const auto b = this->repulsion_param();
     return Derived::pressure(t, v, a, b);
   }
@@ -199,71 +185,64 @@ class cubic_eos_base {
   std::vector<double> zfactor(double p, double t) const noexcept {
     return this->create_isobaric_isothermal_state(p, t).zfactor();
   }
+};
 
- private:
-  // Static functions
+template <typename Derived>
+class cubic_eos_base<Derived, false> : public cubic_eos_crtp_base<Derived> {
+ public:
+  using base_type = cubic_eos_crtp_base<Derived>;
+  static constexpr auto omega_a = base_type::omega_a;
+  static constexpr auto omega_b = base_type::omega_b;
 
+  // Constructors
+
+  cubic_eos_base() = default;
+
+  /// @brief Constructs cubic EoS
   /// @param[in] pc Critical pressure
   /// @param[in] tc Critical temperature
-  static double critical_attraction_param(double pc, double tc) noexcept {
-    constexpr auto R = gas_constant<double>();
-    return (omega_a * R * R) * tc * tc / pc;
-  }
+  cubic_eos_base(double pc, double tc) noexcept : base_type{pc, tc} {}
 
-  /// @param[in] pc Critical pressure
-  /// @param[in] tc Critical temperature
-  static double critical_repulsion_param(double pc, double tc) noexcept {
-    constexpr auto R = gas_constant<double>();
-    return (omega_b * R) * tc / pc;
-  }
+  cubic_eos_base(const cubic_eos_base &) = default;
+  cubic_eos_base(cubic_eos_base &&) = default;
+
+  cubic_eos_base &operator=(const cubic_eos_base &) = default;
+  cubic_eos_base &operator=(cubic_eos_base &&) = default;
 
   // Member functions
 
-  /// @brief Computes reduced pressure
-  /// @param[in] p Pressure
-  double reduced_pressure(double p) const noexcept { return p / pc_; }
-
-  /// @brief Computes reduced temperature
+  /// @brief Creates isothermal state
   /// @param[in] t Temperature
-  double reduced_temperature(double t) const noexcept { return t / tc_; }
-
-  /// @brief Returns attraction parameter at a given temperature.
-  /// @param[in] tr Reduced temperature
-  double attraction_param(double tr) const noexcept {
-    return this->derived().alpha(tr) * ac_;
+  isothermal_line<Derived> create_isothermal_line(double t) const noexcept {
+    return {t, ac_, bc_};
   }
 
-  /// @brief Returns repulsion parameter.
-  double repulsion_param() const noexcept { return bc_; }
-
-  /// @brief Returns reduced attraction parameter at a given pressure and
-  /// temperature.
-  /// @param[in] pr Reduced pressure
-  /// @param[in] tr Reduced temperature
-  double reduced_attraction_param(double pr, double tr) const noexcept {
-    return this->derived().alpha(tr) * omega_a * pr / (tr * tr);
+  /// @brief Creates isobaric-isothermal state
+  /// @param[in] p Pressure
+  /// @param[in] t Temperature
+  isobaric_isothermal_state<Derived, false> create_isobaric_isothermal_state(
+      double p, double t) const noexcept {
+    const auto pr = this->reduced_pressure(p);
+    const auto tr = this->reduced_temperature(t);
+    const auto ar = this->reduced_attraction_param(pr, tr);
+    const auto br = this->reduced_repulsion_param(pr, tr);
+    return {t, ar, br};
   }
 
-  /// @brief Returns reduced repulsion parameter at a given pressure and
-  /// temperature.
-  /// @param[in] pr Reduced pressure
-  /// @param[in] tr Reduced temperature
-  double reduced_repulsion_param(double pr, double tr) const noexcept {
-    return omega_b * pr / tr;
+  /// @brief Computes pressure at given temperature and volume
+  /// @param[in] t Temperature
+  /// @param[in] v Volume
+  double pressure(double t, double v) const noexcept {
+    return Derived::pressure(t, v, ac_, bc_);
   }
 
-  /// @brief Get reference to derived class object
-  Derived &derived() noexcept { return static_cast<Derived &>(*this); }
-
-  /// @brief Get const reference to derived class object
-  const Derived &derived() const noexcept {
-    return static_cast<const Derived &>(*this);
+  /// @brief Computes Z-factor at given pressure and temperature
+  /// @param[in] p Pressure
+  /// @param[in] t Temperature
+  /// @return A list of Z-factors
+  std::vector<double> zfactor(double p, double t) const noexcept {
+    return this->create_isobaric_isothermal_state(p, t).zfactor();
   }
-
-  double pc_;  /// Critical pressure
-  double tc_;  /// Critical temperature
-  double ac_;  /// Critical attraction parameter
-  double bc_;  /// Critical repulsion parameter
 };
 
 }  // namespace eos

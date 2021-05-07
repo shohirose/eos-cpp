@@ -17,9 +17,10 @@ struct cubic_eos_traits<soave_redlich_kwong_eos> {
 };
 
 /// @brief Soave-Redlich-Kwong EoS.
-class soave_redlich_kwong_eos : public cubic_eos_base<soave_redlich_kwong_eos> {
+class soave_redlich_kwong_eos
+    : public cubic_eos_base<soave_redlich_kwong_eos, true> {
  public:
-  using base_type = cubic_eos_base<soave_redlich_kwong_eos>;
+  using base_type = cubic_eos_base<soave_redlich_kwong_eos, true>;
 
   // Static functions
 
@@ -93,18 +94,6 @@ class soave_redlich_kwong_eos : public cubic_eos_base<soave_redlich_kwong_eos> {
     return R * t * (std::log(z - b) + a / b * std::log((z + b) / z));
   }
 
-  /*
-  /// @brief Computes residual molar specific heat at constant volume
-  /// @param[in] z Z-factor
-  /// @param[in] a Reduced attraction parameter
-  /// @param[in] b Reduced repulsion parameter
-  /// @param[in] gamma Temperature correction factor
-  static double residual_specific_heat_at_const_volume(double z, const
-  double &a, double b, double gamma) noexcept { using std::log;
-    return gas_constant * gamma * a / b * log((z + b) / z);
-  }
-  */
-
   // Constructors
 
   soave_redlich_kwong_eos() = default;
@@ -149,19 +138,6 @@ class soave_redlich_kwong_eos : public cubic_eos_base<soave_redlich_kwong_eos> {
     const auto a = 1 + m_ * (1 - sqrt_tr);
     return -m_ * sqrt_tr / a;
   }
-
-  /*
-  /// @brief Computes  \f[ \gamma = \frac{T_r^2}{\alpha} \cdot
-  /// \frac{\mathrm{d}^2 \alpha}{\mathrm{d} T_r^2} \f]
-  /// @param[in] tr Reduced temperature
-  double gamma(double tr) const noexcept {
-    using std::sqrt;
-    const auto sqrt_tr = sqrt(tr);
-    const auto a = 1 + m_ * (1 - sqrt_tr);
-    const auto alpha = a * a;
-    return m_ / (2 * alpha) * (m_ * tr + a * sqrt_tr);
-  }
-  */
 
  private:
   /// @brief Computes parameter \f$ m \f$ from acentric factor

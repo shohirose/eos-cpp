@@ -18,9 +18,9 @@ struct cubic_eos_traits<peng_robinson_eos> {
 };
 
 /// @brief Peng-Robinson EoS.
-class peng_robinson_eos : public cubic_eos_base<peng_robinson_eos> {
+class peng_robinson_eos : public cubic_eos_base<peng_robinson_eos, true> {
  public:
-  using base_type = cubic_eos_base<peng_robinson_eos>;
+  using base_type = cubic_eos_base<peng_robinson_eos, true>;
 
   // Static functions
 
