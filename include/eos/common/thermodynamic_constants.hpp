@@ -33,7 +33,7 @@ inline constexpr auto boltzmanConstant()
 
 /// @brief Planck constant [J-s]
 template <typename T>
-inline constexpr auto planckConsant()
+inline constexpr auto planckConstant()
     -> std::enable_if_t<std::is_floating_point_v<T>, T> {
   return static_cast<T>(6.626'070'15e-34);
 }
