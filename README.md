@@ -12,7 +12,7 @@ This library provides templated classes for three types of cubic EoS: Van der Wa
 
 You can customize and create a new cubic EoS by inheriting `CubicEosBase`. `CubicEosBase` is a template base class for general two-parameter cubic EoS. `CubicEosBase` requires `EosPoicy` and `CorrectionPolicy` types as well as `Scalar` type. While `EosPolicy` class implements functions to calculate thermodynamic properties such as pressure and compressibility, `CorrectionPolicy` class defines how to calculate the correction factor for attraction parameter in a cubic EoS.
 
-A `EoSPolicy` class must provide the following static functions:
+An `EosPolicy` class must provide the following static functions:
 
 - `pressure` : Compute pressure.
 - `zfactorCubicEq` : Compute coefficients of the cubic equation of Z-factor.
@@ -36,12 +36,12 @@ Helper functions are defined for each EoS to easily create EoS instances:
 
 This library only depends on the STL library.
 
-Unit tests for this library use [GNU Scientific Library](https://www.gnu.org/software/gsl/) and [Googletest](https://github.com/google/googletest). Googletest is included as a git submodule under `third-party` directory.
+Unit tests use [GNU Scientific Library](https://www.gnu.org/software/gsl/) and [Googletest](https://github.com/google/googletest). Googletest is included as a git submodule under `third-party` directory.
 
-## Examples of Usage
+## An Example of Usage
 
 ```cpp
-#include <gsl/gsl_poly.h>
+#include <gsl/gsl_poly.h> // gsl_poly_solve_cubic
 
 #include "eos/peng_robinson_eos.hpp"
 
@@ -56,7 +56,8 @@ struct CubicEquationSolver {
 };
 
 int main() {
-  const double pc = 4e6;      // Critical pressure [Pa]
+  // Methane
+  const double pc = 4.6e6;    // Critical pressure [Pa]
   const double tc = 190.6;    // Critical temperature [K]
   const double omega = 0.008; // Acentric factor
   
@@ -69,9 +70,11 @@ int main() {
 
     // Compute z-factor at the pressure and temperature.
     // Please note that there can be multile values for Z-factor.
+    // `params` contains parameters required for calculating thermodynamic properties,
+    // e.g. fugacity coeffcients.
     const auto [z, params] = eos.zfactor(p, t, CubicEquationSolver{});
 
-    // Compute fugacity coefficient from a corresponding Z-factor.
+    // Compute the fugacity coefficient of a Z-factor.
     const auto phi = eos.fugacityCoeff(z[0], params);
   }
 
@@ -82,4 +85,5 @@ int main() {
     // Compute pressure at given temperature and volume.
     const auto p = eos.pressure(t, v);
   }
+}
 ```
