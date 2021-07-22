@@ -3,20 +3,20 @@
 namespace eos {
 
 template <typename Eos>
-class isothermal_line {
+class IsothermalLine {
  public:
   /// @param[in] t Temperature
   /// @param[in] a Attraction parameter
   /// @param[in] b Repulsion parameter
-  isothermal_line(double t, double a, double b) noexcept
+  IsothermalLine(double t, double a, double b) noexcept
       : t_{t}, a_{a}, b_{b} {}
 
-  isothermal_line() = default;
-  isothermal_line(const isothermal_line &) = default;
-  isothermal_line(isothermal_line &&) = default;
+  IsothermalLine() = default;
+  IsothermalLine(const IsothermalLine &) = default;
+  IsothermalLine(IsothermalLine &&) = default;
 
-  isothermal_line &operator=(const isothermal_line &) = default;
-  isothermal_line &operator=(isothermal_line &&) = default;
+  IsothermalLine &operator=(const IsothermalLine &) = default;
+  IsothermalLine &operator=(IsothermalLine &&) = default;
 
   /// @brief Computes pressure at given temperature and volume
   /// @param[in] v Volume

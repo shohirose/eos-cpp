@@ -14,13 +14,13 @@ TEST(VaporLiquidFlashTest, VaporPressureTest) {
   // Temperature
   const double t = 180;
 
-  const auto p0 = eos::estimate_vapor_pressure(t, pc, tc, omega);
+  const auto p0 = eos::estimateVaporPressure(t, pc, tc, omega);
   EXPECT_NEAR(p0, 2.90772e6, 10);
 
-  const auto eos = eos::make_peng_robinson_eos(pc, tc, omega);
-  auto flash = eos::make_vapor_liquid_flash(eos);
-  auto [pvap, result] = flash.vapor_pressure(p0, t);
+  const auto eos = eos::makePengRobinsonEos(pc, tc, omega);
+  auto flash = eos::makeVaporLiquidFlash(eos);
+  auto [pvap, result] = flash.vaporPressure(p0, t);
 
   EXPECT_NEAR(pvap, 2.87515e6, 10);
-  EXPECT_EQ(result.error, flash_iteration_error::success);
+  EXPECT_EQ(result.error, FlashError::success);
 }

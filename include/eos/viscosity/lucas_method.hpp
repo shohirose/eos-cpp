@@ -34,7 +34,7 @@ class lucas_method {
 
   // Member functions
 
-  void set_params(double pc, double tc, double zc, double mw, double dm,
+  void setParams(double pc, double tc, double zc, double mw, double dm,
                   double q) noexcept;
 
   /// @brief Computes gas viscosity at low pressure
@@ -117,11 +117,11 @@ class lucas_method {
 
   /// @brief Computes reduced pressure
   /// @param[in] p Pressure
-  double reduced_pressure(double p) const noexcept { return p / pc_; }
+  double reducedPressure(double p) const noexcept { return p / pc_; }
 
   /// @brief Computes reduced temperature
   /// @param[in] t Temperature
-  double reduced_temperature(double t) const noexcept { return t / tc_; }
+  double reducedTemperature(double t) const noexcept { return t / tc_; }
 
   /// @brief Computes polarity factor at low pressure.
   /// @param[in] tr Reduced temperature

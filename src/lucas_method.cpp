@@ -4,7 +4,7 @@
 
 namespace eos {
 
-void lucas_method::set_params(double pc, double tc, double zc, double mw,
+void lucas_method::setParams(double pc, double tc, double zc, double mw,
                               double dm, double q) noexcept {
   pc_ = pc;
   tc_ = tc;
@@ -17,7 +17,7 @@ void lucas_method::set_params(double pc, double tc, double zc, double mw,
 }
 
 double lucas_method::viscosity_at_low_pressure(double t) const noexcept {
-  const auto tr = this->reduced_temperature(t);
+  const auto tr = this->reducedTemperature(t);
   const auto fp = this->polarity_factor_at_low_pressure(tr);
   const auto fq = this->quantum_factor_at_low_pressure(tr);
   const auto z1 = this->reduced_viscosity_at_low_pressure(tr, fp, fq);
@@ -26,8 +26,8 @@ double lucas_method::viscosity_at_low_pressure(double t) const noexcept {
 
 double lucas_method::viscosity_at_high_pressure(double p,
                                                 double t) const noexcept {
-  const auto pr = this->reduced_pressure(p);
-  const auto tr = this->reduced_temperature(t);
+  const auto pr = this->reducedPressure(p);
+  const auto tr = this->reducedTemperature(t);
   const auto fp0 = this->polarity_factor_at_low_pressure(tr);
   const auto fq0 = this->quantum_factor_at_low_pressure(tr);
 

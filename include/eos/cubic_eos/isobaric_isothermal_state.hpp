@@ -3,59 +3,59 @@
 namespace eos {
 
 template <typename Eos, bool UseTemperatureCorrectionFactor>
-class isobaric_isothermal_state {
+class IsobaricIsothermalState {
  public:
   /// @param[in] t Temperature
   /// @param[in] ar Reduced attraction parameter
   /// @param[in] br Reduced repulsion parameter
   /// @param[in] beta The derivative of temperature correction factor
-  isobaric_isothermal_state(double t, double ar, double br,
+  IsobaricIsothermalState(double t, double ar, double br,
                             double beta) noexcept
       : t_{t}, ar_{ar}, br_{br}, beta_{beta} {}
 
-  isobaric_isothermal_state() = default;
-  isobaric_isothermal_state(const isobaric_isothermal_state &) = default;
-  isobaric_isothermal_state(isobaric_isothermal_state &&) = default;
+  IsobaricIsothermalState() = default;
+  IsobaricIsothermalState(const IsobaricIsothermalState &) = default;
+  IsobaricIsothermalState(IsobaricIsothermalState &&) = default;
 
-  isobaric_isothermal_state &operator=(const isobaric_isothermal_state &) =
+  IsobaricIsothermalState &operator=(const IsobaricIsothermalState &) =
       default;
-  isobaric_isothermal_state &operator=(isobaric_isothermal_state &&) = default;
+  IsobaricIsothermalState &operator=(IsobaricIsothermalState &&) = default;
 
   /// @brief Computes Z-factor at given pressure and temperature
   /// @param[in] s Isobaric-isothermal state
   /// @return A list of Z-factors
   std::vector<double> zfactor() const noexcept {
-    return Eos::zfactor_cubic_eq(ar_, br_).real_roots();
+    return Eos::zfactorCubicEq(ar_, br_).real_roots();
   }
 
   /// @brief Computes the natural logarithm of a fugacity coefficient
   /// @param[in] z Z-factor
-  double ln_fugacity_coeff(double z) const noexcept {
-    return Eos::ln_fugacity_coeff(z, ar_, br_);
+  double lnFugacityCoeff(double z) const noexcept {
+    return Eos::lnFugacityCoeff(z, ar_, br_);
   }
 
   /// @brief Computes fugacity coefficient
   /// @param[in] z Z-factor
-  double fugacity_coeff(double z) const noexcept {
-    return Eos::fugacity_coeff(z, ar_, br_);
+  double fugacityCoeff(double z) const noexcept {
+    return Eos::fugacityCoeff(z, ar_, br_);
   }
 
   /// @brief Computes residual enthalpy
   /// @param[in] z Z-factor
-  double residual_enthalpy(double z) const noexcept {
-    return Eos::residual_enthalpy(z, t_, ar_, br_, beta_);
+  double residualEnthalpy(double z) const noexcept {
+    return Eos::residualEnthalpy(z, t_, ar_, br_, beta_);
   }
 
   /// @brief Computes residual entropy
   /// @param[in] z Z-factor
-  double residual_entropy(double z) const noexcept {
-    return Eos::residual_entropy(z, ar_, br_, beta_);
+  double residualEntropy(double z) const noexcept {
+    return Eos::residualEntropy(z, ar_, br_, beta_);
   }
 
   /// @brief Computes residual Helmholtz energy
   /// @param[in] z Z-factor
-  double residual_helmholtz_energy(double z) const noexcept {
-    return Eos::residual_helmholtz_energy(z, t_, ar_, br_);
+  double residualHelmholtzEnergy(double z) const noexcept {
+    return Eos::residualHelmholtzEnergy(z, t_, ar_, br_);
   }
 
  private:
@@ -67,57 +67,57 @@ class isobaric_isothermal_state {
 };
 
 template <typename Eos>
-class isobaric_isothermal_state<Eos, false> {
+class IsobaricIsothermalState<Eos, false> {
  public:
   /// @param[in] t Temperature
   /// @param[in] ar Reduced attraction parameter
   /// @param[in] br Reduced repulsion parameter
-  isobaric_isothermal_state(double t, double ar, double br) noexcept
+  IsobaricIsothermalState(double t, double ar, double br) noexcept
       : t_{t}, ar_{ar}, br_{br} {}
 
-  isobaric_isothermal_state() = default;
-  isobaric_isothermal_state(const isobaric_isothermal_state &) = default;
-  isobaric_isothermal_state(isobaric_isothermal_state &&) = default;
+  IsobaricIsothermalState() = default;
+  IsobaricIsothermalState(const IsobaricIsothermalState &) = default;
+  IsobaricIsothermalState(IsobaricIsothermalState &&) = default;
 
-  isobaric_isothermal_state &operator=(const isobaric_isothermal_state &) =
+  IsobaricIsothermalState &operator=(const IsobaricIsothermalState &) =
       default;
-  isobaric_isothermal_state &operator=(isobaric_isothermal_state &&) = default;
+  IsobaricIsothermalState &operator=(IsobaricIsothermalState &&) = default;
 
   /// @brief Computes Z-factor at given pressure and temperature
   /// @param[in] s Isobaric-isothermal state
   /// @return A list of Z-factors
   std::vector<double> zfactor() const noexcept {
-    return Eos::zfactor_cubic_eq(ar_, br_).real_roots();
+    return Eos::zfactorCubicEq(ar_, br_).real_roots();
   }
 
   /// @brief Computes the natural logarithm of a fugacity coefficient
   /// @param[in] z Z-factor
-  double ln_fugacity_coeff(double z) const noexcept {
-    return Eos::ln_fugacity_coeff(z, ar_, br_);
+  double lnFugacityCoeff(double z) const noexcept {
+    return Eos::lnFugacityCoeff(z, ar_, br_);
   }
 
   /// @brief Computes fugacity coefficient
   /// @param[in] z Z-factor
-  double fugacity_coeff(double z) const noexcept {
-    return Eos::fugacity_coeff(z, ar_, br_);
+  double fugacityCoeff(double z) const noexcept {
+    return Eos::fugacityCoeff(z, ar_, br_);
   }
 
   /// @brief Computes residual enthalpy
   /// @param[in] z Z-factor
-  double residual_enthalpy(double z) const noexcept {
-    return Eos::residual_enthalpy(z, t_, ar_, br_);
+  double residualEnthalpy(double z) const noexcept {
+    return Eos::residualEnthalpy(z, t_, ar_, br_);
   }
 
   /// @brief Computes residual entropy
   /// @param[in] z Z-factor
-  double residual_entropy(double z) const noexcept {
-    return Eos::residual_entropy(z, ar_, br_);
+  double residualEntropy(double z) const noexcept {
+    return Eos::residualEntropy(z, ar_, br_);
   }
 
   /// @brief Computes residual Helmholtz energy
   /// @param[in] z Z-factor
-  double residual_helmholtz_energy(double z) const noexcept {
-    return Eos::residual_helmholtz_energy(z, t_, ar_, br_);
+  double residualHelmholtzEnergy(double z) const noexcept {
+    return Eos::residualHelmholtzEnergy(z, t_, ar_, br_);
   }
 
  private:

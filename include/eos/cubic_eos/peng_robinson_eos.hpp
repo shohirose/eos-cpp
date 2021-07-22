@@ -3,24 +3,24 @@
 #include <array>  // std::array
 #include <cmath>  // std::sqrt, std::exp, std::log
 
-#include "eos/common/mathematical_constants.hpp"  // eos::sqrt_two
-#include "eos/cubic_eos/cubic_eos_base.hpp"       // eos::cubic_eos_base
+#include "eos/common/mathematical_constants.hpp"  // eos::sqrtTwo
+#include "eos/cubic_eos/cubic_eos_base.hpp"       // eos::CubicEosBase
 #include "eos/math/cubic_equation.hpp"            // eos::cubic_equation
 
 namespace eos {
 
-class peng_robinson_eos;
+class PengRobinsonEos;
 
 template <>
-struct cubic_eos_traits<peng_robinson_eos> {
-  static constexpr double omega_a = 0.45724;
-  static constexpr double omega_b = 0.07780;
+struct CubicEosTraits<PengRobinsonEos> {
+  static constexpr double omegaA = 0.45724;
+  static constexpr double omegaB = 0.07780;
 };
 
 /// @brief Peng-Robinson EoS.
-class peng_robinson_eos : public cubic_eos_base<peng_robinson_eos, true> {
+class PengRobinsonEos : public CubicEosBase<PengRobinsonEos, true> {
  public:
-  using base_type = cubic_eos_base<peng_robinson_eos, true>;
+  using Base = CubicEosBase<PengRobinsonEos, true>;
 
   // Static functions
 
@@ -31,7 +31,7 @@ class peng_robinson_eos : public cubic_eos_base<peng_robinson_eos, true> {
   /// @param[in] b Repulsion parameter
   /// @returns Pressure
   static double pressure(double t, double v, double a, double b) noexcept {
-    constexpr auto R = gas_constant<double>();
+    constexpr auto R = gasConstant<double>();
     return R * t / (v - b) - a / (v * (v + b) + b * (v - b));
   }
 
@@ -39,7 +39,7 @@ class peng_robinson_eos : public cubic_eos_base<peng_robinson_eos, true> {
   /// @param[in] a Reduced attraction parameter
   /// @param[in] b Reduced repulsion parameter
   /// @returns Coefficients of the cubic equation of z-factor.
-  static cubic_equation zfactor_cubic_eq(double a, double b) noexcept {
+  static cubic_equation zfactorCubicEq(double a, double b) noexcept {
     return {b - 1, a - (3 * b + 2) * b, (-a + b + b * b) * b};
   }
 
@@ -48,7 +48,7 @@ class peng_robinson_eos : public cubic_eos_base<peng_robinson_eos, true> {
   /// @param[in] a Reduced attraction parameter
   /// @param[in] b Reduced repulsion parameter
   /// @returns The natural logarithm of a fugacity coefficient
-  static double ln_fugacity_coeff(double z, double a, double b) noexcept {
+  static double lnFugacityCoeff(double z, double a, double b) noexcept {
     return z - 1 - std::log(z - b) - q(z, a, b);
   }
 
@@ -57,8 +57,8 @@ class peng_robinson_eos : public cubic_eos_base<peng_robinson_eos, true> {
   /// @param[in] a Reduced attraction parameter
   /// @param[in] b Reduced repulsion parameter
   /// @returns Fugacity coefficient
-  static double fugacity_coeff(double z, double a, double b) noexcept {
-    return std::exp(ln_fugacity_coeff(z, a, b));
+  static double fugacityCoeff(double z, double a, double b) noexcept {
+    return std::exp(lnFugacityCoeff(z, a, b));
   }
 
   /// @brief Computes residual enthalpy
@@ -67,9 +67,9 @@ class peng_robinson_eos : public cubic_eos_base<peng_robinson_eos, true> {
   /// @param[in] a Reduced attraction parameter
   /// @param[in] b Reduced repulsion parameter
   /// @param[in] beta Temperature correction factor
-  static double residual_enthalpy(double z, double t, double a, double b,
+  static double residualEnthalpy(double z, double t, double a, double b,
                                   double beta) noexcept {
-    constexpr auto R = gas_constant<double>();
+    constexpr auto R = gasConstant<double>();
     return R * t * (z - 1 - (1 - beta) * q(z, a, b));
   }
 
@@ -78,9 +78,9 @@ class peng_robinson_eos : public cubic_eos_base<peng_robinson_eos, true> {
   /// @param[in] a Reduced attraction parameter
   /// @param[in] b Reduced repulsion parameter
   /// @param[in] beta Temperature correction factor
-  static double residual_entropy(double z, double a, double b,
+  static double residualEntropy(double z, double a, double b,
                                  double beta) noexcept {
-    constexpr auto R = gas_constant<double>();
+    constexpr auto R = gasConstant<double>();
     return R * (std::log(z - b) + beta * q(z, a, b));
   }
 
@@ -89,28 +89,28 @@ class peng_robinson_eos : public cubic_eos_base<peng_robinson_eos, true> {
   /// @param[in] t Temperature
   /// @param[in] a Reduced attraction parameter
   /// @param[in] b Reduced repulsion parameter
-  static double residual_helmholtz_energy(double z, double t, double a,
+  static double residualHelmholtzEnergy(double z, double t, double a,
                                           double b) noexcept {
-    constexpr auto R = gas_constant<double>();
+    constexpr auto R = gasConstant<double>();
     return R * t * (std::log(z - b) + q(z, a, b));
   }
 
   // Constructors
 
-  peng_robinson_eos() = default;
+  PengRobinsonEos() = default;
 
   /// @brief Constructs Peng-Robinson EoS
   /// @param[in] pc Critical pressrue
   /// @param[in] tc Critical temperature
   /// @param[in] omega Acentric factor
-  peng_robinson_eos(double pc, double tc, double omega)
-      : base_type{pc, tc}, omega_{omega}, m_{m(omega)} {}
+  PengRobinsonEos(double pc, double tc, double omega)
+      : Base{pc, tc}, omega_{omega}, m_{m(omega)} {}
 
-  peng_robinson_eos(const peng_robinson_eos&) = default;
-  peng_robinson_eos(peng_robinson_eos&&) = default;
+  PengRobinsonEos(const PengRobinsonEos&) = default;
+  PengRobinsonEos(PengRobinsonEos&&) = default;
 
-  peng_robinson_eos& operator=(const peng_robinson_eos&) = default;
-  peng_robinson_eos& operator=(peng_robinson_eos&&) = default;
+  PengRobinsonEos& operator=(const PengRobinsonEos&) = default;
+  PengRobinsonEos& operator=(PengRobinsonEos&&) = default;
 
   // Member functions
 
@@ -118,8 +118,8 @@ class peng_robinson_eos : public cubic_eos_base<peng_robinson_eos, true> {
   /// @param[in] pc Critical pressrue
   /// @param[in] tc Critical temperature
   /// @param[in] omega Acentric factor
-  void set_params(double pc, double tc, double omega) noexcept {
-    this->base_type::set_params(pc, tc);
+  void setParams(double pc, double tc, double omega) noexcept {
+    this->Base::setParams(pc, tc);
     omega_ = omega;
     m_ = m(omega);
   }
@@ -153,7 +153,7 @@ class peng_robinson_eos : public cubic_eos_base<peng_robinson_eos, true> {
   /// @param[in] a Reduced attraction parameter
   /// @param[in] b Reduced repulsion parameter
   static double q(double z, double a, double b) noexcept {
-    constexpr auto sqrt2 = sqrt_two<double>();
+    constexpr auto sqrt2 = sqrtTwo<double>();
     constexpr auto delta1 = 1 + sqrt2;
     constexpr auto delta2 = 1 - sqrt2;
     return a / (2 * sqrt2 * b) * std::log((z + delta1 * b) / (z + delta2 * b));
@@ -183,7 +183,7 @@ class peng_robinson_eos : public cubic_eos_base<peng_robinson_eos, true> {
 /// @param[in] pc Critical pressure
 /// @param[in] tc Critical temperature
 /// @param[in] omega Acentric factor
-inline peng_robinson_eos make_peng_robinson_eos(double pc, double tc,
+inline PengRobinsonEos makePengRobinsonEos(double pc, double tc,
                                                 double omega) {
   return {pc, tc, omega};
 }

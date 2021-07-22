@@ -6,7 +6,7 @@
 namespace eos {
 
 template <typename T>
-inline constexpr auto sqrt_two() noexcept
+inline constexpr auto sqrtTwo() noexcept
     -> std::enable_if_t<std::is_floating_point_v<T>, T> {
 #ifndef M_SQRT2
 #error M_SQRT2 is not defined!
