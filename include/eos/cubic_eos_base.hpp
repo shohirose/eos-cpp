@@ -2,9 +2,9 @@
 
 #include <vector>  // std::vector
 
-#include "eos/common/thermodynamic_constants.hpp"  // eos::gasConstant
-#include "eos/cubic_eos/isobaric_isothermal_state.hpp"
-#include "eos/cubic_eos/isothermal_line.hpp"
+#include "eos/thermodynamic_constants.hpp"  // eos::gasConstant
+#include "eos/isobaric_isothermal_state.hpp"
+#include "eos/isothermal_line.hpp"
 
 namespace eos {
 

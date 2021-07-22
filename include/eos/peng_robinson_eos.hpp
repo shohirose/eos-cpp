@@ -3,8 +3,8 @@
 #include <array>  // std::array
 #include <cmath>  // std::sqrt, std::exp, std::log
 
-#include "eos/common/mathematical_constants.hpp"  // eos::sqrtTwo
-#include "eos/cubic_eos/cubic_eos_base.hpp"       // eos::CubicEosBase
+#include "eos/mathematical_constants.hpp"  // eos::sqrtTwo
+#include "eos/cubic_eos_base.hpp"       // eos::CubicEosBase
 
 namespace eos {
 

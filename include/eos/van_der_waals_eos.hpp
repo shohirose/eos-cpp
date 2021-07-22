@@ -3,7 +3,7 @@
 #include <array>  // std::array
 #include <cmath>  // std::exp, std::log
 
-#include "eos/cubic_eos/cubic_eos_base.hpp"  // eos::CubicEosBase
+#include "eos/cubic_eos_base.hpp"  // eos::CubicEosBase
 
 namespace eos {
 

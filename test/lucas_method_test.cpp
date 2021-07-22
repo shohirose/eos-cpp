@@ -1,4 +1,4 @@
-#include "eos/viscosity/lucas_method.hpp"
+#include "eos/lucas_method.hpp"
 
 #include <gtest/gtest.h>
 
