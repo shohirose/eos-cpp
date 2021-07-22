@@ -14,38 +14,41 @@ struct CubicEosTraits {};
 template <typename Derived>
 class CubicEosCrtpBase {
  public:
+  using Scalar = typename CubicEosTraits<Derived>::Scalar;
   static constexpr auto omegaA = CubicEosTraits<Derived>::omegaA;
   static constexpr auto omegaB = CubicEosTraits<Derived>::omegaB;
 
   CubicEosCrtpBase() = default;
-  CubicEosCrtpBase(const CubicEosCrtpBase &) = default;
-  CubicEosCrtpBase(CubicEosCrtpBase &&) = default;
+  CubicEosCrtpBase(const CubicEosCrtpBase&) = default;
+  CubicEosCrtpBase(CubicEosCrtpBase&&) = default;
 
   /// @brief Constructs cubic EoS
   /// @param[in] pc Critical pressure
   /// @param[in] tc Critical temperature
-  CubicEosCrtpBase(double pc, double tc) noexcept
+  CubicEosCrtpBase(const Scalar& pc, const Scalar& tc) noexcept
       : pc_{pc},
         tc_{tc},
         ac_{this->criticalAttractionParam(pc, tc)},
         bc_{this->criticalRepulsionParam(pc, tc)} {}
 
-  CubicEosCrtpBase &operator=(const CubicEosCrtpBase &) = default;
-  CubicEosCrtpBase &operator=(CubicEosCrtpBase &&) = default;
+  CubicEosCrtpBase& operator=(const CubicEosCrtpBase&) = default;
+  CubicEosCrtpBase& operator=(CubicEosCrtpBase&&) = default;
 
   // Static functions
 
   /// @param[in] pc Critical pressure
   /// @param[in] tc Critical temperature
-  static double criticalAttractionParam(double pc, double tc) noexcept {
-    constexpr auto R = gasConstant<double>();
+  static Scalar criticalAttractionParam(const Scalar& pc,
+                                        const Scalar& tc) noexcept {
+    constexpr auto R = gasConstant<Scalar>();
     return (omegaA * R * R) * tc * tc / pc;
   }
 
   /// @param[in] pc Critical pressure
   /// @param[in] tc Critical temperature
-  static double criticalRepulsionParam(double pc, double tc) noexcept {
-    constexpr auto R = gasConstant<double>();
+  static Scalar criticalRepulsionParam(const Scalar& pc,
+                                       const Scalar& tc) noexcept {
+    constexpr auto R = gasConstant<Scalar>();
     return (omegaB * R) * tc / pc;
   }
 
@@ -53,7 +56,8 @@ class CubicEosCrtpBase {
   /// temperature without temperature correction.
   /// @param[in] pr Reduced pressure
   /// @param[in] tr Reduced temperature
-  static double reducedAttractionParam(double pr, double tr) noexcept {
+  static Scalar reducedAttractionParam(const Scalar& pr,
+                                       const Scalar& tr) noexcept {
     return omegaA * pr / (tr * tr);
   }
 
@@ -61,7 +65,8 @@ class CubicEosCrtpBase {
   /// temperature.
   /// @param[in] pr Reduced pressure
   /// @param[in] tr Reduced temperature
-  static double reducedRepulsionParam(double pr, double tr) noexcept {
+  static Scalar reducedRepulsionParam(const Scalar& pr,
+                                      const Scalar& tr) noexcept {
     return omegaB * pr / tr;
   }
 
@@ -69,7 +74,7 @@ class CubicEosCrtpBase {
 
   /// @param[in] pc Critical pressure
   /// @param[in] tc Critical temperature
-  void setParams(double pc, double tc) noexcept {
+  void setParams(const Scalar& pc, const Scalar& tc) noexcept {
     pc_ = pc;
     tc_ = tc;
     ac_ = criticalAttractionParam(pc, tc);
@@ -78,25 +83,25 @@ class CubicEosCrtpBase {
 
   /// @brief Computes reduced pressure
   /// @param[in] p Pressure
-  double reducedPressure(double p) const noexcept { return p / pc_; }
+  Scalar reducedPressure(const Scalar& p) const noexcept { return p / pc_; }
 
   /// @brief Computes reduced temperature
   /// @param[in] t Temperature
-  double reducedTemperature(double t) const noexcept { return t / tc_; }
+  Scalar reducedTemperature(const Scalar& t) const noexcept { return t / tc_; }
 
  protected:
   /// @brief Get reference to derived class object
-  Derived &derived() noexcept { return static_cast<Derived &>(*this); }
+  Derived& derived() noexcept { return static_cast<Derived&>(*this); }
 
   /// @brief Get const reference to derived class object
-  const Derived &derived() const noexcept {
-    return static_cast<const Derived &>(*this);
+  const Derived& derived() const noexcept {
+    return static_cast<const Derived&>(*this);
   }
 
-  double pc_;  /// Critical pressure
-  double tc_;  /// Critical temperature
-  double ac_;  /// Critical attraction parameter
-  double bc_;  /// Critical repulsion parameter
+  Scalar pc_;  /// Critical pressure
+  Scalar tc_;  /// Critical temperature
+  Scalar ac_;  /// Critical attraction parameter
+  Scalar bc_;  /// Critical repulsion parameter
 };
 
 /// @brief Two-parameter cubic equation of state (EoS)
@@ -118,7 +123,6 @@ class CubicEosCrtpBase {
 /// CubicEosTraits class specialized for each concrete EoS class must be
 /// defined in the detail namespace. CubicEosTraits class must define the
 /// following types and constants:
-///    - double: double type
 ///    - omegaA: Constant for attraction parameter
 ///    - omegaB: Constant for repulsion parameter
 ///
@@ -126,6 +130,7 @@ template <typename Derived, bool UseTemperatureCorrectionFactor>
 class CubicEosBase : public CubicEosCrtpBase<Derived> {
  public:
   using Base = CubicEosCrtpBase<Derived>;
+  using Scalar = typename CubicEosTraits<Derived>::Scalar;
   static constexpr auto omegaA = Base::omegaA;
   static constexpr auto omegaB = Base::omegaB;
 
@@ -136,19 +141,19 @@ class CubicEosBase : public CubicEosCrtpBase<Derived> {
   /// @brief Constructs cubic EoS
   /// @param[in] pc Critical pressure
   /// @param[in] tc Critical temperature
-  CubicEosBase(double pc, double tc) noexcept : Base{pc, tc} {}
+  CubicEosBase(const Scalar& pc, const Scalar& tc) noexcept : Base{pc, tc} {}
 
-  CubicEosBase(const CubicEosBase &) = default;
-  CubicEosBase(CubicEosBase &&) = default;
+  CubicEosBase(const CubicEosBase&) = default;
+  CubicEosBase(CubicEosBase&&) = default;
 
-  CubicEosBase &operator=(const CubicEosBase &) = default;
-  CubicEosBase &operator=(CubicEosBase &&) = default;
+  CubicEosBase& operator=(const CubicEosBase&) = default;
+  CubicEosBase& operator=(CubicEosBase&&) = default;
 
   // Member functions
 
   /// @brief Creates isothermal state
   /// @param[in] t Temperature
-  IsothermalLine<Derived> createIsothermalLine(double t) const noexcept {
+  IsothermalLine<Derived> createIsothermalLine(const Scalar& t) const noexcept {
     const auto tr = this->reducedTemperature(t);
     const auto alpha = this->derived().alpha(tr);
     return {t, alpha * ac_, bc_};
@@ -158,7 +163,8 @@ class CubicEosBase : public CubicEosCrtpBase<Derived> {
   /// @param[in] p Pressure
   /// @param[in] t Temperature
   IsobaricIsothermalState<Derived, UseTemperatureCorrectionFactor>
-  createIsobaricIsothermalState(double p, double t) const noexcept {
+  createIsobaricIsothermalState(const Scalar& p,
+                                const Scalar& t) const noexcept {
     const auto pr = this->reducedPressure(p);
     const auto tr = this->reducedTemperature(t);
     const auto ar =
@@ -171,7 +177,7 @@ class CubicEosBase : public CubicEosCrtpBase<Derived> {
   /// @brief Computes pressure at given temperature and volume
   /// @param[in] t Temperature
   /// @param[in] v Volume
-  double pressure(double t, double v) const noexcept {
+  Scalar pressure(const Scalar& t, const Scalar& v) const noexcept {
     const auto tr = this->reducedTemperature(t);
     const auto a = this->derived().alpha(tr) * this->attractionParam();
     const auto b = this->repulsionParam();
@@ -183,8 +189,11 @@ class CubicEosBase : public CubicEosCrtpBase<Derived> {
   /// @param[in] t Temperature
   /// @return A list of Z-factors
   template <typename CubicEquationSolver>
-  std::vector<double> zfactor(double p, double t, const CubicEquationSolver& solver) const noexcept {
-    return this->createIsobaricIsothermalState(p, t).zfactor<CubicEquationSolver>(solver);
+  std::vector<Scalar> zfactor(
+      const Scalar& p, const Scalar& t,
+      const CubicEquationSolver& solver) const noexcept {
+    return this->createIsobaricIsothermalState(p, t)
+        .zfactor<CubicEquationSolver>(solver);
   }
 };
 
@@ -192,6 +201,7 @@ template <typename Derived>
 class CubicEosBase<Derived, false> : public CubicEosCrtpBase<Derived> {
  public:
   using Base = CubicEosCrtpBase<Derived>;
+  using Scalar = typename CubicEosTraits<Derived>::Scalar;
   static constexpr auto omegaA = Base::omegaA;
   static constexpr auto omegaB = Base::omegaB;
 
@@ -202,19 +212,19 @@ class CubicEosBase<Derived, false> : public CubicEosCrtpBase<Derived> {
   /// @brief Constructs cubic EoS
   /// @param[in] pc Critical pressure
   /// @param[in] tc Critical temperature
-  CubicEosBase(double pc, double tc) noexcept : Base{pc, tc} {}
+  CubicEosBase(const Scalar& pc, const Scalar& tc) noexcept : Base{pc, tc} {}
 
-  CubicEosBase(const CubicEosBase &) = default;
-  CubicEosBase(CubicEosBase &&) = default;
+  CubicEosBase(const CubicEosBase&) = default;
+  CubicEosBase(CubicEosBase&&) = default;
 
-  CubicEosBase &operator=(const CubicEosBase &) = default;
-  CubicEosBase &operator=(CubicEosBase &&) = default;
+  CubicEosBase& operator=(const CubicEosBase&) = default;
+  CubicEosBase& operator=(CubicEosBase&&) = default;
 
   // Member functions
 
   /// @brief Creates isothermal state
   /// @param[in] t Temperature
-  IsothermalLine<Derived> createIsothermalLine(double t) const noexcept {
+  IsothermalLine<Derived> createIsothermalLine(const Scalar& t) const noexcept {
     return {t, ac_, bc_};
   }
 
@@ -222,7 +232,7 @@ class CubicEosBase<Derived, false> : public CubicEosCrtpBase<Derived> {
   /// @param[in] p Pressure
   /// @param[in] t Temperature
   IsobaricIsothermalState<Derived, false> createIsobaricIsothermalState(
-      double p, double t) const noexcept {
+      const Scalar& p, const Scalar& t) const noexcept {
     const auto pr = this->reducedPressure(p);
     const auto tr = this->reducedTemperature(t);
     const auto ar = this->reducedAttractionParam(pr, tr);
@@ -233,7 +243,7 @@ class CubicEosBase<Derived, false> : public CubicEosCrtpBase<Derived> {
   /// @brief Computes pressure at given temperature and volume
   /// @param[in] t Temperature
   /// @param[in] v Volume
-  double pressure(double t, double v) const noexcept {
+  Scalar pressure(const Scalar& t, const Scalar& v) const noexcept {
     return Derived::pressure(t, v, ac_, bc_);
   }
 
@@ -242,8 +252,11 @@ class CubicEosBase<Derived, false> : public CubicEosCrtpBase<Derived> {
   /// @param[in] t Temperature
   /// @return A list of Z-factors
   template <typename CubicEquationSolver>
-  std::vector<double> zfactor(double p, double t, const CubicEquationSolver& solver) const noexcept {
-    return this->createIsobaricIsothermalState(p, t).zfactor<CubicEquationSolver>(solver);
+  std::vector<Scalar> zfactor(
+      const Scalar& p, const Scalar& t,
+      const CubicEquationSolver& solver) const noexcept {
+    return this->createIsobaricIsothermalState(p, t)
+        .zfactor<CubicEquationSolver>(solver);
   }
 };
 

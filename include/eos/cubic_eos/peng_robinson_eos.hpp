@@ -8,16 +8,19 @@
 
 namespace eos {
 
+template <typename Scalar>
 class PengRobinsonEos;
 
-template <>
-struct CubicEosTraits<PengRobinsonEos> {
-  static constexpr double omegaA = 0.45724;
-  static constexpr double omegaB = 0.07780;
+template <typename Scalar_>
+struct CubicEosTraits<PengRobinsonEos<Scalar_>> {
+  using Scalar = Scalar_;
+  static constexpr Scalar omegaA = 0.45724;
+  static constexpr Scalar omegaB = 0.07780;
 };
 
 /// @brief Peng-Robinson EoS.
-class PengRobinsonEos : public CubicEosBase<PengRobinsonEos, true> {
+template <typename Scalar>
+class PengRobinsonEos : public CubicEosBase<PengRobinsonEos<Scalar>, true> {
  public:
   using Base = CubicEosBase<PengRobinsonEos, true>;
 
@@ -29,8 +32,9 @@ class PengRobinsonEos : public CubicEosBase<PengRobinsonEos, true> {
   /// @param[in] a Attraction parameter
   /// @param[in] b Repulsion parameter
   /// @returns Pressure
-  static double pressure(double t, double v, double a, double b) noexcept {
-    constexpr auto R = gasConstant<double>();
+  static Scalar pressure(const Scalar& t, const Scalar& v, const Scalar& a,
+                         const Scalar& b) noexcept {
+    constexpr auto R = gasConstant<Scalar>();
     return R * t / (v - b) - a / (v * (v + b) + b * (v - b));
   }
 
@@ -38,7 +42,8 @@ class PengRobinsonEos : public CubicEosBase<PengRobinsonEos, true> {
   /// @param[in] a Reduced attraction parameter
   /// @param[in] b Reduced repulsion parameter
   /// @returns Coefficients of the cubic equation of z-factor.
-  static std::array<double, 3> zfactorCubicEq(double a, double b) noexcept {
+  static std::array<Scalar, 3> zfactorCubicEq(const Scalar& a,
+                                              const Scalar& b) noexcept {
     return {b - 1, a - (3 * b + 2) * b, (-a + b + b * b) * b};
   }
 
@@ -47,7 +52,8 @@ class PengRobinsonEos : public CubicEosBase<PengRobinsonEos, true> {
   /// @param[in] a Reduced attraction parameter
   /// @param[in] b Reduced repulsion parameter
   /// @returns The natural logarithm of a fugacity coefficient
-  static double lnFugacityCoeff(double z, double a, double b) noexcept {
+  static Scalar lnFugacityCoeff(const Scalar& z, const Scalar& a,
+                                const Scalar& b) noexcept {
     return z - 1 - std::log(z - b) - q(z, a, b);
   }
 
@@ -56,7 +62,8 @@ class PengRobinsonEos : public CubicEosBase<PengRobinsonEos, true> {
   /// @param[in] a Reduced attraction parameter
   /// @param[in] b Reduced repulsion parameter
   /// @returns Fugacity coefficient
-  static double fugacityCoeff(double z, double a, double b) noexcept {
+  static Scalar fugacityCoeff(const Scalar& z, const Scalar& a,
+                              const Scalar& b) noexcept {
     return std::exp(lnFugacityCoeff(z, a, b));
   }
 
@@ -66,9 +73,10 @@ class PengRobinsonEos : public CubicEosBase<PengRobinsonEos, true> {
   /// @param[in] a Reduced attraction parameter
   /// @param[in] b Reduced repulsion parameter
   /// @param[in] beta Temperature correction factor
-  static double residualEnthalpy(double z, double t, double a, double b,
-                                  double beta) noexcept {
-    constexpr auto R = gasConstant<double>();
+  static Scalar residualEnthalpy(const Scalar& z, const Scalar& t,
+                                 const Scalar& a, const Scalar& b,
+                                 const Scalar& beta) noexcept {
+    constexpr auto R = gasConstant<Scalar>();
     return R * t * (z - 1 - (1 - beta) * q(z, a, b));
   }
 
@@ -77,9 +85,9 @@ class PengRobinsonEos : public CubicEosBase<PengRobinsonEos, true> {
   /// @param[in] a Reduced attraction parameter
   /// @param[in] b Reduced repulsion parameter
   /// @param[in] beta Temperature correction factor
-  static double residualEntropy(double z, double a, double b,
-                                 double beta) noexcept {
-    constexpr auto R = gasConstant<double>();
+  static Scalar residualEntropy(const Scalar& z, const Scalar& a,
+                                const Scalar& b, const Scalar& beta) noexcept {
+    constexpr auto R = gasConstant<Scalar>();
     return R * (std::log(z - b) + beta * q(z, a, b));
   }
 
@@ -88,9 +96,10 @@ class PengRobinsonEos : public CubicEosBase<PengRobinsonEos, true> {
   /// @param[in] t Temperature
   /// @param[in] a Reduced attraction parameter
   /// @param[in] b Reduced repulsion parameter
-  static double residualHelmholtzEnergy(double z, double t, double a,
-                                          double b) noexcept {
-    constexpr auto R = gasConstant<double>();
+  static Scalar residualHelmholtzEnergy(const Scalar& z, const Scalar& t,
+                                        const Scalar& a,
+                                        const Scalar& b) noexcept {
+    constexpr auto R = gasConstant<Scalar>();
     return R * t * (std::log(z - b) + q(z, a, b));
   }
 
@@ -102,7 +111,7 @@ class PengRobinsonEos : public CubicEosBase<PengRobinsonEos, true> {
   /// @param[in] pc Critical pressrue
   /// @param[in] tc Critical temperature
   /// @param[in] omega Acentric factor
-  PengRobinsonEos(double pc, double tc, double omega)
+  PengRobinsonEos(const Scalar& pc, const Scalar& tc, const Scalar& omega)
       : Base{pc, tc}, omega_{omega}, m_{m(omega)} {}
 
   PengRobinsonEos(const PengRobinsonEos&) = default;
@@ -117,7 +126,8 @@ class PengRobinsonEos : public CubicEosBase<PengRobinsonEos, true> {
   /// @param[in] pc Critical pressrue
   /// @param[in] tc Critical temperature
   /// @param[in] omega Acentric factor
-  void setParams(double pc, double tc, double omega) noexcept {
+  void setParams(const Scalar& pc, const Scalar& tc,
+                 const Scalar& omega) noexcept {
     this->Base::setParams(pc, tc);
     omega_ = omega;
     m_ = m(omega);
@@ -127,14 +137,14 @@ class PengRobinsonEos : public CubicEosBase<PengRobinsonEos, true> {
 
   /// @brief Computes the correction factor for attraction parameter
   /// @param[in] tr Reduced temperature
-  double alpha(double tr) const noexcept {
+  Scalar alpha(const Scalar& tr) const noexcept {
     const auto a = 1 + m_ * (1 - std::sqrt(tr));
     return a * a;
   }
 
   /// @brief Computes \f$ \beta = \frac{d \ln \alpha}{d \ln T } \f$
   /// @param[in] tr Reduced temperature
-  double beta(double tr) const noexcept {
+  Scalar beta(const Scalar& tr) const noexcept {
     const auto sqrt_tr = std::sqrt(tr);
     return -m_ * sqrt_tr * (1 + m_ * (1 - sqrt_tr));
   }
@@ -142,7 +152,7 @@ class PengRobinsonEos : public CubicEosBase<PengRobinsonEos, true> {
  private:
   /// @brief Computes parameter \f$ m \f$ from acentric factor
   /// @param[in] omega Acentric factor
-  static double m(double omega) noexcept {
+  static Scalar m(const Scalar& omega) noexcept {
     return 0.3796 + omega * (1.485 - omega * (0.1644 - 0.01667 * omega));
   }
 
@@ -151,8 +161,8 @@ class PengRobinsonEos : public CubicEosBase<PengRobinsonEos, true> {
   /// @param[in] z Z-factor
   /// @param[in] a Reduced attraction parameter
   /// @param[in] b Reduced repulsion parameter
-  static double q(double z, double a, double b) noexcept {
-    constexpr auto sqrt2 = sqrtTwo<double>();
+  static Scalar q(const Scalar& z, const Scalar& a, const Scalar& b) noexcept {
+    constexpr auto sqrt2 = sqrtTwo<Scalar>();
     constexpr auto delta1 = 1 + sqrt2;
     constexpr auto delta2 = 1 - sqrt2;
     return a / (2 * sqrt2 * b) * std::log((z + delta1 * b) / (z + delta2 * b));
@@ -172,9 +182,9 @@ class PengRobinsonEos : public CubicEosBase<PengRobinsonEos, true> {
   */
 
   /// Acentric factor
-  double omega_;
+  Scalar omega_;
   /// \f$ m = 0.3796 + 1.485 \omega - 0.1644 \omega^2 + 0.01667 \omega^3 \f$
-  double m_;
+  Scalar m_;
 };
 
 /// @brief Makes Peng-Robinson EoS
@@ -182,8 +192,10 @@ class PengRobinsonEos : public CubicEosBase<PengRobinsonEos, true> {
 /// @param[in] pc Critical pressure
 /// @param[in] tc Critical temperature
 /// @param[in] omega Acentric factor
-inline PengRobinsonEos makePengRobinsonEos(double pc, double tc,
-                                                double omega) {
+template <typename Scalar>
+inline PengRobinsonEos<Scalar> makePengRobinsonEos(const Scalar& pc,
+                                                   const Scalar& tc,
+                                                   const Scalar& omega) {
   return {pc, tc, omega};
 }
 

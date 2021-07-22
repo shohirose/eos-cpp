@@ -7,16 +7,19 @@
 
 namespace eos {
 
+template <typename Scalar>
 class VanDerWaalsEos;
 
-template <>
-struct CubicEosTraits<VanDerWaalsEos> {
-  static constexpr double omegaA = 0.421875;
-  static constexpr double omegaB = 0.125;
+template <typename Scalar_>
+struct CubicEosTraits<VanDerWaalsEos<Scalar_>> {
+  using Scalar = Scalar_;
+  static constexpr Scalar omegaA = 0.421875;
+  static constexpr Scalar omegaB = 0.125;
 };
 
 /// @brief Van der Waals Equations of State
-class VanDerWaalsEos : public CubicEosBase<VanDerWaalsEos, false> {
+template <typename Scalar>
+class VanDerWaalsEos : public CubicEosBase<VanDerWaalsEos<Scalar>, false> {
  public:
   using Base = CubicEosBase<VanDerWaalsEos, false>;
 
@@ -28,15 +31,17 @@ class VanDerWaalsEos : public CubicEosBase<VanDerWaalsEos, false> {
   /// @param[in] a Attraction parameter
   /// @param[in] b Repulsion parameter
   /// @returns Pressure
-  static double pressure(double t, double v, double a, double b) noexcept {
-    return gasConstant<double>() * t / (v - b) - a / (v * v);
+  static Scalar pressure(const Scalar& t, const Scalar& v, const Scalar& a,
+                         const Scalar& b) noexcept {
+    return gasConstant<Scalar>() * t / (v - b) - a / (v * v);
   }
 
   /// @brief Computes coefficients of the cubic equation of Z-factor
   /// @param[in] a Reduced attraction parameter
   /// @param[in] b Reduced repulsion parameter
   /// @returns Coefficients of the cubic equation of z-factor
-  static std::array<double, 3> zfactorCubicEq(double a, double b) noexcept {
+  static std::array<Scalar, 3> zfactorCubicEq(const Scalar& a,
+                                              const Scalar& b) noexcept {
     return {-b - 1, a, -a * b};
   }
 
@@ -45,7 +50,8 @@ class VanDerWaalsEos : public CubicEosBase<VanDerWaalsEos, false> {
   /// @param[in] a Reduced attraction parameter
   /// @param[in] b Reduced repulsion parameter
   /// @returns The natural logarithm of a fugacity coefficient
-  static double lnFugacityCoeff(double z, double a, double b) noexcept {
+  static Scalar lnFugacityCoeff(const Scalar& z, const Scalar& a,
+                                const Scalar& b) noexcept {
     return -std::log(z - b) - a / z + z - 1;
   }
 
@@ -54,7 +60,8 @@ class VanDerWaalsEos : public CubicEosBase<VanDerWaalsEos, false> {
   /// @param[in] a Reduced attraction parameter
   /// @param[in] b Reduced repulsion parameter
   /// @returns Fugacity coefficient
-  static double fugacityCoeff(double z, double a, double b) noexcept {
+  static Scalar fugacityCoeff(const Scalar& z, const Scalar& a,
+                              const Scalar& b) noexcept {
     return std::exp(lnFugacityCoeff(z, a, b));
   }
 
@@ -63,17 +70,18 @@ class VanDerWaalsEos : public CubicEosBase<VanDerWaalsEos, false> {
   /// @param[in] t Temperature
   /// @param[in] a Reduced attraction parameter
   /// @param[in] b Reduced repulsion parameter
-  static double residualEnthalpy(double z, double t, double a,
-                                  double b) noexcept {
-    return gasConstant<double>() * t * (z - 1 - a / z);
+  static Scalar residualEnthalpy(const Scalar& z, const Scalar& t,
+                                 const Scalar& a, const Scalar& b) noexcept {
+    return gasConstant<Scalar>() * t * (z - 1 - a / z);
   }
 
   /// @brief Computes residual entropy
   /// @param[in] z Z-factor
   /// @param[in] a Reduced attraction parameter
   /// @param[in] b Reduced repulsion parameter
-  static double residualEntropy(double z, double a, double b) noexcept {
-    return gasConstant<double>() * (std::log(z - b));
+  static Scalar residualEntropy(const Scalar& z, const Scalar& a,
+                                const Scalar& b) noexcept {
+    return gasConstant<Scalar>() * (std::log(z - b));
   }
 
   /// @brief Computes residual Helmholtz energy
@@ -81,23 +89,24 @@ class VanDerWaalsEos : public CubicEosBase<VanDerWaalsEos, false> {
   /// @param[in] t Temperature
   /// @param[in] a Reduced attraction parameter
   /// @param[in] b Reduced repulsion parameter
-  static double residualHelmholtzEnergy(double z, double t, double a,
-                                          double b) noexcept {
-    constexpr auto R = gasConstant<double>();
+  static Scalar residualHelmholtzEnergy(const Scalar& z, const Scalar& t,
+                                        const Scalar& a,
+                                        const Scalar& b) noexcept {
+    constexpr auto R = gasConstant<Scalar>();
     return R * t * (std::log(z - b) + a / z);
   }
 
   VanDerWaalsEos() = default;
 
-  VanDerWaalsEos(double pc, double tc) noexcept : Base{pc, tc} {}
+  VanDerWaalsEos(const Scalar& pc, const Scalar& tc) noexcept : Base{pc, tc} {}
 
-  VanDerWaalsEos(const VanDerWaalsEos &) = default;
-  VanDerWaalsEos(VanDerWaalsEos &&) = default;
+  VanDerWaalsEos(const VanDerWaalsEos&) = default;
+  VanDerWaalsEos(VanDerWaalsEos&&) = default;
 
-  VanDerWaalsEos &operator=(const VanDerWaalsEos &) = default;
-  VanDerWaalsEos &operator=(VanDerWaalsEos &&) = default;
+  VanDerWaalsEos& operator=(const VanDerWaalsEos&) = default;
+  VanDerWaalsEos& operator=(VanDerWaalsEos&&) = default;
 
-  void setParams(double pc, double tc) noexcept {
+  void setParams(const Scalar& pc, const Scalar& tc) noexcept {
     this->Base::setParams(pc, tc);
   }
 };
@@ -105,7 +114,9 @@ class VanDerWaalsEos : public CubicEosBase<VanDerWaalsEos, false> {
 /// @brief Makes van der Waals EoS
 /// @param[in] pc Critical pressure
 /// @param[in] tc Critical temperature
-inline VanDerWaalsEos makeVanDerWaalsEos(double pc, double tc) {
+template <typename Scalar>
+inline VanDerWaalsEos<Scalar> makeVanDerWaalsEos(const Scalar& pc,
+                                                 const Scalar& tc) {
   return {pc, tc};
 }
 

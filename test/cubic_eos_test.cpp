@@ -7,9 +7,10 @@
 #include "eos/cubic_eos/soave_redlich_kwong_eos.hpp"
 #include "eos/cubic_eos/van_der_waals_eos.hpp"
 
+template <typename T>
 struct CubicEquationSolver {
-  std::vector<double> operator()(const std::array<double, 3>& a) const noexcept {
-    std::vector<double> x(3);
+  std::vector<T> operator()(const std::array<T, 3>& a) const noexcept {
+    std::vector<T> x(3);
     const auto n = gsl_poly_solve_cubic(a[0], a[1], a[2], &x[0], &x[1], &x[2]);
     x.resize(n);
     return x;
@@ -27,7 +28,7 @@ TEST(CubicEosTest, VanDerWaalsEosTest) {
 
   {
     const auto state = eos.createIsobaricIsothermalState(p, t);
-    const auto z = state.zfactor(CubicEquationSolver{});
+    const auto z = state.zfactor(CubicEquationSolver<double>{});
 
     ASSERT_EQ(z.size(), 3);
 
@@ -61,7 +62,7 @@ TEST(CubicEosTest, SoaveRedlichKwongEosTest) {
 
   {
     const auto state = eos.createIsobaricIsothermalState(p, t);
-    const auto z = state.zfactor(CubicEquationSolver{});
+    const auto z = state.zfactor(CubicEquationSolver<double>{});
 
     ASSERT_EQ(z.size(), 3);
 
@@ -94,7 +95,7 @@ TEST(CubicEosTest, PengRobinsonEosTest) {
 
   {
     const auto state = eos.createIsobaricIsothermalState(p, t);
-    const auto z = state.zfactor(CubicEquationSolver{});
+    const auto z = state.zfactor(CubicEquationSolver<double>{});
 
     ASSERT_EQ(z.size(), 3);
 
