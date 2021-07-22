@@ -1,7 +1,5 @@
 add_library(eos
     lucas_method.cpp
-    polynomial_solver.cpp
-    cubic_equation.cpp
   )
 target_compile_features(eos
   PUBLIC
@@ -18,12 +16,6 @@ target_include_directories(eos
     #$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
     #$<INSTALL_INTERFACE:include>
     ${PROJECT_SOURCE_DIR}/include
-  )
-target_link_libraries(eos
-  PUBLIC
-    Microsoft.GSL::GSL
-  PRIVATE
-    GSL::gsl
   )
 target_compile_definitions(eos
   PUBLIC

@@ -8,8 +8,6 @@ endif()
 
 project(eoscpp CXX)
 
-find_package(GSL REQUIRED)
-find_package(Microsoft.GSL CONFIG REQUIRED)
 add_subdirectory(src)
 
 option(EOSCPP_BUILD_TEST "Build unit tests" ON)
@@ -27,6 +25,8 @@ if(EOSCPP_BUILD_TEST)
 
   add_subdirectory(third-party/googletest)
 
+  find_package(GSL REQUIRED)
+  
   enable_testing()
   add_subdirectory(test)
 endif()

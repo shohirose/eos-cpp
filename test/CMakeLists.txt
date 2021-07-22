@@ -6,6 +6,7 @@ function(add_unit_test name)
     PRIVATE
       eos
       gtest_main
+      GSL::gsl
     )
   add_test(
     NAME ${name}
@@ -16,5 +17,3 @@ endfunction()
 add_unit_test(cubic_eos_test)
 #add_unit_test(vapor_liquid_flash_test)
 #add_unit_test(lucas_method_test)
-#add_unit_test(polynomial_solver_test)
-#add_unit_test(cubic_equation_test)
