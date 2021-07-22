@@ -3,26 +3,16 @@
 #include <array>  // std::array
 #include <cmath>  // std::sqrt, std::exp, std::log
 
-#include "eos/cubic_eos_base.hpp"  // eos::CubicEosBase
+#include "eos/cubic_eos_base.hpp"           // eos::CubicEosBase
+#include "eos/soave_correction_policy.hpp"  // eos::SoaveCorrectionPolicy
 
 namespace eos {
 
-template <typename Scalar>
-class SoaveRedlichKwongEos;
-
-template <typename Scalar_>
-struct CubicEosTraits<SoaveRedlichKwongEos<Scalar_>> {
-  using Scalar = Scalar_;
-  static constexpr Scalar omegaA = 0.42748;
-  static constexpr Scalar omegaB = 0.08664;
-};
-
 /// @brief Soave-Redlich-Kwong EoS.
 template <typename Scalar>
-class SoaveRedlichKwongEos
-    : public CubicEosBase<SoaveRedlichKwongEos<Scalar>, true> {
- public:
-  using Base = CubicEosBase<SoaveRedlichKwongEos<Scalar>, true>;
+struct SoaveRedlichKwongEosPolicy {
+  static constexpr Scalar omegaA = 0.42748;
+  static constexpr Scalar omegaB = 0.08664;
 
   // Static functions
 
@@ -54,7 +44,8 @@ class SoaveRedlichKwongEos
   /// @returns The natural logarithm of a fugacity coefficient
   static Scalar lnFugacityCoeff(const Scalar& z, const Scalar& a,
                                 const Scalar& b) noexcept {
-    return z - 1 - std::log(z - b) - a / b * std::log((z + b) / z);
+    using std::log;
+    return z - 1 - log(z - b) - a / b * log((z + b) / z);
   }
 
   /// @brief Computes a fugacity coefficient
@@ -64,7 +55,8 @@ class SoaveRedlichKwongEos
   /// @returns Fugacity coefficient
   static Scalar fugacityCoeff(const Scalar& z, const Scalar& a,
                               const Scalar& b) noexcept {
-    return std::exp(lnFugacityCoeff(z, a, b));
+    using std::exp;
+    return exp(lnFugacityCoeff(z, a, b));
   }
 
   /// @brief Computes residual enthalpy
@@ -76,8 +68,9 @@ class SoaveRedlichKwongEos
   static Scalar residualEnthalpy(const Scalar& z, const Scalar& t,
                                  const Scalar& a, const Scalar& b,
                                  const Scalar& beta) noexcept {
+    using std::log;
     constexpr auto R = gasConstant<Scalar>();
-    return R * t * (z - 1 - a / b * (1 - beta) * std::log((z + b) / z));
+    return R * t * (z - 1 - a / b * (1 - beta) * log((z + b) / z));
   }
 
   /// @brief Computes residual entropy
@@ -86,8 +79,9 @@ class SoaveRedlichKwongEos
   /// @param[in] b Reduced repulsion parameter
   static Scalar residualEntropy(const Scalar& z, const Scalar& a,
                                 const Scalar& b, const Scalar& beta) noexcept {
+    using std::log;
     constexpr auto R = gasConstant<Scalar>();
-    return R * (std::log(z - b) + a / b * beta * std::log((z + b) / z));
+    return R * (log(z - b) + a / b * beta * log((z + b) / z));
   }
 
   /// @brief Computes residual Helmholtz energy
@@ -98,20 +92,24 @@ class SoaveRedlichKwongEos
   static Scalar residualHelmholtzEnergy(const Scalar& z, const Scalar& t,
                                         const Scalar& a,
                                         const Scalar& b) noexcept {
+    using std::log;
     constexpr auto R = gasConstant<Scalar>();
-    return R * t * (std::log(z - b) + a / b * std::log((z + b) / z));
+    return R * t * (log(z - b) + a / b * log((z + b) / z));
   }
+};
 
-  // Constructors
+template <typename Scalar>
+class SoaveRedlichKwongEos
+    : public CubicEosBase<Scalar, SoaveRedlichKwongEosPolicy<Scalar>,
+                          SoaveCorrectionPolicy<Scalar>> {
+ public:
+  using Base = CubicEosBase<Scalar, SoaveRedlichKwongEosPolicy<Scalar>,
+                            SoaveCorrectionPolicy<Scalar>>;
 
   SoaveRedlichKwongEos() = default;
 
-  /// @brief Constructs Soave-Redlich-Kwong EoS
-  /// @param[in] pc Critical pressrue
-  /// @param[in] tc Critical temperature
-  /// @param[in] omega Acentric factor
   SoaveRedlichKwongEos(const Scalar& pc, const Scalar& tc, const Scalar& omega)
-      : Base{pc, tc}, omega_{omega}, m_{m(omega)} {}
+      : Base{pc, tc, SoaveCorrectionPolicy{calcM(omega)}}, omega_{omega} {}
 
   SoaveRedlichKwongEos(const SoaveRedlichKwongEos&) = default;
   SoaveRedlichKwongEos(SoaveRedlichKwongEos&&) = default;
@@ -119,46 +117,17 @@ class SoaveRedlichKwongEos
   SoaveRedlichKwongEos& operator=(const SoaveRedlichKwongEos&) = default;
   SoaveRedlichKwongEos& operator=(SoaveRedlichKwongEos&&) = default;
 
-  // Member functions
-
-  /// @brief Set parameters
-  /// @param[in] pc Critical pressrue
-  /// @param[in] tc Critical temperature
-  /// @param[in] omega Acentric factor
-  void setParams(const Scalar& pc, const Scalar& tc,
-                 const Scalar& omega) noexcept {
-    this->Base::setParams(pc, tc);
+  void setAcentricFactor(const Scalar& omega) {
     omega_ = omega;
-    m_ = m(omega);
-  }
-
-  /// @brief Computes the correction factor for attraction parameter
-  /// @param[in] tr Reduced temperature
-  Scalar alpha(const Scalar& tr) const noexcept {
-    const auto a = 1 + m_ * (1 - std::sqrt(tr));
-    return a * a;
-  }
-
-  /// @brief Computes \f$ \beta = \frac{\mathrm{d} \ln \alpha}{\mathrm{d} \ln
-  /// const Scalar&} \f$
-  /// @param[in] tr Reduced temperature
-  Scalar beta(const Scalar& tr) const noexcept {
-    const auto sqrt_tr = std::sqrt(tr);
-    const auto a = 1 + m_ * (1 - sqrt_tr);
-    return -m_ * sqrt_tr / a;
+    this->correctionPolicy().m() = calcM(omega);
   }
 
  private:
-  /// @brief Computes parameter \f$ m \f$ from acentric factor
-  /// @param[in] omega Acentric factor
-  static Scalar m(const Scalar& omega) noexcept {
+  static Scalar calcM(const Scalar& omega) noexcept {
     return 0.48 + (1.574 - 0.176 * omega) * omega;
   }
 
-  /// Acentric factor
   Scalar omega_;
-  /// \f$ m = 0.3796 + 1.485 \omega - 0.1644 \omega^2 + 0.01667 \omega^3 \f$
-  Scalar m_;
 };
 
 /// @brief Makes Soave-Redlich-Kwong EoS

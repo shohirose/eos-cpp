@@ -3,25 +3,16 @@
 #include <array>  // std::array
 #include <cmath>  // std::exp, std::log
 
-#include "eos/cubic_eos_base.hpp"  // eos::CubicEosBase
+#include "eos/cubic_eos_base.hpp"        // eos::CubicEosBase
+#include "eos/no_correction_policy.hpp"  // eos::NoCorrectionPolicy
 
 namespace eos {
 
+/// @brief Policy for Van der Waals EoS
 template <typename Scalar>
-class VanDerWaalsEos;
-
-template <typename Scalar_>
-struct CubicEosTraits<VanDerWaalsEos<Scalar_>> {
-  using Scalar = Scalar_;
+struct VanDerWaalsEosPolicy {
   static constexpr Scalar omegaA = 0.421875;
   static constexpr Scalar omegaB = 0.125;
-};
-
-/// @brief Van der Waals Equations of State
-template <typename Scalar>
-class VanDerWaalsEos : public CubicEosBase<VanDerWaalsEos<Scalar>, false> {
- public:
-  using Base = CubicEosBase<VanDerWaalsEos, false>;
 
   // Static Functions
 
@@ -33,7 +24,8 @@ class VanDerWaalsEos : public CubicEosBase<VanDerWaalsEos<Scalar>, false> {
   /// @returns Pressure
   static Scalar pressure(const Scalar& t, const Scalar& v, const Scalar& a,
                          const Scalar& b) noexcept {
-    return gasConstant<Scalar>() * t / (v - b) - a / (v * v);
+    constexpr auto R = gasConstant<Scalar>();
+    return R * t / (v - b) - a / (v * v);
   }
 
   /// @brief Computes coefficients of the cubic equation of Z-factor
@@ -52,7 +44,8 @@ class VanDerWaalsEos : public CubicEosBase<VanDerWaalsEos<Scalar>, false> {
   /// @returns The natural logarithm of a fugacity coefficient
   static Scalar lnFugacityCoeff(const Scalar& z, const Scalar& a,
                                 const Scalar& b) noexcept {
-    return -std::log(z - b) - a / z + z - 1;
+    using std::log;
+    return z - 1 - log(z - b) - a / z;
   }
 
   /// @brief Computes a fugacity coefficient
@@ -62,7 +55,8 @@ class VanDerWaalsEos : public CubicEosBase<VanDerWaalsEos<Scalar>, false> {
   /// @returns Fugacity coefficient
   static Scalar fugacityCoeff(const Scalar& z, const Scalar& a,
                               const Scalar& b) noexcept {
-    return std::exp(lnFugacityCoeff(z, a, b));
+    using std::exp;
+    return exp(lnFugacityCoeff(z, a, b));
   }
 
   /// @brief Computes residual enthalpy
@@ -72,7 +66,8 @@ class VanDerWaalsEos : public CubicEosBase<VanDerWaalsEos<Scalar>, false> {
   /// @param[in] b Reduced repulsion parameter
   static Scalar residualEnthalpy(const Scalar& z, const Scalar& t,
                                  const Scalar& a, const Scalar& b) noexcept {
-    return gasConstant<Scalar>() * t * (z - 1 - a / z);
+    constexpr auto R = gasConstant<Scalar>();
+    return R * t * (z - 1 - a / z);
   }
 
   /// @brief Computes residual entropy
@@ -81,7 +76,9 @@ class VanDerWaalsEos : public CubicEosBase<VanDerWaalsEos<Scalar>, false> {
   /// @param[in] b Reduced repulsion parameter
   static Scalar residualEntropy(const Scalar& z, const Scalar& a,
                                 const Scalar& b) noexcept {
-    return gasConstant<Scalar>() * (std::log(z - b));
+    using std::log;
+    constexpr auto R = gasConstant<Scalar>();
+    return R * (log(z - b));
   }
 
   /// @brief Computes residual Helmholtz energy
@@ -92,23 +89,29 @@ class VanDerWaalsEos : public CubicEosBase<VanDerWaalsEos<Scalar>, false> {
   static Scalar residualHelmholtzEnergy(const Scalar& z, const Scalar& t,
                                         const Scalar& a,
                                         const Scalar& b) noexcept {
+    using std::log;
     constexpr auto R = gasConstant<Scalar>();
-    return R * t * (std::log(z - b) + a / z);
+    return R * t * (log(z - b) + a / z);
   }
+};
+
+template <typename Scalar>
+class VanDerWaalsEos : public CubicEosBase<Scalar, VanDerWaalsEosPolicy<Scalar>,
+                                           NoCorrectionPolicy<Scalar>> {
+ public:
+  using Base = CubicEosBase<Scalar, VanDerWaalsEosPolicy<Scalar>,
+                            NoCorrectionPolicy<Scalar>>;
 
   VanDerWaalsEos() = default;
 
-  VanDerWaalsEos(const Scalar& pc, const Scalar& tc) noexcept : Base{pc, tc} {}
+  VanDerWaalsEos(const Scalar& pc, const Scalar& tc)
+      : Base{pc, tc, NoCorrectionPolicy<Scalar>{}} {}
 
   VanDerWaalsEos(const VanDerWaalsEos&) = default;
   VanDerWaalsEos(VanDerWaalsEos&&) = default;
 
   VanDerWaalsEos& operator=(const VanDerWaalsEos&) = default;
   VanDerWaalsEos& operator=(VanDerWaalsEos&&) = default;
-
-  void setParams(const Scalar& pc, const Scalar& tc) noexcept {
-    this->Base::setParams(pc, tc);
-  }
 };
 
 /// @brief Makes van der Waals EoS
