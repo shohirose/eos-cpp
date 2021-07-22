@@ -48,17 +48,6 @@ struct SoaveRedlichKwongEosPolicy {
     return z - 1 - log(z - b) - a / b * log((z + b) / z);
   }
 
-  /// @brief Computes a fugacity coefficient
-  /// @param[in] z Z-factor
-  /// @param[in] a Reduced attraction parameter
-  /// @param[in] b Reduced repulsion parameter
-  /// @returns Fugacity coefficient
-  static Scalar fugacityCoeff(const Scalar& z, const Scalar& a,
-                              const Scalar& b) noexcept {
-    using std::exp;
-    return exp(lnFugacityCoeff(z, a, b));
-  }
-
   /// @brief Computes residual enthalpy
   /// @param[in] z Z-factor
   /// @param[in] t Temperature

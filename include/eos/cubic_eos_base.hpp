@@ -110,8 +110,8 @@ class CubicEosBase {
   /// @param[in] z Z-factor
   Scalar fugacityCoeff(const Scalar& z,
                        const StateParams& params) const noexcept {
-    return EosPolicy::fugacityCoeff(z, params.reducedAttractionParam,
-                                    params.reducedRepulsionParam);
+    using std::exp;
+    return exp(this->lnFugacityCoeff(z, params));
   }
 
   /// @brief Computes residual enthalpy
