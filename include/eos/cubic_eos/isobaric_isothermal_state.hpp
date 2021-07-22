@@ -24,8 +24,9 @@ class IsobaricIsothermalState {
   /// @brief Computes Z-factor at given pressure and temperature
   /// @param[in] s Isobaric-isothermal state
   /// @return A list of Z-factors
-  std::vector<double> zfactor() const noexcept {
-    return Eos::zfactorCubicEq(ar_, br_).real_roots();
+  template <typename CubicEquationSolver>
+  std::vector<double> zfactor(const CubicEquationSolver& solver) const noexcept {
+    return solver(Eos::zfactorCubicEq(ar_, br_));
   }
 
   /// @brief Computes the natural logarithm of a fugacity coefficient
@@ -86,8 +87,9 @@ class IsobaricIsothermalState<Eos, false> {
   /// @brief Computes Z-factor at given pressure and temperature
   /// @param[in] s Isobaric-isothermal state
   /// @return A list of Z-factors
-  std::vector<double> zfactor() const noexcept {
-    return Eos::zfactorCubicEq(ar_, br_).real_roots();
+  template <typename CubicEquationSolver>
+  std::vector<double> zfactor(const CubicEquationSolver& solver) const noexcept {
+    return solver(Eos::zfactorCubicEq(ar_, br_));
   }
 
   /// @brief Computes the natural logarithm of a fugacity coefficient

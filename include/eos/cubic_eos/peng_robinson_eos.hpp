@@ -5,7 +5,6 @@
 
 #include "eos/common/mathematical_constants.hpp"  // eos::sqrtTwo
 #include "eos/cubic_eos/cubic_eos_base.hpp"       // eos::CubicEosBase
-#include "eos/math/cubic_equation.hpp"            // eos::cubic_equation
 
 namespace eos {
 
@@ -39,7 +38,7 @@ class PengRobinsonEos : public CubicEosBase<PengRobinsonEos, true> {
   /// @param[in] a Reduced attraction parameter
   /// @param[in] b Reduced repulsion parameter
   /// @returns Coefficients of the cubic equation of z-factor.
-  static cubic_equation zfactorCubicEq(double a, double b) noexcept {
+  static std::array<double, 3> zfactorCubicEq(double a, double b) noexcept {
     return {b - 1, a - (3 * b + 2) * b, (-a + b + b * b) * b};
   }
 

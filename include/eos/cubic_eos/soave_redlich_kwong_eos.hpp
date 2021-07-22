@@ -4,7 +4,6 @@
 #include <cmath>  // std::sqrt, std::exp, std::log
 
 #include "eos/cubic_eos/cubic_eos_base.hpp"  // eos::CubicEosBase
-#include "eos/math/cubic_equation.hpp"       // eos::cubic_equation
 
 namespace eos {
 
@@ -39,7 +38,7 @@ class SoaveRedlichKwongEos
   /// @param[in] a Reduced attraction parameter
   /// @param[in] b Reduced repulsion parameter
   /// @returns Coefficients of the cubic equation of z-factor.
-  static cubic_equation zfactorCubicEq(double a, double b) noexcept {
+  static std::array<double, 3> zfactorCubicEq(double a, double b) noexcept {
     return {-1, a - b - b * b, -a * b};
   }
 

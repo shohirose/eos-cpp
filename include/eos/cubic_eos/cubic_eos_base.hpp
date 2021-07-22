@@ -182,8 +182,9 @@ class CubicEosBase : public CubicEosCrtpBase<Derived> {
   /// @param[in] p Pressure
   /// @param[in] t Temperature
   /// @return A list of Z-factors
-  std::vector<double> zfactor(double p, double t) const noexcept {
-    return this->createIsobaricIsothermalState(p, t).zfactor();
+  template <typename CubicEquationSolver>
+  std::vector<double> zfactor(double p, double t, const CubicEquationSolver& solver) const noexcept {
+    return this->createIsobaricIsothermalState(p, t).zfactor<CubicEquationSolver>(solver);
   }
 };
 
@@ -240,8 +241,9 @@ class CubicEosBase<Derived, false> : public CubicEosCrtpBase<Derived> {
   /// @param[in] p Pressure
   /// @param[in] t Temperature
   /// @return A list of Z-factors
-  std::vector<double> zfactor(double p, double t) const noexcept {
-    return this->createIsobaricIsothermalState(p, t).zfactor();
+  template <typename CubicEquationSolver>
+  std::vector<double> zfactor(double p, double t, const CubicEquationSolver& solver) const noexcept {
+    return this->createIsobaricIsothermalState(p, t).zfactor<CubicEquationSolver>(solver);
   }
 };
 
