@@ -1,127 +1,85 @@
-# eoscpp
+# eos-cpp
 
-This is c++ code for equation of states (EoSs).
+## Overview
 
-This module provides templated classes for three types of cubic EoS: van der Waals, Soave-Redlich-Kwong, and Peng-Robinson EoS. These are respectively defined as the following classes:
+eos-cpp is a header-only library for cubic equations of state (EoS) written in c++.
 
-- `eos::van_der_waals_eos`
-- `eos::soave_redlich_kwong_eos`
-- `eos::peng_robinson_eos`
+This library provides templated classes for three types of cubic EoS: Van der Waals, Soave-Redlich-Kwong, and Peng-Robinson EoS. These are respectively defined as the following classes:
 
-In addition, you can customize and create a new cubic EoS by deriving from `cubic_eos_base`. `cubic_eos_base` is a template class for general two-parameter cubic EoS. `cubic_eos_base` requires a derived class which satisfies the following conditions:
+- `eos::VanDerWaalsEos`
+- `eos::SoaveRedlichKwongEos`
+- `eos::PengRobinsonEos`
 
-- Defines the following static functions:
-    - `pressure`
-    - `zfactor_cubic_eq`
-    - `fugacity_coeff`
-    - `residual_enthalpy`
-    - `residual_entropy`
-- Defines the following member functions
-    - `alpha`
-    - `beta`
+You can customize and create a new cubic EoS by inheriting `CubicEosBase`. `CubicEosBase` is a template base class for general two-parameter cubic EoS. `CubicEosBase` requires `EosPoicy` and `CorrectionPolicy` types as well as `Scalar` type. While `EosPolicy` class implements functions to calculate thermodynamic properties such as pressure and compressibility, `CorrectionPolicy` class defines how to calculate the correction factor for attraction parameter in a cubic EoS.
 
-An example of defining a custom EoS class:
+A `EoSPolicy` class must provide the following static functions:
 
-```cpp
-class my_cubic_eos : public cubic_eos_base<my_cubic_eos> {
- public:
-  using base_type = cubic_eos_base<my_cubic_eos>;
+- `pressure` : Compute pressure.
+- `zfactorCubicEq` : Compute coefficients of the cubic equation of Z-factor.
+- `lnFugacityCoeff` : Compute the natural log of fugacity coefficient.
+- `residualEnthalpy` : Compute residual enthalpy.
+- `residualEntropy` : Compute residual entropy.
+- `residualHelmholzEnergy` : Compute residual Helmholtz energy.
 
-  static double pressure(double a, double b) noexcept;
-  static std::array<double, 3> zfactor_cubic_eq(double a, double b) noexcept;
-  static double fugacity_coeff(double z, double a, double b) noexcept;
-  static double residual_enthalpy(double z, double t, double a, double b, double beta) noexcept;
-  static double residual_entropy(double z, double a, double b, double beta) noexcept;
+A `CorrectionPolicy` class must provide the following member functions:
 
-  my_cubic_eos() = default;
-  my_cubic_eos(double pc, double tc, /* ... */) noexcept;
-  void set_params(double pc, double tc, /* ... */) noexcept;
-  double alpha(double tr) const noexcept;
-  double beta(double tr) const noexcept;
-};
+- `value` : Compute the correction factor.
+- `derivative` : Compute the derivative of the correction factor.
 
-```
+Helper functions are defined for each EoS to easily create EoS instances:
 
-In addition to the custom eos class, a custom `cubic_eos_traits` class must be defined. The trait class must define the following constants:
-
-- `omega_a`
-- `omega_b`
-
-Helper functions are defined for each EoS to easily create EoS objects:
-
-- `eos::make_van_der_waals_eos`
-- `eos::make_soave_redlich_kwong_eos`
-- `eos::make_peng_robinson_eos`
+- `eos::makeVanDerWaalsEos`
+- `eos::makeSoaveRedlichKwongEos`
+- `eos::makePengRobinsonEos`
 
 ## Dependencies
 
-This library depends on the [GNU Scientific Library](https://www.gnu.org/software/gsl/). The [Googletest](https://github.com/google/googletest) is used for unit testing but it is included as a git submodule under the `third-party` directory. Please make sure to run `git submodule update`.
+This library only depends on the STL library.
 
-## Example of Usage
+Unit tests for this library use [GNU Scientific Library](https://www.gnu.org/software/gsl/) and [Googletest](https://github.com/google/googletest). Googletest is included as a git submodule under `third-party` directory.
 
-First, let's create an EoS:
-
-```cpp
-// Critical parameters of methane
-const double pc = 4e6;      // Critical pressure [Pa]
-const double tc = 190.6;    // Critical temperature [K]
-const double omega = 0.008; // Acentric factor
-
-// Creates EoS
-const auto eos = eos::make_peng_robinson_eos(pc, tc, omega);
-```
-
-Z-factor and fugacity coefficients at given pressure and temperature can be computed from a state:
+## Examples of Usage
 
 ```cpp
-const double p = 3e6;    // Pressure [Pa]
-const double t = 180.0;  // Temperature [K]
+#include <gsl/gsl_poly.h>
 
-// Creates a state at given pressure and temperature  
-const auto state = eos.create_isobaric_isothermal_state(p, t);
+#include "eos/peng_robinson_eos.hpp"
 
-// Computes z-factor at the pressure and temperature
-// Please note that there can be multile values for z-factor.
-const auto z = state.zfactor();
+// A solver for cubic equation using GSL library
+struct CubicEquationSolver {
+  std::vector<double> operator()(const std::array<double, 3>& a) {
+    std::vector<double> x(3);
+    const auto n = gsl_poly_solve_cubic(a[0], a[1], a[2], &x[0], &x[1], &x[2]);
+    x.resize(n);
+    return x;
+  }
+};
 
-// Computes fugacity coefficient from a corresponding z-factor
-const auto phi = state.fugacity_coeff(z[0]);
-```
+int main() {
+  const double pc = 4e6;      // Critical pressure [Pa]
+  const double tc = 190.6;    // Critical temperature [K]
+  const double omega = 0.008; // Acentric factor
+  
+  // Create an instance of Peng-Robinson EoS
+  const auto eos = eos::makePengRobinsonEos(pc, tc, omega);
+  
+  {
+    const double p = 3e6;    // Pressure [Pa]
+    const double t = 180.0;  // Temperature [K]
 
-Pressure at given temperature and volume can be computed:
+    // Compute z-factor at the pressure and temperature.
+    // Please note that there can be multile values for Z-factor.
+    const auto [z, params] = eos.zfactor(p, t, CubicEquationSolver{});
 
-```cpp
-const double t = 180.0;  // Temperature [K]
-const double v = 0.001;  // Volume [m3]
-const auto p = eos.pressure(t, v);
-```
+    // Compute fugacity coefficient from a corresponding Z-factor.
+    const auto phi = eos.fugacityCoeff(z[0], params);
+  }
 
-Pressure along a given temperature can be computed from an isothermal state:
+  {
+    const double t = 180.0;  // Temperature [K]
+    const double v = 0.001;  // Volume [m3]
 
-```cpp
-const double t = 180.0; // Temperature [K]
-
-const auto line = eos.create_isothermal_line(t);
-
-const std::size_t n = 100; // Number of samples
-std::vector<double> v(n); // Array of volumes [m3]
-// Initialize the volume array ...
-
-// Computes pressure along an isothermal line
-std::vector<double> p(n); // Array of pressures [Pa]
-std::transform(begin(v), end(v), begin(p),
-               [&line](auto vi) { return line.pressure(vi); });
-```
-
-Vapor pressure can be computed by flash calculation:
-
-```cpp
-// Estimate initial pressure for flash calculation by using Wilson equation
-const auto p_init = eos::estimate_vapor_pressure(t, pc, tc, omega);
-
-const auto eos = eos::make_peng_robinson_eos(pc, tc, omega);
-const auto flash = eos::make_vapor_liquid_flash(eos);
-
-// Computes vapor pressure at a given temperature
-const auto [p_vap, result] = flash.vapor_pressure(p_init, t);
+    // Compute pressure at given temperature and volume.
+    const auto p = eos.pressure(t, v);
+  }
 ```
