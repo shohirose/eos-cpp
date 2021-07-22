@@ -39,3 +39,4 @@ build/
 
 # Visual Studio
 .vs/
+out/
