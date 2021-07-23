@@ -9,52 +9,73 @@
 
 namespace eos {
 
-/// @brief Peng-Robinson EoS.
+/**
+ * @brief EoS policy for Peng-Robinson EoS
+ *
+ * @tparam Scalar
+ */
 template <typename Scalar>
 struct PengRobinsonEosPolicy {
+  /// Coefficient for attraction parameter
   static constexpr Scalar omegaA = 0.45724;
+  /// Coefficient for repulsion parameter
   static constexpr Scalar omegaB = 0.07780;
 
-  // Static functions
+  /// @name Public static functions
+  //@{
 
-  /// @brief Computes pressure at given temperature and volume
-  /// @param[in] t Temperature
-  /// @param[in] v Volume
-  /// @param[in] a Attraction parameter
-  /// @param[in] b Repulsion parameter
-  /// @returns Pressure
+  /**
+   * @brief Compute pressure at given temperature and volume
+   *
+   * @param[in] t temperature
+   * @param[in] v volume
+   * @param[in] a attraction parameter
+   * @param[in] b repulsion parameter
+   * @returns Scalar pressure
+   */
   static Scalar pressure(const Scalar& t, const Scalar& v, const Scalar& a,
                          const Scalar& b) noexcept {
     constexpr auto R = gasConstant<Scalar>();
     return R * t / (v - b) - a / (v * (v + b) + b * (v - b));
   }
 
-  /// @brief Computes coefficients of the cubic equation of z-factor.
-  /// @param[in] a Reduced attraction parameter
-  /// @param[in] b Reduced repulsion parameter
-  /// @returns Coefficients of the cubic equation of z-factor.
+  /**
+   * @brief Compute coefficients of the cubic equation of z-factor
+   *
+   * @param[in] a reduced attraction parameter
+   * @param[in] b reduced repulsion parameter
+   * @returns std::array<Scalar, 3> coefficients of the cubic equation of
+   * z-factor.
+   */
   static std::array<Scalar, 3> zfactorCubicEq(const Scalar& a,
                                               const Scalar& b) noexcept {
     return {b - 1, a - (3 * b + 2) * b, (-a + b + b * b) * b};
   }
 
-  /// @brief Computes the natural logarithm of a fugacity coefficient
-  /// @param[in] z Z-factor
-  /// @param[in] a Reduced attraction parameter
-  /// @param[in] b Reduced repulsion parameter
-  /// @returns The natural logarithm of a fugacity coefficient
+  /**
+   * @brief Compute the natural log of a fugacity coefficient
+   *
+   * @param[in] z Z-factor
+   * @param[in] a reduced attraction parameter
+   * @param[in] b reduced repulsion parameter
+   * @returns Scalar the natural log of a fugacity coefficient
+   */
   static Scalar lnFugacityCoeff(const Scalar& z, const Scalar& a,
                                 const Scalar& b) noexcept {
     using std::log;
     return z - 1 - log(z - b) - calcQ(z, a, b);
   }
 
-  /// @brief Computes residual enthalpy
-  /// @param[in] z Z-factor
-  /// @param[in] t Temperature
-  /// @param[in] a Reduced attraction parameter
-  /// @param[in] b Reduced repulsion parameter
-  /// @param[in] beta Temperature correction factor
+  /**
+   * @brief Compute residual enthalpy
+   *
+   * @param[in] z Z-factor
+   * @param[in] t temperature
+   * @param[in] a reduced attraction parameter
+   * @param[in] b reduced repulsion parameter
+   * @param[in] beta the derivative of correction factor
+   * @returns Scalar residual enthalpy
+   */
   static Scalar residualEnthalpy(const Scalar& z, const Scalar& t,
                                  const Scalar& a, const Scalar& b,
                                  const Scalar& beta) noexcept {
@@ -62,11 +83,15 @@ struct PengRobinsonEosPolicy {
     return R * t * (z - 1 - (1 - beta) * calcQ(z, a, b));
   }
 
-  /// @brief Computes residual entropy
-  /// @param[in] z Z-factor
-  /// @param[in] a Reduced attraction parameter
-  /// @param[in] b Reduced repulsion parameter
-  /// @param[in] beta Temperature correction factor
+  /**
+   * @brief Compute residual entropy
+   *
+   * @param[in] z Z-factor
+   * @param[in] a Reduced attraction parameter
+   * @param[in] b Reduced repulsion parameter
+   * @param[in] beta the derivative of correction factor
+   * @returns Scalar residual entropy
+   */
   static Scalar residualEntropy(const Scalar& z, const Scalar& a,
                                 const Scalar& b, const Scalar& beta) noexcept {
     using std::log;
@@ -74,11 +99,15 @@ struct PengRobinsonEosPolicy {
     return R * (log(z - b) + beta * calcQ(z, a, b));
   }
 
-  /// @brief Computes redisual Helmholtz energy
-  /// @param[in] z Z-factor
-  /// @param[in] t Temperature
-  /// @param[in] a Reduced attraction parameter
-  /// @param[in] b Reduced repulsion parameter
+  /**
+   * @brief Compute redisual Helmholtz energy
+   *
+   * @param[in] z Z-factor
+   * @param[in] t Temperature
+   * @param[in] a Reduced attraction parameter
+   * @param[in] b Reduced repulsion parameter
+   * @returns Scalar residual Helmholtz energy
+   */
   static Scalar residualHelmholtzEnergy(const Scalar& z, const Scalar& t,
                                         const Scalar& a,
                                         const Scalar& b) noexcept {
@@ -86,13 +115,23 @@ struct PengRobinsonEosPolicy {
     constexpr auto R = gasConstant<Scalar>();
     return R * t * (log(z - b) + calcQ(z, a, b));
   }
+  //@}
 
  private:
-  /// @brief Computes a coefficient appearing in the calculation of fugacity
-  /// coefficient, residual enthalpy and entropy.
-  /// @param[in] z Z-factor
-  /// @param[in] a Reduced attraction parameter
-  /// @param[in] b Reduced repulsion parameter
+  /**
+   * @brief Compute the coefficient Q
+   *
+   * Q is defined by
+   * \f[
+   *    Q := \frac{A}{2\sqrt{2}B} \log \frac{Z + (1 + \sqrt{2})B}{Z +
+   *         (1 - \sqrt{2})B}
+   * \f]
+   *
+   * @param[in] z Z-factor
+   * @param[in] a Reduced attraction parameter
+   * @param[in] b Reduced repulsion parameter
+   * @returns Scalar the coefficient Q
+   */
   static Scalar calcQ(const Scalar& z, const Scalar& a,
                       const Scalar& b) noexcept {
     using std::log;
@@ -103,16 +142,31 @@ struct PengRobinsonEosPolicy {
   }
 };
 
+/**
+ * @brief Peng-Robinson EoS
+ *
+ * @tparam Scalar scalar
+ */
 template <typename Scalar>
 class PengRobinsonEos
     : public CubicEosBase<Scalar, PengRobinsonEosPolicy<Scalar>,
                           SoaveCorrectionPolicy<Scalar>> {
  public:
+  /// Base class
   using Base = CubicEosBase<Scalar, PengRobinsonEosPolicy<Scalar>,
                             SoaveCorrectionPolicy<Scalar>>;
 
+  /// @name Constructors
+  //@{
   PengRobinsonEos() = default;
 
+  /**
+   * @brief Construct a new Peng Robinson Eos object
+   *
+   * @param pc critical pressure
+   * @param tc critical temperature
+   * @param omega acentric factor
+   */
   PengRobinsonEos(const Scalar& pc, const Scalar& tc, const Scalar& omega)
       : Base{pc, tc, SoaveCorrectionPolicy{calcM(omega)}}, omega_{omega} {}
 
@@ -121,25 +175,41 @@ class PengRobinsonEos
 
   PengRobinsonEos& operator=(const PengRobinsonEos&) = default;
   PengRobinsonEos& operator=(PengRobinsonEos&&) = default;
+  //@}
 
+  /**
+   * @brief Set the acentric factor
+   *
+   * @param[in] omega acentric factor
+   */
   void setAcentricFactor(const Scalar& omega) {
     omega_ = omega;
     this->correctionPolicy().m() = calcM(omega);
   }
 
  private:
+  /**
+   * @brief Compute the coefficient m for correction policy
+   *
+   * @param[in] omega acentric factor
+   * @return Scalar the coefficient m
+   */
   static Scalar calcM(const Scalar& omega) noexcept {
     return 0.3796 + omega * (1.485 - omega * (0.1644 - 0.01667 * omega));
   }
 
-  Scalar omega_;
+  Scalar omega_;  ///< Acentric factor
 };
 
-/// @brief Makes Peng-Robinson EoS
-/// @tparam T Scalar type
-/// @param[in] pc Critical pressure
-/// @param[in] tc Critical temperature
-/// @param[in] omega Acentric factor
+/**
+ * @brief Create a new Peng-Robinson EoS object
+ *
+ * @tparam T scalar
+ * @param[in] pc critical pressure
+ * @param[in] tc critical temperature
+ * @param[in] omega acentric factor
+ * @returns PengRobinsonEos<Scalar> Peng-Robinson EoS object
+ */
 template <typename Scalar>
 inline PengRobinsonEos<Scalar> makePengRobinsonEos(const Scalar& pc,
                                                    const Scalar& tc,
