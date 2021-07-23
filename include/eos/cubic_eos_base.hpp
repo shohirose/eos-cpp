@@ -7,20 +7,34 @@
 
 namespace eos {
 
-/// @brief Two-parameter cubic equation of state (EoS)
+/**
+ * @brief Two-parameter cubic equation of state
+ *
+ * @tparam Scalar scalar
+ * @tparam EosPolicy EoS policy
+ * @tparam CorrectionPolicy correction policy for attraction parameter
+ */
 template <typename Scalar, typename EosPolicy, typename CorrectionPolicy>
 class CubicEosBase {
  public:
+  /// Coefficient for attraction parameter
   static constexpr auto omegaA = EosPolicy::omegaA;
+  /// Coefficient for repulsion parameter
   static constexpr auto omegaB = EosPolicy::omegaB;
 
+  /// @name Constructors
+  //@{
   CubicEosBase() = default;
   CubicEosBase(const CubicEosBase&) = default;
   CubicEosBase(CubicEosBase&&) = default;
 
-  /// @brief Constructs cubic EoS
-  /// @param[in] pc Critical pressure
-  /// @param[in] tc Critical temperature
+  /**
+   * @brief Construct a new Cubic Eos Base object
+   *
+   * @param[in] pc critical pressure
+   * @param[in] tc critical temperature
+   * @param[in] corrector correction policy
+   */
   CubicEosBase(const Scalar& pc, const Scalar& tc,
                const CorrectionPolicy& corrector) noexcept
       : pc_{pc},
@@ -31,11 +45,17 @@ class CubicEosBase {
 
   CubicEosBase& operator=(const CubicEosBase&) = default;
   CubicEosBase& operator=(CubicEosBase&&) = default;
+  //@}
 
-  // Member functions
+  /// @name Public member functions
+  //@{
 
-  /// @param[in] pc Critical pressure
-  /// @param[in] tc Critical temperature
+  /**
+   * @brief Set the critical parameters
+   *
+   * @param[in] pc critical pressure
+   * @param[in] tc critical temperature
+   */
   void setCriticalParams(const Scalar& pc, const Scalar& tc) noexcept {
     pc_ = pc;
     tc_ = tc;
@@ -43,17 +63,32 @@ class CubicEosBase {
     b_ = repulsionParam(pc, tc);
   }
 
-  /// @brief Computes reduced pressure
-  /// @param[in] p Pressure
+  /**
+   * @brief Compute reduced pressure
+   *
+   * @param[in] p pressure
+   * @return Scalar reduced pressure
+   */
   Scalar reducedPressure(const Scalar& p) const noexcept { return p / pc_; }
 
-  /// @brief Computes reduced temperature
-  /// @param[in] t Temperature
+  /**
+   * @brief Compute reduced temperature
+   *
+   * @param t temperature
+   * @return Scalar reduced temperature
+   */
   Scalar reducedTemperature(const Scalar& t) const noexcept { return t / tc_; }
 
-  /// @brief Computes pressure at given temperature and volume
+  ///
   /// @param[in] t Temperature
   /// @param[in] v Volume
+  /**
+   * @brief Compute pressure at given temperature and volume
+   *
+   * @param[in] t temperature
+   * @param[in] v volume
+   * @return Scalar pressure
+   */
   Scalar pressure(const Scalar& t, const Scalar& v) const noexcept {
     if constexpr (std::is_same_v<CorrectionPolicy,
                                  NoCorrectionPolicy<Scalar>>) {
@@ -65,19 +100,28 @@ class CubicEosBase {
     }
   }
 
+  /**
+   * @brief Thermodynamic state parameters
+   *
+   * Data members are used to compute thermodynamic properties.
+   */
   struct StateParams {
-    Scalar pressure;
-    Scalar temperature;
-    Scalar reducedPressure;
-    Scalar reducedTemperature;
-    Scalar reducedAttractionParam;
-    Scalar reducedRepulsionParam;
+    Scalar pressure;                ///< presure
+    Scalar temperature;             ///< temperature
+    Scalar reducedPressure;         ///< reduced pressure
+    Scalar reducedTemperature;      ///< reduced temperature
+    Scalar reducedAttractionParam;  ///< reduced attraction parameter
+    Scalar reducedRepulsionParam;   ///< reduced repulsion parameter
   };
 
-  /// @brief Computes Z-factor at given pressure and temperature
-  /// @param[in] p Pressure
-  /// @param[in] t Temperature
-  /// @return A list of Z-factors
+  /**
+   * @brief Compute Z-factor at given pressure and temperature
+   *
+   * @param[in] p pressure
+   * @param[in] t temperature
+   * @return std::pair<std::vector<Scalar>, StateParams> a pair of Z-factors and
+   *    thermodynamic state parameters
+   */
   template <typename CubicEquationSolver>
   std::pair<std::vector<Scalar>, StateParams> zfactor(
       const Scalar& p, const Scalar& t,
@@ -98,24 +142,39 @@ class CubicEosBase {
     }
   }
 
-  /// @brief Computes the natural logarithm of a fugacity coefficient
-  /// @param[in] z Z-factor
+  /**
+   * @brief Compute the natural logarithm of a fugacity coefficient
+   *
+   * @param[in] z Z-factor
+   * @param[in] params thermodynamic state parameters
+   * @return Scalar the natural log of fugacity coefficient
+   */
   Scalar lnFugacityCoeff(const Scalar& z,
                          const StateParams& params) const noexcept {
     return EosPolicy::lnFugacityCoeff(z, params.reducedAttractionParam,
                                       params.reducedRepulsionParam);
   }
 
-  /// @brief Computes fugacity coefficient
-  /// @param[in] z Z-factor
+  /**
+   * @brief Compute fugacity coefficient
+   *
+   * @param[in] z Z-factor
+   * @param[in] params thermodynamic state parameters
+   * @return Scalar fugacity coefficient
+   */
   Scalar fugacityCoeff(const Scalar& z,
                        const StateParams& params) const noexcept {
     using std::exp;
     return exp(this->lnFugacityCoeff(z, params));
   }
 
-  /// @brief Computes residual enthalpy
-  /// @param[in] z Z-factor
+  /**
+   * @brief Compute residual enthalpy
+   *
+   * @param[in] z Z-factor
+   * @param[in] params thermodynamic state parameters
+   * @return Scalar residual enthalpy
+   */
   Scalar residualEnthalpy(const Scalar& z,
                           const StateParams& params) const noexcept {
     if constexpr (std::is_same_v<VanDerWaalsEosPolicy<Scalar>, EosPolicy>) {
@@ -130,8 +189,13 @@ class CubicEosBase {
     }
   }
 
-  /// @brief Computes residual entropy
-  /// @param[in] z Z-factor
+  /**
+   * @brief Compute residual entropy
+   *
+   * @param[in] z Z-factor
+   * @param[in] params thermodynamic state parameters
+   * @return Scalar residual entropy
+   */
   Scalar residualEntropy(const Scalar& z,
                          const StateParams& params) const noexcept {
     if constexpr (std::is_same_v<EosPolicy, VanDerWaalsEosPolicy<Scalar>>) {
@@ -144,65 +208,90 @@ class CubicEosBase {
     }
   }
 
-  /// @brief Computes residual Helmholtz energy
-  /// @param[in] z Z-factor
+  /**
+   * @brief Compute residual Helmholtz energy
+   *
+   * @param[in] z Z-factor
+   * @param[in] params thermodynamic state parameters
+   * @return Scalar residual Helmholtz energy
+   */
   Scalar residualHelmholtzEnergy(const Scalar& z,
                                  const StateParams& params) const noexcept {
     return EosPolicy::residualHelmholtzEnergy(z, params.temperature,
                                               params.reducedAttractionParam,
                                               params.reducedRepulsionParam);
   }
+  //@}
 
  protected:
-  // Member functions
+  /// @name Protected member functions
+  //@{
 
   const CorrectionPolicy& correctionPolicy() const noexcept {
     return corrector_;
   }
 
   CorrectionPolicy& correctionPolicy() noexcept { return corrector_; }
+  //@}
 
  private:
-  // Static functions
+  /// @name Private static functions
+  //@{
 
-  /// @param[in] pc Critical pressure
-  /// @param[in] tc Critical temperature
+  /**
+   * @brief Compute attraction parameter
+   *
+   * @param[in] pc critical pressure
+   * @param[in] tc critical temperature
+   * @return Scalar attraction parameter
+   */
   static Scalar attractionParam(const Scalar& pc, const Scalar& tc) noexcept {
     constexpr auto R = gasConstant<Scalar>();
     return (omegaA * R * R) * tc * tc / pc;
   }
 
-  /// @param[in] pc Critical pressure
-  /// @param[in] tc Critical temperature
+  /**
+   * @brief Compute repulsion parameter
+   *
+   * @param[in] pc critical pressure
+   * @param[in] tc critical temperature
+   * @return Scalar repulsion parameter
+   */
   static Scalar repulsionParam(const Scalar& pc, const Scalar& tc) noexcept {
     constexpr auto R = gasConstant<Scalar>();
     return (omegaB * R) * tc / pc;
   }
 
-  /// @brief Returns reduced attraction parameter at a given pressure and
-  /// temperature without temperature correction.
-  /// @param[in] pr Reduced pressure
-  /// @param[in] tr Reduced temperature
+  /**
+   * @brief Compute reduced attraction parameter
+   *
+   * @param[in] pr reduced pressure
+   * @param[in] tr reduced temperature
+   * @return Scalar reduced attraction parameter
+   */
   static Scalar reducedAttractionParam(const Scalar& pr,
                                        const Scalar& tr) noexcept {
     return omegaA * pr / (tr * tr);
   }
 
-  /// @brief Returns reduced repulsion parameter at a given pressure and
-  /// temperature.
-  /// @param[in] pr Reduced pressure
-  /// @param[in] tr Reduced temperature
+  /**
+   * @brief Compute reduced repulsion parameter
+   *
+   * @param[in] pr reduced pressure
+   * @param[in] tr reduced temperature
+   * @return Scalar reduced repulsion parameter
+   */
   static Scalar reducedRepulsionParam(const Scalar& pr,
                                       const Scalar& tr) noexcept {
     return omegaB * pr / tr;
   }
+  //@}
 
-  Scalar pc_;  /// Critical pressure
-  Scalar tc_;  /// Critical temperature
-  Scalar a_;   /// Attraction parameter
-  Scalar b_;   /// Repulsion parameter
-
-  /// Temperature correction policy for attraction parameter
+  Scalar pc_;  ///< Critical pressure
+  Scalar tc_;  ///< Critical temperature
+  Scalar a_;   ///< Attraction parameter
+  Scalar b_;   ///< Repulsion parameter
+  /// Correction policy for attraction parameter
   CorrectionPolicy corrector_;
 };
 
