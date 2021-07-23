@@ -2,6 +2,14 @@
 
 namespace eos {
 
+/**
+ * @brief Correction policy for cubic equations of state
+ *
+ * This correction policy does not apply any modification to attraction
+ * parameter.
+ *
+ * @tparam Scalar
+ */
 template <typename Scalar>
 class NoCorrectionPolicy {
  public:
