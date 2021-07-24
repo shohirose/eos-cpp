@@ -145,6 +145,8 @@ struct PengRobinsonEosPolicy {
 /**
  * @brief Peng-Robinson EoS
  *
+ * EoS proposed by Peng and Robinson (1976).
+ *
  * @tparam Scalar scalar
  */
 template <typename Scalar>
@@ -172,13 +174,13 @@ class PengRobinsonEos
 
   PengRobinsonEos(const PengRobinsonEos&) = default;
   PengRobinsonEos(PengRobinsonEos&&) = default;
+  //@}
 
   PengRobinsonEos& operator=(const PengRobinsonEos&) = default;
   PengRobinsonEos& operator=(PengRobinsonEos&&) = default;
-  //@}
 
   /**
-   * @brief Set the acentric factor
+   * @brief Set acentric factor
    *
    * @param[in] omega acentric factor
    */
@@ -189,10 +191,10 @@ class PengRobinsonEos
 
  private:
   /**
-   * @brief Compute the coefficient m for correction policy
+   * @brief Compute coefficient m for correction policy
    *
    * @param[in] omega acentric factor
-   * @return Scalar the coefficient m
+   * @return Scalar coefficient m
    */
   static Scalar calcM(const Scalar& omega) noexcept {
     return 0.3796 + omega * (1.485 - omega * (0.1644 - 0.01667 * omega));
