@@ -79,9 +79,6 @@ class CubicEosBase {
    */
   Scalar reducedTemperature(const Scalar& t) const noexcept { return t / tc_; }
 
-  ///
-  /// @param[in] t Temperature
-  /// @param[in] v Volume
   /**
    * @brief Compute pressure at given temperature and volume
    *
