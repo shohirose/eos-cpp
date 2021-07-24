@@ -55,7 +55,7 @@ class SoaveCorrectionPolicy {
   Scalar derivative(const Scalar& tr) const noexcept {
     using std::sqrt;
     const auto sqrt_tr = sqrt(tr);
-    return -m_ * sqrt_tr * (1 + m_ * (1 - sqrt_tr));
+    return -m_ * sqrt_tr / (1 + m_ * (1 - sqrt_tr));
   }
 
  private:
