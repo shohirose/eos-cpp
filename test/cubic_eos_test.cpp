@@ -7,10 +7,9 @@
 #include "eos/soave_redlich_kwong_eos.hpp"
 #include "eos/van_der_waals_eos.hpp"
 
-template <typename T>
 struct CubicEquationSolver {
-  std::vector<T> operator()(const std::array<T, 3>& a) const noexcept {
-    std::vector<T> x(3);
+  std::vector<double> operator()(const std::array<double, 3>& a) const noexcept {
+    std::vector<double> x(3);
     const auto n = gsl_poly_solve_cubic(a[0], a[1], a[2], &x[0], &x[1], &x[2]);
     x.resize(n);
     return x;
@@ -27,7 +26,7 @@ TEST(CubicEosTest, VanDerWaalsEosTest) {
   const double p = 3.5e6;    // Pressure [Pa]
   const double t = 180.0;  // Temperature [K]
 
-  const auto [z, params] = eos.zfactor(p, t, CubicEquationSolver<double>{});
+  const auto [z, params] = eos.zfactor(p, t, CubicEquationSolver{});
   ASSERT_EQ(z.size(), std::size_t{3});
   EXPECT_NEAR(z[0], 0.208227, 1e-6);
   EXPECT_NEAR(z[1], 0.287939, 1e-6);
@@ -53,7 +52,7 @@ TEST(CubicEosTest, SoaveRedlichKwongEosTest) {
   const double p = 3.5e6;    // Pressure [Pa]
   const double t = 180.0;  // Temperature [K]
 
-  const auto [z, params] = eos.zfactor(p, t, CubicEquationSolver<double>{});
+  const auto [z, params] = eos.zfactor(p, t, CubicEquationSolver{});
   ASSERT_EQ(z.size(), std::size_t{3});
   EXPECT_NEAR(z[0], 0.153854, 1e-6);
   EXPECT_NEAR(z[1], 0.328967, 1e-6);
@@ -78,7 +77,7 @@ TEST(CubicEosTest, PengRobinsonEosTest) {
   const double p = 3e6;    // Pressure [Pa]
   const double t = 180.0;  // Temperature [K]
 
-  const auto [z, params] = eos.zfactor(p, t, CubicEquationSolver<double>{});
+  const auto [z, params] = eos.zfactor(p, t, CubicEquationSolver{});
   ASSERT_EQ(z.size(), std::size_t{3});
   EXPECT_NEAR(z[0], 0.123511, 1e-6);
   EXPECT_NEAR(z[1], 0.198808, 1e-6);
