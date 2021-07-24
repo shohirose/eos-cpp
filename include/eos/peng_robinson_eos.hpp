@@ -197,7 +197,7 @@ class PengRobinsonEos
    * @return Scalar coefficient m
    */
   static Scalar calcM(const Scalar& omega) noexcept {
-    return 0.3796 + omega * (1.485 - omega * (0.1644 - 0.01667 * omega));
+    return 0.37464 + omega * (1.54226 - omega * 0.2699);
   }
 
   Scalar omega_;  ///< Acentric factor
