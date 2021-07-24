@@ -1,6 +1,4 @@
-add_library(eos INTERFACE
-    #lucas_method.cpp
-  )
+add_library(eos INTERFACE)
 target_compile_features(eos
   INTERFACE
     cxx_std_17
@@ -13,8 +11,6 @@ target_compile_options(eos
   )
 target_include_directories(eos
   INTERFACE
-    #$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
-    #$<INSTALL_INTERFACE:include>
     ${PROJECT_SOURCE_DIR}/include
   )
 target_compile_definitions(eos

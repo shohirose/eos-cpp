@@ -15,5 +15,3 @@ function(add_unit_test name)
 endfunction()
 
 add_unit_test(cubic_eos_test)
-#add_unit_test(vapor_liquid_flash_test)
-#add_unit_test(lucas_method_test)

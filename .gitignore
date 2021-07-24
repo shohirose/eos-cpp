@@ -40,3 +40,11 @@ build/
 # Visual Studio
 .vs/
 out/
+
+# Removed files
+include/eos/isothermal_line.hpp
+include/eos/lucas_method.hpp
+include/eos/vapor_liquid_flash.hpp
+src/lucas_method.cpp
+test/lucas_method_test.cpp
+test/vapor_liquid_flash_test.cpp
