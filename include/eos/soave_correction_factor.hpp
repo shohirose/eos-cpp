@@ -7,6 +7,16 @@ namespace eos {
 /**
  * @brief Correction factor for attraction parameter proposed by Soave (1972).
  *
+ * Soave (1972) proposed the following correction factor:
+ * \f[
+ *    \alpha(T_r) := \left[ 1 + m \left( 1 - \sqrt{T_r} \right) \right]^2
+ * \f]
+ * where \f$T_r\f$ is reduced temperature and \f$m\f$ is a coefficient.
+ * Then, its logarithmic derivative in terms of temperature becomes
+ * \f[
+ *    \frac{d \ln \alpha}{d \ln T} = - m \cdot \sqrt{\frac{T_r}{\alpha}}
+ * \f]
+ * 
  * @tparam Scalar scalar
  */
 template <typename Scalar>
