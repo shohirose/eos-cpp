@@ -280,11 +280,11 @@ class CubicEosBase {
   }
   //@}
 
-  Scalar pc_;               //< Critical pressure
-  Scalar tc_;               //< Critical temperature
-  Scalar a_;                //< Attraction parameter
-  Scalar b_;                //< Repulsion parameter
-  CorrectionFactor alpha_;  //< Correction factor for attraction parameter
+  Scalar pc_;               ///< Critical pressure
+  Scalar tc_;               ///< Critical temperature
+  Scalar a_;                ///< Attraction parameter
+  Scalar b_;                ///< Repulsion parameter
+  CorrectionFactor alpha_;  ///< Correction factor for attraction parameter
 };
 
 }  // namespace eos
