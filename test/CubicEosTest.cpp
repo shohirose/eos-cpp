@@ -3,9 +3,9 @@
 
 #include <iostream>
 
-#include "eos/peng_robinson_eos.hpp"
-#include "eos/soave_redlich_kwong_eos.hpp"
-#include "eos/van_der_waals_eos.hpp"
+#include "eos/PengRobinsonEos.hpp"
+#include "eos/SoaveRedlichKwongEos.hpp"
+#include "eos/VanDerWaalsEos.hpp"
 
 struct CubicEquationSolver {
   std::vector<double> operator()(const std::array<double, 3>& a) const noexcept {

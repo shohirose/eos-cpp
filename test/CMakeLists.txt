@@ -14,4 +14,4 @@ function(add_unit_test name)
     )
 endfunction()
 
-add_unit_test(cubic_eos_test)
+add_unit_test(CubicEosTest)

@@ -3,8 +3,8 @@
 #include <utility>  // std::pair
 #include <vector>   // std::vector
 
-#include "eos/identity_correction_factor.hpp"  // eos::IdentityCorrectionFactor
-#include "eos/thermodynamic_constants.hpp"     // eos::gasConstant
+#include "eos/IdentityCorrectionFactor.hpp"  // eos::IdentityCorrectionFactor
+#include "eos/ThermodynamicConstants.hpp"    // eos::gasConstant
 
 namespace eos {
 

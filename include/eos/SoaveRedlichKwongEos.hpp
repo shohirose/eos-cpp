@@ -3,8 +3,8 @@
 #include <array>  // std::array
 #include <cmath>  // std::sqrt, std::exp, std::log
 
-#include "eos/cubic_eos_base.hpp"           // eos::CubicEosBase
-#include "eos/soave_correction_factor.hpp"  // eos::SoaveCorrectionFactor
+#include "eos/CubicEosBase.hpp"           // eos::CubicEosBase
+#include "eos/SoaveCorrectionFactor.hpp"  // eos::SoaveCorrectionFactor
 
 namespace eos {
 

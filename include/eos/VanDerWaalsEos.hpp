@@ -3,8 +3,8 @@
 #include <array>  // std::array
 #include <cmath>  // std::exp, std::log
 
-#include "eos/cubic_eos_base.hpp"              // eos::CubicEosBase
-#include "eos/identity_correction_factor.hpp"  // eos::IdentityCorrectionFactor
+#include "eos/CubicEosBase.hpp"              // eos::CubicEosBase
+#include "eos/IdentityCorrectionFactor.hpp"  // eos::IdentityCorrectionFactor
 
 namespace eos {
 
