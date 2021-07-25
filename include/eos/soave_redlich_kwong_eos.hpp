@@ -161,7 +161,7 @@ class SoaveRedlichKwongEos
    */
   void setAcentricFactor(const Scalar& omega) {
     omega_ = omega;
-    this->correctionPolicy().m() = calcM(omega);
+    this->correctionFactor().m() = calcM(omega);
   }
 
  private:
