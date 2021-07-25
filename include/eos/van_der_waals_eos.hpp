@@ -3,8 +3,8 @@
 #include <array>  // std::array
 #include <cmath>  // std::exp, std::log
 
-#include "eos/cubic_eos_base.hpp"        // eos::CubicEosBase
-#include "eos/no_correction_policy.hpp"  // eos::NoCorrectionPolicy
+#include "eos/cubic_eos_base.hpp"              // eos::CubicEosBase
+#include "eos/identity_correction_factor.hpp"  // eos::IdentityCorrectionFactor
 
 namespace eos {
 
@@ -86,15 +86,15 @@ struct VanDerWaalsEosPolicy {
 
 template <typename Scalar>
 class VanDerWaalsEos : public CubicEosBase<Scalar, VanDerWaalsEosPolicy<Scalar>,
-                                           NoCorrectionPolicy<Scalar>> {
+                                           IdentityCorrectionFactor> {
  public:
   using Base = CubicEosBase<Scalar, VanDerWaalsEosPolicy<Scalar>,
-                            NoCorrectionPolicy<Scalar>>;
+                            IdentityCorrectionFactor>;
 
   VanDerWaalsEos() = default;
 
   VanDerWaalsEos(const Scalar& pc, const Scalar& tc)
-      : Base{pc, tc, NoCorrectionPolicy<Scalar>{}} {}
+      : Base{pc, tc, IdentityCorrectionFactor{}} {}
 
   VanDerWaalsEos(const VanDerWaalsEos&) = default;
   VanDerWaalsEos(VanDerWaalsEos&&) = default;

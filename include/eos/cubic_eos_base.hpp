@@ -3,7 +3,8 @@
 #include <utility>  // std::pair
 #include <vector>   // std::vector
 
-#include "eos/thermodynamic_constants.hpp"  // eos::gasConstant
+#include "eos/identity_correction_factor.hpp"  // eos::IdentityCorrectionFactor
+#include "eos/thermodynamic_constants.hpp"     // eos::gasConstant
 
 namespace eos {
 
@@ -12,9 +13,9 @@ namespace eos {
  *
  * @tparam Scalar scalar
  * @tparam EosPolicy EoS policy
- * @tparam CorrectionPolicy correction policy for attraction parameter
+ * @tparam CorrectionFactor correction factor for attraction parameter
  */
-template <typename Scalar, typename EosPolicy, typename CorrectionPolicy>
+template <typename Scalar, typename EosPolicy, typename CorrectionFactor>
 class CubicEosBase {
  public:
   /// Coefficient for attraction parameter
@@ -33,15 +34,15 @@ class CubicEosBase {
    *
    * @param[in] pc critical pressure
    * @param[in] tc critical temperature
-   * @param[in] corrector correction policy
+   * @param[in] correctionFactor correction factor for attraction parameter
    */
   CubicEosBase(const Scalar& pc, const Scalar& tc,
-               const CorrectionPolicy& corrector) noexcept
+               const CorrectionFactor& correctionFactor) noexcept
       : pc_{pc},
         tc_{tc},
         a_{attractionParam(pc, tc)},
         b_{repulsionParam(pc, tc)},
-        corrector_{corrector} {}
+        correctionFactor_{correctionFactor} {}
 
   CubicEosBase& operator=(const CubicEosBase&) = default;
   CubicEosBase& operator=(CubicEosBase&&) = default;
@@ -87,12 +88,11 @@ class CubicEosBase {
    * @return Scalar pressure
    */
   Scalar pressure(const Scalar& t, const Scalar& v) const noexcept {
-    if constexpr (std::is_same_v<CorrectionPolicy,
-                                 NoCorrectionPolicy<Scalar>>) {
+    if constexpr (std::is_same_v<CorrectionFactor, IdentityCorrectionFactor>) {
       return EosPolicy::pressure(t, v, a_, b_);
     } else {
       const auto tr = this->reducedTemperature(t);
-      const auto alpha = corrector_.value(tr);
+      const auto alpha = correctionFactor_.value(tr);
       return EosPolicy::pressure(t, v, alpha * a_, b_);
     }
   }
@@ -127,12 +127,11 @@ class CubicEosBase {
     const auto tr = this->reducedTemperature(t);
     const auto ar = this->reducedAttractionParam(pr, tr);
     const auto br = this->reducedRepulsionParam(pr, tr);
-    if constexpr (std::is_same_v<CorrectionPolicy,
-                                 NoCorrectionPolicy<Scalar>>) {
+    if constexpr (std::is_same_v<CorrectionFactor, IdentityCorrectionFactor>) {
       return {solver(EosPolicy::zfactorCubicEq(ar, br)),
               {p, t, pr, tr, ar, br}};
     } else {
-      const auto alpha = corrector_.value(tr);
+      const auto alpha = correctionFactor_.value(tr);
       const auto ar2 = alpha * ar;
       return {solver(EosPolicy::zfactorCubicEq(ar2, br)),
               {p, t, pr, tr, ar2, br}};
@@ -179,7 +178,7 @@ class CubicEosBase {
                                          params.reducedAttractionParam,
                                          params.reducedRepulsionParam)
     } else {
-      const auto beta = corrector_.derivative(params.reducedTemperature);
+      const auto beta = correctionFactor_.derivative(params.reducedTemperature);
       return EosPolicy::residualEnthalpy(z, params.temperature,
                                          params.reducedAttractionParam,
                                          params.reducedRepulsionParam, beta);
@@ -199,7 +198,7 @@ class CubicEosBase {
       return EosPolicy::residualEntropy(z, params.reducedAttractionParam,
                                         params.reducedRepulsionParam)
     } else {
-      const auto beta = corrector_.derivative(params.reducedTemperature);
+      const auto beta = correctionFactor_.derivative(params.reducedTemperature);
       return EosPolicy::residualEntropy(z, params.reducedAttractionParam,
                                         params.reducedRepulsionParam, beta);
     }
@@ -224,11 +223,11 @@ class CubicEosBase {
   /// @name Protected member functions
   //@{
 
-  const CorrectionPolicy& correctionPolicy() const noexcept {
-    return corrector_;
+  const CorrectionFactor& correctionFactor() const noexcept {
+    return correctionFactor_;
   }
 
-  CorrectionPolicy& correctionPolicy() noexcept { return corrector_; }
+  CorrectionFactor& correctionFactor() noexcept { return correctionFactor_; }
   //@}
 
  private:
@@ -289,7 +288,7 @@ class CubicEosBase {
   Scalar a_;   ///< Attraction parameter
   Scalar b_;   ///< Repulsion parameter
   /// Correction policy for attraction parameter
-  CorrectionPolicy corrector_;
+  CorrectionFactor correctionFactor_;
 };
 
 }  // namespace eos
