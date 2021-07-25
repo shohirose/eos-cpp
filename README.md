@@ -6,11 +6,11 @@ eos-cpp is a header-only library for cubic equations of state (EoS) written in c
 
 This library provides templated classes for three types of cubic EoS: Van der Waals, Soave-Redlich-Kwong, and Peng-Robinson EoS. These are respectively defined as the following classes:
 
-- `eos::VanDerWaalsEos`
-- `eos::SoaveRedlichKwongEos`
-- `eos::PengRobinsonEos`
+- `eos::VanDerWaalsEos<Scalar>`
+- `eos::SoaveRedlichKwongEos<Scalar>`
+- `eos::PengRobinsonEos<Scalar>`
 
-You can customize and create a new cubic EoS by inheriting `CubicEosBase`. `CubicEosBase` is a template base class for general two-parameter cubic EoS. `CubicEosBase` requires `EosPoicy` and `CorrectionPolicy` types as well as `Scalar` type. While `EosPolicy` class implements functions to calculate thermodynamic properties such as pressure and compressibility, `CorrectionPolicy` class defines how to calculate the correction factor for attraction parameter in a cubic EoS.
+You can customize and create a new cubic EoS by inheriting `CubicEosBase<Scalar, EosPolicy, CorrectionFactor>`. `CubicEosBase` is a template base class for general two-parameter cubic EoS. `CubicEosBase` requires `Scalar`, `EosPoicy`, and `CorrectionFactor` types. While `EosPolicy` class implements functions to calculate thermodynamic properties such as pressure and compressibility, `CorrectionFactor` class provides the calculation method of the correction factor for attraction parameter.
 
 An `EosPolicy` class must provide the following static functions:
 
@@ -21,7 +21,7 @@ An `EosPolicy` class must provide the following static functions:
 - `residualEntropy` : Compute residual entropy.
 - `residualHelmholzEnergy` : Compute residual Helmholtz energy.
 
-A `CorrectionPolicy` class must provide the following member functions:
+A `CorrectionFactor` class must provide the following member functions:
 
 - `value` : Compute the correction factor.
 - `derivative` : Compute the derivative of the correction factor.
