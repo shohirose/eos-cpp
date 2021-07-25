@@ -4,7 +4,7 @@
 #include <cmath>  // std::sqrt, std::exp, std::log
 
 #include "eos/cubic_eos_base.hpp"           // eos::CubicEosBase
-#include "eos/soave_correction_policy.hpp"  // eos::SoaveCorrectionPolicy
+#include "eos/soave_correction_factor.hpp"  // eos::SoaveCorrectionFactor
 
 namespace eos {
 
@@ -128,11 +128,11 @@ struct SoaveRedlichKwongEosPolicy {
 template <typename Scalar>
 class SoaveRedlichKwongEos
     : public CubicEosBase<Scalar, SoaveRedlichKwongEosPolicy<Scalar>,
-                          SoaveCorrectionPolicy<Scalar>> {
+                          SoaveCorrectionFactor<Scalar>> {
  public:
   /// Base class
   using Base = CubicEosBase<Scalar, SoaveRedlichKwongEosPolicy<Scalar>,
-                            SoaveCorrectionPolicy<Scalar>>;
+                            SoaveCorrectionFactor<Scalar>>;
   /// @name Constructors
   //@{
   SoaveRedlichKwongEos() = default;
@@ -145,7 +145,7 @@ class SoaveRedlichKwongEos
    * @param omega acentric factor
    */
   SoaveRedlichKwongEos(const Scalar& pc, const Scalar& tc, const Scalar& omega)
-      : Base{pc, tc, SoaveCorrectionPolicy{calcM(omega)}}, omega_{omega} {}
+      : Base{pc, tc, SoaveCorrectionFactor{calcM(omega)}}, omega_{omega} {}
 
   SoaveRedlichKwongEos(const SoaveRedlichKwongEos&) = default;
   SoaveRedlichKwongEos(SoaveRedlichKwongEos&&) = default;
@@ -166,7 +166,7 @@ class SoaveRedlichKwongEos
 
  private:
   /**
-   * @brief Compute coefficient m for SoaveCorrectionPolicy
+   * @brief Compute coefficient m for SoaveCorrectionFactor
    *
    * @param omega acentric factor
    * @return Scalar coefficient m

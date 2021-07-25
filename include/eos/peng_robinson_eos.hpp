@@ -5,7 +5,7 @@
 
 #include "eos/cubic_eos_base.hpp"           // eos::CubicEosBase
 #include "eos/mathematical_constants.hpp"   // eos::sqrtTwo
-#include "eos/soave_correction_policy.hpp"  // eos::SoaveCorrectionPolicy
+#include "eos/soave_correction_factor.hpp"  // eos::SoaveCorrectionFactor
 
 namespace eos {
 
@@ -152,11 +152,11 @@ struct PengRobinsonEosPolicy {
 template <typename Scalar>
 class PengRobinsonEos
     : public CubicEosBase<Scalar, PengRobinsonEosPolicy<Scalar>,
-                          SoaveCorrectionPolicy<Scalar>> {
+                          SoaveCorrectionFactor<Scalar>> {
  public:
   /// Base class
   using Base = CubicEosBase<Scalar, PengRobinsonEosPolicy<Scalar>,
-                            SoaveCorrectionPolicy<Scalar>>;
+                            SoaveCorrectionFactor<Scalar>>;
 
   /// @name Constructors
   //@{
@@ -170,7 +170,7 @@ class PengRobinsonEos
    * @param omega acentric factor
    */
   PengRobinsonEos(const Scalar& pc, const Scalar& tc, const Scalar& omega)
-      : Base{pc, tc, SoaveCorrectionPolicy{calcM(omega)}}, omega_{omega} {}
+      : Base{pc, tc, SoaveCorrectionFactor{calcM(omega)}}, omega_{omega} {}
 
   PengRobinsonEos(const PengRobinsonEos&) = default;
   PengRobinsonEos(PengRobinsonEos&&) = default;

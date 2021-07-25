@@ -5,27 +5,27 @@
 namespace eos {
 
 /**
- * @brief Correction factor proposed by Soave (1972).
+ * @brief Correction factor for attraction parameter proposed by Soave (1972).
  *
  * @tparam Scalar scalar
  */
 template <typename Scalar>
-class SoaveCorrectionPolicy {
+class SoaveCorrectionFactor {
  public:
-  SoaveCorrectionPolicy() = default;
+  SoaveCorrectionFactor() = default;
 
   /**
-   * @brief Construct a new Soave Correction Policy object
+   * @brief Construct a new SoaveCorrectionFactor object
    *
    * @param m coefficient used to calculate a correction factor
    */
-  SoaveCorrectionPolicy(const Scalar& m) : m_{m} {}
+  SoaveCorrectionFactor(const Scalar& m) : m_{m} {}
 
-  SoaveCorrectionPolicy(const SoaveCorrectionPolicy&) = default;
-  SoaveCorrectionPolicy(SoaveCorrectionPolicy&&) = default;
+  SoaveCorrectionFactor(const SoaveCorrectionFactor&) = default;
+  SoaveCorrectionFactor(SoaveCorrectionFactor&&) = default;
 
-  SoaveCorrectionPolicy& operator=(const SoaveCorrectionPolicy&) = default;
-  SoaveCorrectionPolicy& operator=(SoaveCorrectionPolicy&&) = default;
+  SoaveCorrectionFactor& operator=(const SoaveCorrectionFactor&) = default;
+  SoaveCorrectionFactor& operator=(SoaveCorrectionFactor&&) = default;
 
   const Scalar& m() const noexcept { return m_; }
   Scalar& m() noexcept { return m_; }
