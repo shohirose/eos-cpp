@@ -34,15 +34,15 @@ class CubicEosBase {
    *
    * @param[in] pc critical pressure
    * @param[in] tc critical temperature
-   * @param[in] correctionFactor correction factor for attraction parameter
+   * @param[in] alpha correction factor for attraction parameter
    */
   CubicEosBase(const Scalar& pc, const Scalar& tc,
-               const CorrectionFactor& correctionFactor) noexcept
+               const CorrectionFactor& alpha) noexcept
       : pc_{pc},
         tc_{tc},
         a_{attractionParam(pc, tc)},
         b_{repulsionParam(pc, tc)},
-        correctionFactor_{correctionFactor} {}
+        alpha_{alpha} {}
 
   CubicEosBase& operator=(const CubicEosBase&) = default;
   CubicEosBase& operator=(CubicEosBase&&) = default;
@@ -92,8 +92,7 @@ class CubicEosBase {
       return EosPolicy::pressure(t, v, a_, b_);
     } else {
       const auto tr = this->reducedTemperature(t);
-      const auto alpha = correctionFactor_.value(tr);
-      return EosPolicy::pressure(t, v, alpha * a_, b_);
+      return EosPolicy::pressure(t, v, alpha_.value(tr) * a_, b_);
     }
   }
 
@@ -131,8 +130,7 @@ class CubicEosBase {
       return {solver(EosPolicy::zfactorCubicEq(ar, br)),
               {p, t, pr, tr, ar, br}};
     } else {
-      const auto alpha = correctionFactor_.value(tr);
-      const auto ar2 = alpha * ar;
+      const auto ar2 = alpha_.value(tr) * ar;
       return {solver(EosPolicy::zfactorCubicEq(ar2, br)),
               {p, t, pr, tr, ar2, br}};
     }
@@ -178,10 +176,10 @@ class CubicEosBase {
                                          params.reducedAttractionParam,
                                          params.reducedRepulsionParam)
     } else {
-      const auto beta = correctionFactor_.derivative(params.reducedTemperature);
-      return EosPolicy::residualEnthalpy(z, params.temperature,
-                                         params.reducedAttractionParam,
-                                         params.reducedRepulsionParam, beta);
+      const auto dlnAlpha_dlnT = alpha_.derivative(params.reducedTemperature);
+      return EosPolicy::residualEnthalpy(
+          z, params.temperature, params.reducedAttractionParam,
+          params.reducedRepulsionParam, dlnAlpha_dlnT);
     }
   }
 
@@ -198,9 +196,10 @@ class CubicEosBase {
       return EosPolicy::residualEntropy(z, params.reducedAttractionParam,
                                         params.reducedRepulsionParam)
     } else {
-      const auto beta = correctionFactor_.derivative(params.reducedTemperature);
+      const auto dlnAlpha_dlnT = alpha_.derivative(params.reducedTemperature);
       return EosPolicy::residualEntropy(z, params.reducedAttractionParam,
-                                        params.reducedRepulsionParam, beta);
+                                        params.reducedRepulsionParam,
+                                        dlnAlpha_dlnT);
     }
   }
 
@@ -223,11 +222,9 @@ class CubicEosBase {
   /// @name Protected member functions
   //@{
 
-  const CorrectionFactor& correctionFactor() const noexcept {
-    return correctionFactor_;
-  }
+  const CorrectionFactor& correctionFactor() const noexcept { return alpha_; }
 
-  CorrectionFactor& correctionFactor() noexcept { return correctionFactor_; }
+  CorrectionFactor& correctionFactor() noexcept { return alpha_; }
   //@}
 
  private:
@@ -283,12 +280,11 @@ class CubicEosBase {
   }
   //@}
 
-  Scalar pc_;  ///< Critical pressure
-  Scalar tc_;  ///< Critical temperature
-  Scalar a_;   ///< Attraction parameter
-  Scalar b_;   ///< Repulsion parameter
-  /// Correction policy for attraction parameter
-  CorrectionFactor correctionFactor_;
+  Scalar pc_;               //< Critical pressure
+  Scalar tc_;               //< Critical temperature
+  Scalar a_;                //< Attraction parameter
+  Scalar b_;                //< Repulsion parameter
+  CorrectionFactor alpha_;  //< Correction factor for attraction parameter
 };
 
 }  // namespace eos
