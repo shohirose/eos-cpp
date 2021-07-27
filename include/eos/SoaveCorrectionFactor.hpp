@@ -29,7 +29,7 @@ class SoaveCorrectionFactor {
    *
    * @param m coefficient used to calculate a correction factor
    */
-  SoaveCorrectionFactor(const Scalar& m) : m_{m} {}
+  explicit SoaveCorrectionFactor(const Scalar& m) : m_{m} {}
 
   SoaveCorrectionFactor(const SoaveCorrectionFactor&) = default;
   SoaveCorrectionFactor(SoaveCorrectionFactor&&) = default;
