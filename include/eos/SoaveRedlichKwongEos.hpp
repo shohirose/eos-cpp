@@ -121,7 +121,24 @@ struct SoaveRedlichKwongEosPolicy {
 /**
  * @brief Soave-Redlich-Kwong EoS
  *
- * EoS proposed by Soave (1972).
+ * Soave-Redlich-Kwong EoS proposed by Soave (1972) is defined by
+ * \f[
+ *    P = \frac{RT}{V - b} - \frac{\alpha(T) a}{V(V + b)}
+ * \f]
+ * where \f$P\f$ is pressure, \f$T\f$ is temperature, \f$V\f$ is volume, \f$a\f$
+ * is attraction parameter, \f$b\f$ is repulsion parameter, and \f$\alpha\f$ is
+ * correction factor for attraction parameter.
+ *
+ * The correction parameter for SRK EoS is defined by
+ * \f[
+ *    \alpha(T) := \left[ 1 + m \left( 1 - \sqrt{T_r} \right) \right]^2
+ * \f]
+ * where \f$m\f$ is a coefficient, and \f$T_r\f$ is reduced temperature.
+ *
+ * The coefficient \f$m\f$ for SRK EoS is calculated from acentric factor by
+ * \f[
+ *    m = 0.48 + 1.574 \omega - 0.176 \omega^2
+ * \f]
  *
  * @tparam Scalar scalar
  */
@@ -138,7 +155,7 @@ class SoaveRedlichKwongEos
   SoaveRedlichKwongEos() = default;
 
   /**
-   * @brief Construct a new Soave Redlich Kwong Eos object
+   * @brief Construct a new SoaveRedlichKwongEos object
    *
    * @param pc critical pressure
    * @param tc critical temperature
@@ -179,7 +196,7 @@ class SoaveRedlichKwongEos
 };
 
 /**
- * @brief Make a new Soave-Redlich-Kwong EoS object
+ * @brief Make a new SoaveRedlichKwongEos object
  *
  * @tparam Scalar scalar
  * @param pc critical pressure
