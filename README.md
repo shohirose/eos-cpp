@@ -43,7 +43,7 @@ Unit tests use [GNU Scientific Library](https://www.gnu.org/software/gsl/) and [
 ```cpp
 #include <gsl/gsl_poly.h> // gsl_poly_solve_cubic
 
-#include "eos/peng_robinson_eos.hpp"
+#include "eos/PengRobinsonEos.hpp"
 
 // A solver for cubic equation using GSL library
 struct CubicEquationSolver {
