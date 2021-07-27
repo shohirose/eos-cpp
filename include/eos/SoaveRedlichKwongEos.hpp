@@ -131,11 +131,6 @@ struct SoaveRedlichKwongEosPolicy {
  * \f]
  * where \f$m\f$ is a coefficient, and \f$T_r\f$ is reduced temperature.
  *
- * The coefficient \f$m\f$ for SRK EoS is calculated from acentric factor by
- * \f[
- *    m = 0.48 + 1.574 \omega - 0.176 \omega^2
- * \f]
- *
  * @tparam Scalar scalar
  */
 template <typename Scalar>
@@ -150,14 +145,41 @@ class SoaveRedlichKwongEos
   SoaveRedlichKwongEos() = default;
 
   /**
+   * @brief Default calculator of coefficient m for SoaveCorrectionFactor for
+   * SoaveRedlichKwongEos
+   *
+   * \f[
+   *    m = 0.48 + 1.574 \omega - 0.176 \omega^2
+   * \f]
+   * where \f$\omega\f$ is acentric factor.
+   *
+   * @tparam Scalar scalar
+   */
+  struct DefaultCalculator {
+    /**
+     * @brief Compute coeffcient m for SoaveCorrecionFactor
+     *
+     * @param[in] omega acentric factor
+     * @return Scalar coefficient m
+     */
+    Scalar operator()(const Scalar& omega) const noexcept {
+      return 0.48 + (1.574 - 0.176 * omega) * omega;
+    }
+  };
+
+  /**
    * @brief Construct a new SoaveRedlichKwongEos object
    *
-   * @param pc critical pressure
-   * @param tc critical temperature
-   * @param omega acentric factor
+   * @tparam F function to calculate m in SoaveCorrectionFactor
+   * @param[in] pc critical pressure
+   * @param[in] tc critical temperature
+   * @param[in] omega acentric factor
+   * @param[in] f function to calculate m in SoaveCorrectionFactor (optional)
    */
-  SoaveRedlichKwongEos(const Scalar& pc, const Scalar& tc, const Scalar& omega)
-      : Base{pc, tc, SoaveCorrectionFactor{calcM(omega)}}, omega_{omega} {}
+  template <typename F = DefaultCalculator>
+  SoaveRedlichKwongEos(const Scalar& pc, const Scalar& tc, const Scalar& omega,
+                       F&& f = F{})
+      : Base{pc, tc, SoaveCorrectionFactor{f(omega)}}, omega_{omega} {}
 
   SoaveRedlichKwongEos(const SoaveRedlichKwongEos&) = default;
   SoaveRedlichKwongEos(SoaveRedlichKwongEos&&) = default;
@@ -168,24 +190,17 @@ class SoaveRedlichKwongEos
   /**
    * @brief Set acentric factor
    *
-   * @param omega acentric factor
+   * @tparam F function to calculate m in SoaveCorrectionFactor
+   * @param[in] omega acentric factor
+   * @param[in] f function to calculate m in SoaveCorrectionFactor (optional)
    */
-  void setAcentricFactor(const Scalar& omega) {
+  template <typename F = DefaultCalculator>
+  void setAcentricFactor(const Scalar& omega, F&& f = F{}) {
     omega_ = omega;
-    this->setCcorrectionFactor(SoaveCorrectionFactor{calcM(omega)});
+    this->setCorrectionFactor(SoaveCorrectionFactor{f(omega)});
   }
 
  private:
-  /**
-   * @brief Compute coefficient m for SoaveCorrectionFactor
-   *
-   * @param omega acentric factor
-   * @return Scalar coefficient m
-   */
-  static Scalar calcM(const Scalar& omega) noexcept {
-    return 0.48 + (1.574 - 0.176 * omega) * omega;
-  }
-
   Scalar omega_;  ///< acentric factor
 };
 
@@ -193,15 +208,18 @@ class SoaveRedlichKwongEos
  * @brief Make a new SoaveRedlichKwongEos object
  *
  * @tparam Scalar scalar
- * @param pc critical pressure
- * @param tc critical temperature
- * @param omega acentric factor
+ * @tparam F function to calculate m in SoaveCorrectionFactor
+ * @param[in] pc critical pressure
+ * @param[in] tc critical temperature
+ * @param[in] omega acentric factor
+ * @param[in] f function to calculate m in SoaveCorrectionFactor (optional)
  * @return SoaveRedlichKwongEos<Scalar>
  */
-template <typename Scalar>
+template <typename Scalar,
+          typename F = SoaveRedlichKwongEos<Scalar>::DefaultCalculator>
 inline SoaveRedlichKwongEos<Scalar> makeSoaveRedlichKwongEos(
-    const Scalar& pc, const Scalar& tc, const Scalar& omega) {
-  return {pc, tc, omega};
+    const Scalar& pc, const Scalar& tc, const Scalar& omega, F&& f = F{}) {
+  return {pc, tc, omega, std::move(f)};
 }
 
 }  // namespace eos

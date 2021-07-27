@@ -10,7 +10,7 @@
 namespace eos {
 
 /**
- * @brief EoS policy for Peng-Robinson EoS
+ * @brief EoS policy for PengRobinsonEos
  *
  * @tparam Scalar
  */
@@ -157,14 +157,40 @@ class PengRobinsonEos
   PengRobinsonEos() = default;
 
   /**
+   * @brief Default calculator of coefficient m for SoaveCorrectionFactor
+   *
+   * \f[
+   *    m = 0.37464 + 1.54226 \omega - 0.2699 \omega^2
+   * \f]
+   * where \f$\omega\f$ is acentric factor.
+   *
+   * @tparam Scalar scalar
+   */
+  struct DefaultCalculator {
+    /**
+     * @brief Compute coefficient m for SoaveCorrectionFactor
+     *
+     * @param[in] omega acentric factor
+     * @return Scalar coefficient m
+     */
+    Scalar operator()(const Scalar& omega) const noexcept {
+      return 0.37464 + omega * (1.54226 - omega * 0.2699);
+    }
+  };
+
+  /**
    * @brief Construct a new Peng Robinson Eos object
    *
-   * @param pc critical pressure
-   * @param tc critical temperature
-   * @param omega acentric factor
+   * @tparam F function to calculate m in SoaveCorrectionFactor
+   * @param[in] pc critical pressure
+   * @param[in] tc critical temperature
+   * @param[in] omega acentric factor
+   * @param[in] f functor to calculate m in SoaveCorrectionFactot (optional)
    */
-  PengRobinsonEos(const Scalar& pc, const Scalar& tc, const Scalar& omega)
-      : Base{pc, tc, SoaveCorrectionFactor{calcM(omega)}}, omega_{omega} {}
+  template <typename F = DefaultCalculator>
+  PengRobinsonEos(const Scalar& pc, const Scalar& tc, const Scalar& omega,
+                  F&& f = F{})
+      : Base{pc, tc, SoaveCorrectionFactor{f(omega)}}, omega_{omega} {}
 
   PengRobinsonEos(const PengRobinsonEos&) = default;
   PengRobinsonEos(PengRobinsonEos&&) = default;
@@ -175,41 +201,37 @@ class PengRobinsonEos
   /**
    * @brief Set acentric factor
    *
+   * @tparam F function to calculate m in SoaveCorrectionFactor
    * @param[in] omega acentric factor
+   * @param[in] f functor to calculate m in SoaveCorrectionFactor (optional)
    */
-  void setAcentricFactor(const Scalar& omega) {
+  template <typename F = DefaultCalculator>
+  void setAcentricFactor(const Scalar& omega, F&& f = F{}) {
     omega_ = omega;
-    this->setCorrectionFactor(SoaveCorrectionFactor{calcM(omega)});
+    this->setCorrectionFactor(SoaveCorrectionFactor{f(omega)});
   }
 
  private:
-  /**
-   * @brief Compute coefficient m for correction policy
-   *
-   * @param[in] omega acentric factor
-   * @return Scalar coefficient m
-   */
-  static Scalar calcM(const Scalar& omega) noexcept {
-    return 0.37464 + omega * (1.54226 - omega * 0.2699);
-  }
-
   Scalar omega_;  ///< Acentric factor
 };
 
 /**
- * @brief Create a new Peng-Robinson EoS object
+ * @brief Create a new PengRobinsonEos object
  *
- * @tparam T scalar
+ * @tparam Scalar scalar
+ * @tparam F function to calculate m in SoaveCorrectionFactor
  * @param[in] pc critical pressure
  * @param[in] tc critical temperature
  * @param[in] omega acentric factor
- * @returns PengRobinsonEos<Scalar> Peng-Robinson EoS object
+ * @returns PengRobinsonEos<Scalar> PengRobinsonEos object
  */
-template <typename Scalar>
+template <typename Scalar,
+          typename F = PengRobinsonEos<Scalar>::DefaultCalculator>
 inline PengRobinsonEos<Scalar> makePengRobinsonEos(const Scalar& pc,
                                                    const Scalar& tc,
-                                                   const Scalar& omega) {
-  return {pc, tc, omega};
+                                                   const Scalar& omega,
+                                                   F&& func = F{}) {
+  return {pc, tc, omega, std::move(func)};
 }
 
 }  // namespace eos
