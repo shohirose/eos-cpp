@@ -230,8 +230,8 @@ template <typename Scalar,
 inline PengRobinsonEos<Scalar> makePengRobinsonEos(const Scalar& pc,
                                                    const Scalar& tc,
                                                    const Scalar& omega,
-                                                   F&& func = F{}) {
-  return {pc, tc, omega, std::move(func)};
+                                                   F&& f = F{}) {
+  return {pc, tc, omega, std::forward<F>(f)};
 }
 
 }  // namespace eos

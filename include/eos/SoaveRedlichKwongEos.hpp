@@ -219,7 +219,7 @@ template <typename Scalar,
           typename F = SoaveRedlichKwongEos<Scalar>::DefaultCalculator>
 inline SoaveRedlichKwongEos<Scalar> makeSoaveRedlichKwongEos(
     const Scalar& pc, const Scalar& tc, const Scalar& omega, F&& f = F{}) {
-  return {pc, tc, omega, std::move(f)};
+  return {pc, tc, omega, std::forward<F>(f)};
 }
 
 }  // namespace eos
