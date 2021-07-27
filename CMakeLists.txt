@@ -13,10 +13,6 @@ add_subdirectory(src)
 option(EOSCPP_BUILD_TEST "Build unit tests" ON)
 
 if(EOSCPP_BUILD_TEST)
-  # Disable googletest options
-  set(BUILD_GMOCK OFF CACHE BOOL "Build gmock" FORCE)
-  set(INSTALL_GTEST OFF CACHE BOOL "Install gtest" FORCE)
-
   include(FetchContent)
   FetchContent_Declare(
     googletest
@@ -27,6 +23,9 @@ if(EOSCPP_BUILD_TEST)
   if(WIN32)
     set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
   endif()
+  # Disable unnecessary googletest options
+  set(BUILD_GMOCK OFF CACHE BOOL "Build gmock" FORCE)
+  set(INSTALL_GTEST OFF CACHE BOOL "Install gtest" FORCE)
   FetchContent_MakeAvailable(googletest)
 
   # Find GNU Scientific Library
