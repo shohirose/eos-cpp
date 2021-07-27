@@ -20,9 +20,6 @@ struct SoaveRedlichKwongEosPolicy {
   /// Coefficient for repulsion parameter
   static constexpr Scalar omegaB = 0.08664;
 
-  /// @name Public static functions
-  //@{
-
   /**
    * @brief Compute pressure at given temperature and volume
    *
@@ -115,7 +112,6 @@ struct SoaveRedlichKwongEosPolicy {
     constexpr auto R = gasConstant<Scalar>();
     return R * t * (log(z - b) + a / b * log((z + b) / z));
   }
-  //@}
 };
 
 /**
@@ -150,8 +146,7 @@ class SoaveRedlichKwongEos
   /// Base class
   using Base = CubicEosBase<Scalar, SoaveRedlichKwongEosPolicy<Scalar>,
                             SoaveCorrectionFactor<Scalar>>;
-  /// @name Constructors
-  //@{
+
   SoaveRedlichKwongEos() = default;
 
   /**
@@ -166,7 +161,6 @@ class SoaveRedlichKwongEos
 
   SoaveRedlichKwongEos(const SoaveRedlichKwongEos&) = default;
   SoaveRedlichKwongEos(SoaveRedlichKwongEos&&) = default;
-  //@}
 
   SoaveRedlichKwongEos& operator=(const SoaveRedlichKwongEos&) = default;
   SoaveRedlichKwongEos& operator=(SoaveRedlichKwongEos&&) = default;
@@ -178,7 +172,7 @@ class SoaveRedlichKwongEos
    */
   void setAcentricFactor(const Scalar& omega) {
     omega_ = omega;
-    this->correctionFactor().m() = calcM(omega);
+    this->setCcorrectionFactor(SoaveCorrectionFactor{calcM(omega)});
   }
 
  private:

@@ -20,9 +20,6 @@ struct VanDerWaalsEosPolicy {
   /// Coefficient for repulsion parameter
   static constexpr Scalar omegaB = 0.125;
 
-  /// @name Public static Functions
-  ///@{
-
   /**
    * @brief Compute pressure at given temperature and volume.
    *
@@ -107,7 +104,6 @@ struct VanDerWaalsEosPolicy {
     constexpr auto R = gasConstant<Scalar>();
     return R * t * (log(z - b) + a / z);
   }
-  /// @}
 };
 
 /**
@@ -130,8 +126,7 @@ class VanDerWaalsEos : public CubicEosBase<Scalar, VanDerWaalsEosPolicy<Scalar>,
   /// Base class
   using Base = CubicEosBase<Scalar, VanDerWaalsEosPolicy<Scalar>,
                             IdentityCorrectionFactor>;
-  /// @name Constructors
-  /// @{
+
   VanDerWaalsEos() = default;
 
   /**
@@ -145,7 +140,6 @@ class VanDerWaalsEos : public CubicEosBase<Scalar, VanDerWaalsEosPolicy<Scalar>,
 
   VanDerWaalsEos(const VanDerWaalsEos&) = default;
   VanDerWaalsEos(VanDerWaalsEos&&) = default;
-  /// @}
 
   VanDerWaalsEos& operator=(const VanDerWaalsEos&) = default;
   VanDerWaalsEos& operator=(VanDerWaalsEos&&) = default;

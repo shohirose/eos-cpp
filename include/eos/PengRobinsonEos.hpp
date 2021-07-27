@@ -4,7 +4,7 @@
 #include <cmath>  // std::sqrt, std::exp, std::log
 
 #include "eos/CubicEosBase.hpp"           // eos::CubicEosBase
-#include "eos/MathematicalConstants.hpp"   // eos::sqrtTwo
+#include "eos/MathematicalConstants.hpp"  // eos::sqrtTwo
 #include "eos/SoaveCorrectionFactor.hpp"  // eos::SoaveCorrectionFactor
 
 namespace eos {
@@ -20,9 +20,6 @@ struct PengRobinsonEosPolicy {
   static constexpr Scalar omegaA = 0.45724;
   /// Coefficient for repulsion parameter
   static constexpr Scalar omegaB = 0.07780;
-
-  /// @name Public static functions
-  //@{
 
   /**
    * @brief Compute pressure at given temperature and volume
@@ -115,7 +112,6 @@ struct PengRobinsonEosPolicy {
     constexpr auto R = gasConstant<Scalar>();
     return R * t * (log(z - b) + calcQ(z, a, b));
   }
-  //@}
 
  private:
   /**
@@ -158,8 +154,6 @@ class PengRobinsonEos
   using Base = CubicEosBase<Scalar, PengRobinsonEosPolicy<Scalar>,
                             SoaveCorrectionFactor<Scalar>>;
 
-  /// @name Constructors
-  //@{
   PengRobinsonEos() = default;
 
   /**
@@ -174,7 +168,6 @@ class PengRobinsonEos
 
   PengRobinsonEos(const PengRobinsonEos&) = default;
   PengRobinsonEos(PengRobinsonEos&&) = default;
-  //@}
 
   PengRobinsonEos& operator=(const PengRobinsonEos&) = default;
   PengRobinsonEos& operator=(PengRobinsonEos&&) = default;
@@ -186,7 +179,7 @@ class PengRobinsonEos
    */
   void setAcentricFactor(const Scalar& omega) {
     omega_ = omega;
-    this->correctionFactor().m() = calcM(omega);
+    this->setCorrectionFactor(SoaveCorrectionFactor{calcM(omega)});
   }
 
  private:

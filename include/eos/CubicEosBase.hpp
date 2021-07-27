@@ -23,8 +23,6 @@ class CubicEosBase {
   /// Coefficient for repulsion parameter
   static constexpr auto omegaB = EosPolicy::omegaB;
 
-  /// @name Constructors
-  //@{
   CubicEosBase() = default;
   CubicEosBase(const CubicEosBase&) = default;
   CubicEosBase(CubicEosBase&&) = default;
@@ -46,10 +44,6 @@ class CubicEosBase {
 
   CubicEosBase& operator=(const CubicEosBase&) = default;
   CubicEosBase& operator=(CubicEosBase&&) = default;
-  //@}
-
-  /// @name Public member functions
-  //@{
 
   /**
    * @brief Set the critical parameters
@@ -62,6 +56,15 @@ class CubicEosBase {
     tc_ = tc;
     a_ = attractionParam(pc, tc);
     b_ = repulsionParam(pc, tc);
+  }
+
+  /**
+   * @brief Set correction factor for attraction parameter
+   * 
+   * @param alpha correction factor
+   */
+  void setCorrectionFactor(const CorrectionFactor& alpha) {
+    alpha_ = alpha;
   }
 
   /**
@@ -216,16 +219,6 @@ class CubicEosBase {
                                               params.reducedAttractionParam,
                                               params.reducedRepulsionParam);
   }
-  //@}
-
- protected:
-  /// @name Protected member functions
-  //@{
-
-  const CorrectionFactor& correctionFactor() const noexcept { return alpha_; }
-
-  CorrectionFactor& correctionFactor() noexcept { return alpha_; }
-  //@}
 
  private:
   /// @name Private static functions
@@ -278,7 +271,6 @@ class CubicEosBase {
                                       const Scalar& tr) noexcept {
     return omegaB * pr / tr;
   }
-  //@}
 
   Scalar pc_;               ///< Critical pressure
   Scalar tc_;               ///< Critical temperature
