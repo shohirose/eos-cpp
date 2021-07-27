@@ -1,3 +1,5 @@
+enable_testing()
+
 function(add_unit_test name)
   add_executable(${name}
     ${name}.cpp
@@ -15,3 +17,6 @@ function(add_unit_test name)
 endfunction()
 
 add_unit_test(CubicEosTest)
+
+include(GoogleTest)
+gtest_discover_tests(CubicEosTest)

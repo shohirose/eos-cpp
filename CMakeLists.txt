@@ -14,19 +14,23 @@ option(EOSCPP_BUILD_TEST "Build unit tests" ON)
 
 if(EOSCPP_BUILD_TEST)
   # Disable googletest options
-  option(BUILD_GMOCK "Build gmock" OFF)
-  option(INSTALL_GTEST "Install gtest" OFF)
+  set(BUILD_GMOCK OFF CACHE BOOL "Build gmock" FORCE)
+  set(INSTALL_GTEST OFF CACHE BOOL "Install gtest" FORCE)
 
+  include(FetchContent)
+  FetchContent_Declare(
+    googletest
+    URL https://github.com/google/googletest/archive/refs/tags/release-1.11.0.zip
+  )
   # Prevent overriding the parent project's compiler/linker
   # settings on Windows
   if(WIN32)
     set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
   endif()
+  FetchContent_MakeAvailable(googletest)
 
-  add_subdirectory(third-party/googletest)
-
+  # Find GNU Scientific Library
   find_package(GSL REQUIRED)
   
-  enable_testing()
   add_subdirectory(test)
 endif()
