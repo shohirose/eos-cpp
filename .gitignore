@@ -48,3 +48,7 @@ include/eos/vapor_liquid_flash.hpp
 src/lucas_method.cpp
 test/lucas_method_test.cpp
 test/vapor_liquid_flash_test.cpp
+
+# Doxygen
+doc/html/
+doc/latex/
