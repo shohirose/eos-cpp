@@ -197,7 +197,7 @@ class SoaveRedlichKwongEos
   template <typename F = DefaultCalculator>
   void setAcentricFactor(const Scalar& omega, F&& f = F{}) {
     omega_ = omega;
-    this->setCorrectionFactor(SoaveCorrectionFactor{f(omega)});
+    this->correctionFactor().m() = f(omega);
   }
 
  private:

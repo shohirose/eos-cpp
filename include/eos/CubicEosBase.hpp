@@ -58,14 +58,8 @@ class CubicEosBase {
     b_ = repulsionParam(pc, tc);
   }
 
-  /**
-   * @brief Set correction factor for attraction parameter
-   * 
-   * @param alpha correction factor
-   */
-  void setCorrectionFactor(const CorrectionFactor& alpha) {
-    alpha_ = alpha;
-  }
+  CorrectionFactor& correctionFactor() noexcept { return alpha_; }
+  const CorrectionFactor& correctionFactor() const noexcept { return alpha_; }
 
   /**
    * @brief Compute reduced pressure
