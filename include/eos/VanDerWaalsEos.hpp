@@ -58,7 +58,7 @@ struct VanDerWaalsEosPolicy {
   static Scalar lnFugacityCoeff(const Scalar& z, const Scalar& a,
                                 const Scalar& b) noexcept {
     using std::log;
-    return z - 1 - log(z - b) - a / z;
+    return b / (z - b) - log(z - b) - 2 * a / z;
   }
 
   /**
@@ -67,12 +67,14 @@ struct VanDerWaalsEosPolicy {
    * @param[in] t temperature
    * @param[in] a reduced attraction parameter
    * @param[in] b reduced repulsion parameter
+   * @param[in] beta derivative of correction factor
    * @return Scalar residual enthalpy
    */
   static Scalar residualEnthalpy(const Scalar& z, const Scalar& t,
-                                 const Scalar& a, const Scalar& b) noexcept {
+                                 const Scalar& a, const Scalar& b,
+                                 const Scalar& beta) noexcept {
     constexpr auto R = gasConstant<Scalar>();
-    return R * t * (z - 1 - a / z);
+    return R * t * (z - 1 - a / z * (1 - beta));
   }
 
   /**
@@ -80,13 +82,14 @@ struct VanDerWaalsEosPolicy {
    * @param[in] z Z-factor
    * @param[in] a reduced attraction parameter
    * @param[in] b reduced repulsion parameter
+   * @param[in] beta derivative of correction factor
    * @return Scalar residual entropy
    */
   static Scalar residualEntropy(const Scalar& z, const Scalar& a,
-                                const Scalar& b) noexcept {
+                                const Scalar& b, const Scalar& beta) noexcept {
     using std::log;
     constexpr auto R = gasConstant<Scalar>();
-    return R * (log(z - b));
+    return R * (-log(z / (z - b)) + a / z * beta);
   }
 
   /**
@@ -102,7 +105,7 @@ struct VanDerWaalsEosPolicy {
                                         const Scalar& b) noexcept {
     using std::log;
     constexpr auto R = gasConstant<Scalar>();
-    return R * t * (log(z - b) + a / z);
+    return R * t * (log(z / (z - b)) - a / z);
   }
 };
 
