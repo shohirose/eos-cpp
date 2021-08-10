@@ -124,11 +124,11 @@ struct VanDerWaalsEosPolicy {
  */
 template <typename Scalar>
 class VanDerWaalsEos : public CubicEosBase<Scalar, VanDerWaalsEosPolicy<Scalar>,
-                                           IdentityCorrectionFactor> {
+                                           IdentityCorrectionFactor<Scalar>> {
  public:
   /// Base class
   using Base = CubicEosBase<Scalar, VanDerWaalsEosPolicy<Scalar>,
-                            IdentityCorrectionFactor>;
+                            IdentityCorrectionFactor<Scalar>>;
 
   VanDerWaalsEos() = default;
 
@@ -139,7 +139,7 @@ class VanDerWaalsEos : public CubicEosBase<Scalar, VanDerWaalsEosPolicy<Scalar>,
    * @param tc critical temperature
    */
   VanDerWaalsEos(const Scalar& pc, const Scalar& tc)
-      : Base{pc, tc, IdentityCorrectionFactor{}} {}
+      : Base{pc, tc, IdentityCorrectionFactor<Scalar>{}} {}
 
   VanDerWaalsEos(const VanDerWaalsEos&) = default;
   VanDerWaalsEos(VanDerWaalsEos&&) = default;
