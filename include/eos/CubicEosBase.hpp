@@ -85,12 +85,8 @@ class CubicEosBase {
    * @return Scalar pressure
    */
   Scalar pressure(const Scalar& t, const Scalar& v) const noexcept {
-    if constexpr (std::is_same_v<CorrectionFactor, IdentityCorrectionFactor>) {
-      return EosPolicy::pressure(t, v, a_, b_);
-    } else {
-      const auto tr = this->reducedTemperature(t);
-      return EosPolicy::pressure(t, v, alpha_.value(tr) * a_, b_);
-    }
+    const auto tr = this->reducedTemperature(t);
+    return EosPolicy::pressure(t, v, a_, b_, alpha_.value(tr));
   }
 
   /**
