@@ -117,16 +117,9 @@ class CubicEosBase {
       const CubicEquationSolver& solver) const noexcept {
     const auto pr = this->reducedPressure(p);
     const auto tr = this->reducedTemperature(t);
-    const auto ar = this->reducedAttractionParam(pr, tr);
+    const auto ar = alpha_.value(tr) * this->reducedAttractionParam(pr, tr);
     const auto br = this->reducedRepulsionParam(pr, tr);
-    if constexpr (std::is_same_v<CorrectionFactor, IdentityCorrectionFactor>) {
-      return {solver(EosPolicy::zfactorCubicEq(ar, br)),
-              {p, t, pr, tr, ar, br}};
-    } else {
-      const auto ar2 = alpha_.value(tr) * ar;
-      return {solver(EosPolicy::zfactorCubicEq(ar2, br)),
-              {p, t, pr, tr, ar2, br}};
-    }
+    return {solver(EosPolicy::zfactorCubicEq(ar, br)), {p, t, pr, tr, ar, br}};
   }
 
   /**
@@ -164,16 +157,10 @@ class CubicEosBase {
    */
   Scalar residualEnthalpy(const Scalar& z,
                           const StateParams& params) const noexcept {
-    if constexpr (std::is_same_v<VanDerWaalsEosPolicy<Scalar>, EosPolicy>) {
-      return EosPolicy::residualEnthalpy(z, params.temperature,
-                                         params.reducedAttractionParam,
-                                         params.reducedRepulsionParam)
-    } else {
-      const auto dlnAlpha_dlnT = alpha_.derivative(params.reducedTemperature);
-      return EosPolicy::residualEnthalpy(
-          z, params.temperature, params.reducedAttractionParam,
-          params.reducedRepulsionParam, dlnAlpha_dlnT);
-    }
+    const auto beta = alpha_.derivative(params.reducedTemperature);
+    return EosPolicy::residualEnthalpy(z, params.temperature,
+                                       params.reducedAttractionParam,
+                                       params.reducedRepulsionParam, beta);
   }
 
   /**
@@ -185,15 +172,9 @@ class CubicEosBase {
    */
   Scalar residualEntropy(const Scalar& z,
                          const StateParams& params) const noexcept {
-    if constexpr (std::is_same_v<EosPolicy, VanDerWaalsEosPolicy<Scalar>>) {
-      return EosPolicy::residualEntropy(z, params.reducedAttractionParam,
-                                        params.reducedRepulsionParam)
-    } else {
-      const auto dlnAlpha_dlnT = alpha_.derivative(params.reducedTemperature);
-      return EosPolicy::residualEntropy(z, params.reducedAttractionParam,
-                                        params.reducedRepulsionParam,
-                                        dlnAlpha_dlnT);
-    }
+    const auto beta = alpha_.derivative(params.reducedTemperature);
+    return EosPolicy::residualEntropy(z, params.reducedAttractionParam,
+                                      params.reducedRepulsionParam, beta);
   }
 
   /**
