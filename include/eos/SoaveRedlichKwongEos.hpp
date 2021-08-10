@@ -27,12 +27,13 @@ struct SoaveRedlichKwongEosPolicy {
    * @param v volume
    * @param a attraction parameter
    * @param b repulsion parameter
+   * @param[in] alpha temperature correction factor
    * @return Scalar pressure
    */
   static Scalar pressure(const Scalar& t, const Scalar& v, const Scalar& a,
-                         const Scalar& b) noexcept {
+                         const Scalar& b, const Scalar& alpha) noexcept {
     constexpr auto R = gasConstant<Scalar>();
-    return R * t / (v - b) - a / (v * (v + b));
+    return R * t / (v - b) - alpha * a / (v * (v + b));
   }
 
   /**
