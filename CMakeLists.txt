@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.20)
 
 # Use vcpkg if available
 if(DEFINED ENV{VCPKG_ROOT} AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
@@ -66,9 +66,9 @@ install(EXPORT eos-config
 # =============================================================================
 #                                  Unit Tests
 # =============================================================================
-option(EOSCPP_BUILD_TEST "Build unit tests" ON)
+option(EOS_BUILD_TEST "Build unit tests" ON)
 
-if(EOSCPP_BUILD_TEST)
+if(EOS_BUILD_TEST)
   include(FetchContent)
   FetchContent_Declare(
     googletest

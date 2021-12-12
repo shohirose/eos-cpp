@@ -7,7 +7,7 @@ function(add_unit_test name)
   target_link_libraries(${name}
     PRIVATE
       eos
-      gtest_main
+      GTest::gtest_main
       GSL::gsl
     )
   add_test(
