@@ -60,7 +60,7 @@ struct SoaveRedlichKwongEosPolicy {
   static Scalar lnFugacityCoeff(const Scalar& z, const Scalar& a,
                                 const Scalar& b) noexcept {
     using std::log;
-    return z - 1 - log(z - b) - a / b * log((z + b) / z);
+    return z - 1 - log(z - b) + a / b * log(z / (z + b));
   }
 
   /**
@@ -78,7 +78,7 @@ struct SoaveRedlichKwongEosPolicy {
                                  const Scalar& beta) noexcept {
     using std::log;
     constexpr auto R = gasConstant<Scalar>();
-    return R * t * (z - 1 - a / b * (1 - beta) * log((z + b) / z));
+    return R * t * (z - 1 + a / b * (1 - beta) * log(z / (z + b)));
   }
 
   /**
@@ -94,7 +94,7 @@ struct SoaveRedlichKwongEosPolicy {
                                 const Scalar& b, const Scalar& beta) noexcept {
     using std::log;
     constexpr auto R = gasConstant<Scalar>();
-    return R * (log(z - b) + a / b * beta * log((z + b) / z));
+    return R * (-log(z / (z - b)) - a / b * beta * log(z / (z + b)));
   }
 
   /**
@@ -111,7 +111,7 @@ struct SoaveRedlichKwongEosPolicy {
                                         const Scalar& b) noexcept {
     using std::log;
     constexpr auto R = gasConstant<Scalar>();
-    return R * t * (log(z - b) + a / b * log((z + b) / z));
+    return R * t * (log(z / (z - b)) + a / b * log(z / (z + b)));
   }
 };
 

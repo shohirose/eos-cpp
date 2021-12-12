@@ -59,7 +59,7 @@ struct VanDerWaalsEosPolicy {
   static Scalar lnFugacityCoeff(const Scalar& z, const Scalar& a,
                                 const Scalar& b) noexcept {
     using std::log;
-    return b / (z - b) - log(z - b) - 2 * a / z;
+    return z - 1 - log(z - b) - a / z;
   }
 
   /**

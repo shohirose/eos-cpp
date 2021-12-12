@@ -61,7 +61,7 @@ struct PengRobinsonEosPolicy {
   static Scalar lnFugacityCoeff(const Scalar& z, const Scalar& a,
                                 const Scalar& b) noexcept {
     using std::log;
-    return z - 1 - log(z - b) - calcQ(z, a, b);
+    return z - 1 - log(z - b) + calcQ(z, a, b);
   }
 
   /**
@@ -78,7 +78,7 @@ struct PengRobinsonEosPolicy {
                                  const Scalar& a, const Scalar& b,
                                  const Scalar& beta) noexcept {
     constexpr auto R = gasConstant<Scalar>();
-    return R * t * (z - 1 - (1 - beta) * calcQ(z, a, b));
+    return R * t * (z - 1 + (1 - beta) * calcQ(z, a, b));
   }
 
   /**
@@ -94,7 +94,7 @@ struct PengRobinsonEosPolicy {
                                 const Scalar& b, const Scalar& beta) noexcept {
     using std::log;
     constexpr auto R = gasConstant<Scalar>();
-    return R * (log(z - b) + beta * calcQ(z, a, b));
+    return R * (-log(z/(z - b)) - beta * calcQ(z, a, b));
   }
 
   /**
@@ -111,7 +111,7 @@ struct PengRobinsonEosPolicy {
                                         const Scalar& b) noexcept {
     using std::log;
     constexpr auto R = gasConstant<Scalar>();
-    return R * t * (log(z - b) + calcQ(z, a, b));
+    return R * t * (log(z/(z - b)) + calcQ(z, a, b));
   }
 
  private:
@@ -133,8 +133,8 @@ struct PengRobinsonEosPolicy {
                       const Scalar& b) noexcept {
     using std::log;
     constexpr auto sqrt2 = sqrtTwo<Scalar>();
-    constexpr auto delta1 = 1 + sqrt2;
-    constexpr auto delta2 = 1 - sqrt2;
+    constexpr auto delta1 = 1 - sqrt2;
+    constexpr auto delta2 = 1 + sqrt2;
     return a / (2 * sqrt2 * b) * log((z + delta1 * b) / (z + delta2 * b));
   }
 };
