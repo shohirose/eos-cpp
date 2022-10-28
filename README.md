@@ -36,7 +36,7 @@ Helper functions are defined for each EoS to easily create EoS instances:
 
 This library only depends on the STL library.
 
-Unit tests use [GNU Scientific Library](https://www.gnu.org/software/gsl/) and [Googletest](https://github.com/google/googletest). Googletest is included as a git submodule under `third-party` directory.
+Unit tests depend on [GNU Scientific Library](https://www.gnu.org/software/gsl/) and [Googletest](https://github.com/google/googletest). While Googletest will be automatically downloaded when unit tests are enabled, GSL must be installed manually. You can install GSL by using a package manager or [vspkg](https://github.com/microsoft/vcpkg) to install GSL.
 
 ## An Example of Usage
 
