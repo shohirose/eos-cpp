@@ -217,7 +217,7 @@ class SoaveRedlichKwongEos
  * @return SoaveRedlichKwongEos<Scalar>
  */
 template <typename Scalar,
-          typename F = SoaveRedlichKwongEos<Scalar>::DefaultCalculator>
+          typename F = typename SoaveRedlichKwongEos<Scalar>::DefaultCalculator>
 inline SoaveRedlichKwongEos<Scalar> makeSoaveRedlichKwongEos(
     const Scalar& pc, const Scalar& tc, const Scalar& omega, F&& f = F{}) {
   return {pc, tc, omega, std::forward<F>(f)};

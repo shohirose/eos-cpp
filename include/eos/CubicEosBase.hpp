@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cmath>    // std::exp
 #include <utility>  // std::pair
 #include <vector>   // std::vector
 

@@ -94,7 +94,7 @@ struct PengRobinsonEosPolicy {
                                 const Scalar& b, const Scalar& beta) noexcept {
     using std::log;
     constexpr auto R = gasConstant<Scalar>();
-    return R * (-log(z/(z - b)) - beta * calcQ(z, a, b));
+    return R * (-log(z / (z - b)) - beta * calcQ(z, a, b));
   }
 
   /**
@@ -111,7 +111,7 @@ struct PengRobinsonEosPolicy {
                                         const Scalar& b) noexcept {
     using std::log;
     constexpr auto R = gasConstant<Scalar>();
-    return R * t * (log(z/(z - b)) + calcQ(z, a, b));
+    return R * t * (log(z / (z - b)) + calcQ(z, a, b));
   }
 
  private:
@@ -227,7 +227,7 @@ class PengRobinsonEos
  * @returns PengRobinsonEos<Scalar> PengRobinsonEos object
  */
 template <typename Scalar,
-          typename F = PengRobinsonEos<Scalar>::DefaultCalculator>
+          typename F = typename PengRobinsonEos<Scalar>::DefaultCalculator>
 inline PengRobinsonEos<Scalar> makePengRobinsonEos(const Scalar& pc,
                                                    const Scalar& tc,
                                                    const Scalar& omega,
